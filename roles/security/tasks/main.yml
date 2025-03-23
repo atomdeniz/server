@@ -1,0 +1,33 @@
+- name: Install AppArmor
+  apt:
+    name: apparmor
+    state: present
+    update_cache: yes
+
+- name: Start AppArmor service
+  service:
+    name: apparmor
+    state: started
+    enabled: yes
+
+- name: Install jq
+  apt:
+    name: jq
+    state: present
+    update_cache: yes
+
+- name: Template the pam-notification.sh
+  ansible.builtin.template:
+    src: pam-notification.sh
+    dest: /opt/pam-notification.sh
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 755
+  
+- name: Template the sshd
+  ansible.builtin.template:
+    src: sshd
+    dest: /etc/pam.d/sshd
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 755

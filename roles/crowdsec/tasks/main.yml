@@ -1,0 +1,72 @@
+---
+- name: Create crowdsec notifications directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/crowdsec/etc/notifications"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0755
+    access_time: preserve
+    modification_time: preserve
+
+- name: Copy the acquis.yml
+  ansible.builtin.template:
+    src: acquis.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/acquis.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart crowdsec
+
+- name: Copy the profiles.yml
+  ansible.builtin.template:
+    src: profiles.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/profiles.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart crowdsec
+
+- name: Copy the http.yml
+  ansible.builtin.template:
+    src: http.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/notifications/http.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart crowdsec
+
+- name: Copy the email.yml
+  ansible.builtin.template:
+    src: email.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/notifications/email.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart crowdsec
+
+- name: Make sure crowdsec container container is created and running
+  community.docker.docker_container:
+    name: crowdsec
+    image: crowdsecurity/crowdsec:{{ crowdsec_version }}
+    pull: "always"
+    state: "started"
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: public_network
+      - name: prometheus_network
+    ports:
+      - "9876:8080"
+    volumes:
+      - "{{ docker_dir }}/crowdsec/data:/var/lib/crowdsec/data"
+      - "{{ docker_dir }}/crowdsec/etc:/etc/crowdsec"
+      - "{{ docker_dir }}/traefik/logs:/var/log/traefik:ro"
+      - "/var/log/auth.log:/var/log/auth.log:ro"
+      - "/var/log/syslog:/var/log/syslog:ro"
+    env:
+      GID: "1000"
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios crowdsecurity/sshd crowdsecurity/linux crowdsecurity/appsec-generic-rules crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs"
+      

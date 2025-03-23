@@ -1,0 +1,4 @@
+---
+traefik_version: "latest"
+certsdump_version: "latest"
+traefikshaper_version: "latest"

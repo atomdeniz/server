@@ -1,0 +1,23 @@
+---
+- name: Make sure the mywebsite container is created and running
+  community.general.docker_container:
+    name: "mywebsite"
+    image: "874521/denizozogulsite:{{ mywebsite_version }}"
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: public_network
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.mywebsite.entrypoints: "https"
+      traefik.http.routers.mywebsite.rule: "Host(`{{ root_host }}`) || Host(`{{ www_host }}`)"
+      traefik.http.routers.mywebsite.tls: "true"
+      traefik.http.routers.mywebsite.service: "mywebsite"
+      traefik.http.routers.mywebsite.middlewares: "open-external@file"
+      traefik.http.services.mywebsite.loadbalancer.server.port: "80"
+      
+      

@@ -1,0 +1,111 @@
+---
+- name: Create the proxy config folders
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0775
+  loop:
+    - v2ray
+    - trojan
+    - caddy
+
+- name: Template the config
+  ansible.builtin.template:
+    src: "config.json.j2"
+    dest: "{{ docker_dir }}/v2ray/config.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0664
+
+- name: Template the trojan
+  ansible.builtin.template:
+    src: "trojan.json.j2"
+    dest: "{{ docker_dir }}/trojan/trojan.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0664
+
+- name: Template the caddy
+  ansible.builtin.template:
+    src: "index.html"
+    dest: "{{ docker_dir }}/caddy/index.html"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0664
+
+- name: Install caddy
+  community.general.docker_container:
+    name: "caddy"
+    image: "caddy:{{ caddy_version }}"
+    command: caddy file-server
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/caddy/index.html:/srv/index.html"
+    networks:
+      - name: public_network
+
+
+- name: Install Trojan server using Docker
+  community.general.docker_container:
+    name: "trojan"
+    image: "teddysun/trojan:{{ trojan_version }}"
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/trojan/trojan.json:/etc/trojan/config.json"
+      - "{{ docker_dir }}/traefik/data/certificates/{{root_host}}:/etc/data"
+    networks:
+      - name: public_network
+    labels:
+      traefik.enable: "true"
+      traefik.tcp.routers.tgo.tls: "true"
+      traefik.tcp.routers.tgo.entrypoints: "https"
+      traefik.tcp.routers.tgo.rule: "HostSNI(`{{ tgo_host }}`)"
+      traefik.tcp.routers.tgo.tls.passthrough: "true"
+      traefik.tcp.services.tgo.loadbalancer.server.port: "443"
+
+- name: Install V2Ray server using Docker
+  community.general.docker_container:
+    name: "v2ray"
+    image: "v2fly/v2fly-core:{{ v2fly_version }}"
+    command: run -c /etc/v2ray/config.json
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/v2ray:/etc/v2ray"
+    networks:
+      - name: public_network
+    env:
+      V2RAY_VMESS_AEAD_FORCED: "false"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.api1.entrypoints: "https"
+      traefik.http.routers.api1.tls.domains[0].main: "Host(`{{ v2ray_host }}`)"
+      traefik.http.routers.api1.rule: PathPrefix(`/wsm`)
+      traefik.http.routers.api1.tls: "true"
+      traefik.http.routers.api1.service: api1
+      traefik.http.services.api1.loadbalancer.server.port: "1000"
+      traefik.http.routers.api2.entrypoints: "https"
+      traefik.http.routers.api2.tls.domains[0].main: "Host(`{{ v2ray_host }}`)"
+      traefik.http.routers.api2.rule: PathPrefix(`/wsl`)
+      traefik.http.routers.api2.tls: "true"
+      traefik.http.routers.api2.service: api2
+      traefik.http.services.api2.loadbalancer.server.port: "1001"
+      

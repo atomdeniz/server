@@ -1,0 +1,56 @@
+http:
+  middlewares:
+    forward-auth:
+      forwardAuth:
+        address: "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{ authelia_host }}%2F'"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "Remote-User"
+          - "Remote-Groups"
+          - "Remote-Name"
+          - "Remote-Email"
+    crowdsec:
+      plugin:
+        bouncer:
+          enabled: true
+          defaultDecisionSeconds: 60
+          crowdsecMode: live
+          crowdsecAppsecEnabled: true 
+          crowdsecAppsecHost: crowdsec:7422
+          crowdsecAppsecFailureBlock: true
+          crowdsecAppsecUnreachableBlock: true
+          crowdsecLapiKey: "{{ crowdsecLapiKey }}"
+          crowdsecLapiHost: crowdsec:8080
+          crowdsecLapiScheme: http
+          crowdsecLapiTLSInsecureVerify: false
+          forwardedHeadersTrustedIPs:
+            - "{{ secure_ip }}"
+          clientTrustedIPs:
+            - "{{ secure_ip }}"
+    https-only:
+      redirectscheme:
+        scheme: https
+        permanent: true
+    base:
+      chain:
+        middlewares:
+          - https-only
+    open-external:
+      chain:
+        middlewares:
+          - base
+          - crowdsec
+    secure-vpn:
+      chain:
+        middlewares:
+          - base
+    secure-external:
+      chain:
+        middlewares:
+          - open-external
+          - forward-auth
+    secure-vpn-with-auth:
+      chain:
+        middlewares:
+          - secure-vpn
+          - forward-auth

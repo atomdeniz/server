@@ -1,0 +1,13 @@
+---
+title: Homepage
+startUrl: https://{{ root_host }}
+theme: dark
+headerStyle: clean
+cardBlur: md
+color: zinc
+fiveColumns: true
+quicklaunch:
+  searchDescriptions: true
+  hideInternetSearch: true
+  showSearchSuggestions: true
+  hideVisitURL: false

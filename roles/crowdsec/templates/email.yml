@@ -1,0 +1,35 @@
+type: email           # Don't change
+name: email_default   # Must match the registered plugin in the profile
+
+# One of "trace", "debug", "info", "warn", "error", "off"
+log_level: info
+
+# group_wait:         # Time to wait collecting alerts before relaying a message to this plugin, eg "30s"
+# group_threshold:    # Amount of alerts that triggers a message before <group_wait> has expired, eg "10"
+# max_retry:          # Number of attempts to relay messages to plugins in case of error
+timeout: 20s          # Time to wait for response from the plugin before considering the attempt a failure, eg "10s"
+
+format: |
+  {% raw %}
+  <html><body>
+  {{range . -}}
+    {{$alert := . -}}
+    {{range .Decisions -}}
+      <p><a href="https://www.whois.com/whois/{{.Value}}">{{.Value}}</a> will get <b>{{.Type}}</b> for next <b>{{.Duration}}</b> for triggering <b>{{.Scenario}}</b> on machine <b>{{$alert.MachineID}}</b>.</p> <p><a href="https://app.crowdsec.net/cti/{{.Value}}">CrowdSec CTI</a></p>
+    {{end -}}
+  {{end -}}
+  </body></html>
+  {% endraw %}
+
+smtp_host: {{ email_smtp_host }}
+smtp_username: {{ email_login }}
+smtp_password: {{ email_password }}
+smtp_port: {{ email_smtp_port }}
+auth_type: "login"
+sender_name: "CrowdSec"
+sender_email: "{{ email_login }}"
+email_subject: "CrowdSec Notification"
+receiver_emails:
+ - {{ email_recipient }}
+
+encryption_type: "starttls"

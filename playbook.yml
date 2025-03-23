@@ -1,0 +1,98 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install and configure
+  hosts: all
+  become: true
+
+  vars_files:
+    - custom.yml
+    - secret.yml
+
+  handlers:
+    - name: Import global handlers
+      ansible.builtin.import_tasks: handlers/main.yml
+
+  roles:
+    - role: system
+      tags:
+        - system
+
+    - role: security
+      tags:
+        - security
+        
+    - role: geerlingguy.docker
+      tags:
+        - docker
+
+    - role: docker_network
+      tags:
+        - docker_network
+
+    - role: docker_proxy
+      tags:
+        - docker
+
+    - role: crowdsec
+      tags:
+        - crowdsec
+
+    - role: traefik
+      tags:
+        - traefik
+
+    - role: authelia
+      tags:
+        - authelia
+
+    - role: whoami
+      tags:
+        - whoami
+
+    - role: dns
+      tags:
+        - dns
+
+    - role: wireguard
+      tags:
+        - wireguard
+
+    - role: mywebsite
+      tags:
+        - mywebsite
+
+    - role: vaultwarden
+      tags:
+        - vaultwarden
+
+    - role: homepage
+      tags:
+        - homepage
+
+    - role: grafana
+      tags:
+        - grafana
+
+    - role: uptime_kuma
+      tags:
+        - uptime_kuma
+    
+    - role: watchtower
+      tags:
+        - watchtower
+    
+    - role: proxy
+      tags:
+        - proxy
+
+    - role: metube
+      tags:
+        - metube
+
+    - role: n8n
+      tags:
+        - n8n
+
+    - role: chriswayg.msmtp-mailer
+      tags:
+        - msmtp

@@ -1,0 +1,77 @@
+{
+  "log": {
+    "access": "none",
+    "loglevel": "info"
+  },
+  "inbounds": [
+    {
+      "listen": null,
+      "port": 1000,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ wmess_guid_1 }}",
+            "alterId": 0
+          },
+          {
+            "id": "{{ wmess_guid_2 }}",
+            "alterId": 1
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "auto",
+        "wsSettings": {
+          "path": "/wsm",
+          "headers": {}
+        }
+      },
+      "tag": "my-vmess",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "listen": null,
+      "port": 1001,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ vless_guid_1 }}",
+            "alterId": 2
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": []
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/wsl",
+          "headers": {}
+        }
+      },
+      "tag": "my-vless",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ]
+}

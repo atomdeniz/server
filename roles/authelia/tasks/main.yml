@@ -1,0 +1,68 @@
+---
+- name: Create the config folder
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/authelia"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0755
+
+- name: Copy the main config
+  ansible.builtin.template:
+    src: configuration.yml
+    dest: "{{ docker_dir }}/authelia/configuration.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart authelia
+
+- name: Copy the users database
+  ansible.builtin.template:
+    src: users_database.yml
+    dest: "{{ docker_dir }}/authelia/users_database.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart authelia
+
+- name: Make sure the Redis container is created and running
+  community.general.docker_container:
+    name: "redis"
+    image: "redis:alpine"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 5s
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: redis_network
+    pull: "always"
+    state: "started"
+    restart_policy: unless-stopped
+
+- name: Make sure the Authelia container is created and running
+  community.general.docker_container:
+    name: "authelia"
+    image: "authelia/authelia:{{ authelia_version }}"
+    pull: "always"
+    state: "started"
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: redis_network
+      - name: public_network
+    volumes:
+      - "{{ docker_dir }}/authelia:/config"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.authelia.rule: "Host(`{{ authelia_host }}`)"
+      traefik.http.routers.authelia.entrypoints: "https"
+      traefik.http.routers.authelia.middlewares: "open-external@file"
+      traefik.http.routers.authelia.service: "authelia"
+      traefik.http.routers.authelia.tls: "true"
+      traefik.http.services.authelia.loadbalancer.server.port: "9091"
+      
+

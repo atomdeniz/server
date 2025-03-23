@@ -1,0 +1,25 @@
+---
+- name: Restart authelia
+  community.general.docker_container:
+    name: authelia
+    restart: yes
+
+- name: Restart traefik
+  community.general.docker_container:
+    name: traefik
+    restart: yes
+
+- name: Restart crowdsec
+  community.general.docker_container:
+    name: crowdsec
+    restart: yes
+
+- name: Restart adguard-unbound-doh
+  community.docker.docker_container:
+    name: adguard-unbound-doh
+    restart: yes
+
+- name: Restart homepage
+  community.docker.docker_container:
+    name: homepage
+    restart: yes

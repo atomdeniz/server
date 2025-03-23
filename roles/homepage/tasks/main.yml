@@ -1,0 +1,82 @@
+---
+- name: Create the Homepage directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/homepage"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Template the Homepage settings
+  ansible.builtin.template:
+    src: "settings.yaml"
+    dest: "{{ docker_dir }}/homepage/settings.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage widgets
+  ansible.builtin.template:
+    src: "widgets.yaml"
+    dest: "{{ docker_dir }}/homepage/widgets.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage bookmarks
+  ansible.builtin.template:
+    src: "bookmarks.yaml"
+    dest: "{{ docker_dir }}/homepage/bookmarks.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage services
+  ansible.builtin.template:
+    src: "services.yaml"
+    dest: "{{ docker_dir }}/homepage/services.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage docker settings
+  ansible.builtin.template:
+    src: "docker.yaml"
+    dest: "{{ docker_dir }}/homepage/docker.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Make sure the Homepage container is created and running
+  community.general.docker_container:
+    name: "homepage"
+    image: "ghcr.io/gethomepage/homepage:{{ homepage_version }}"
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: public_network
+      - name: docker_proxy_network
+    volumes:
+      - "{{ docker_dir }}/homepage:/app/config"
+    env:
+      HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.homepage.entrypoints: "https"
+      traefik.http.routers.homepage.rule: "Host(`{{ homepage_host }}`)"
+      traefik.http.routers.homepage.tls: "true"
+      traefik.http.routers.homepage.service: "homepage"
+      traefik.http.routers.homepage.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.homepage.loadbalancer.server.port: "3000"
+      
+      

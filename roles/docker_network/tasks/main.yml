@@ -1,0 +1,31 @@
+---
+- name: Create the public network
+  community.general.docker_network:
+    name: public_network
+    ipam_config:
+      - subnet: 10.8.1.0/24
+        gateway: 10.8.1.1
+        iprange: 10.8.1.128/25
+
+- name: Create the redis_network network
+  community.general.docker_network:
+    name: redis_network
+    ipam_config:
+      - subnet: 10.8.2.0/24
+        gateway: 10.8.2.1
+        iprange: 10.8.2.128/25
+    internal: true
+
+- name: Create the prometheus_network network
+  community.general.docker_network:
+    name: prometheus_network
+    ipam_config:
+      - subnet: 10.8.3.0/24
+        gateway: 10.8.3.1
+        iprange: 10.8.3.128/25
+    internal: true
+
+- name: Create the docker_proxy_network network
+  community.general.docker_network:
+    name: docker_proxy_network
+    internal: true

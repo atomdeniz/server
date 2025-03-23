@@ -1,0 +1,9 @@
+username: "ansible"
+ansible_host: "192.168.1.1"
+root_host: "example.com"
+ansible_ssh_private_key_file: 
+dns_nameservers: "cloudflare" #cloudflare, quad9, google
+email_recipient:
+email_smtp_host:
+email_smtp_port:
+email_login:

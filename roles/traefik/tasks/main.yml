@@ -1,0 +1,166 @@
+---
+- name: Copy the traefik log delete file
+  ansible.builtin.template:
+    src: log-delete
+    dest: "/etc/logrotate.d/traefik"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+
+- name: Create traefik data directories
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0750
+  loop:
+    - traefik
+    - traefik/data
+    - traefik/data/configs
+    - traefik/data/certificates
+
+- name: Copy the traefik.yml
+  ansible.builtin.template:
+    src: traefik.yml
+    dest: "{{ docker_dir }}/traefik/data/traefik.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart traefik
+
+- name: Copy the config.yml
+  ansible.builtin.template:
+    src: config.yml
+    dest: "{{ docker_dir }}/traefik/data/configs/config.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart traefik
+
+- name: Copy the dynamic-ipwhitelist.yml
+  ansible.builtin.template:
+    src: dynamic-ipwhitelist.yml
+    dest: "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart traefik
+
+- name: Create acme.json file
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/traefik/data/certificates/acme.json"
+    state: touch
+    mode: 0600
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Deploy traefik with docker container
+  community.docker.docker_container:
+    name: traefik
+    image: traefik:{{ traefik_version }}
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: public_network
+        ipv4_address: "{{ traefik_host_local_ip }}"
+      - name: prometheus_network
+      - name: docker_proxy_network
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "{{ docker_dir }}/traefik/data/certificates/acme.json:/acme.json"
+      - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
+      - "{{ docker_dir }}/traefik/data/configs:/configs"
+      - "{{ docker_dir }}/traefik/data/logs:/logs"
+    env:
+      CF_API_EMAIL: "{{ cloudflare_email }}"
+      CF_API_KEY: "{{ cloudflare_api_key }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.middlewares.traefik-auth.basicauth.users: "{{ traefik_basic_auth_hash }}"
+      traefik.http.routers.traefik.entrypoints: "https"
+      traefik.http.routers.traefik.rule: "Host(`{{ traefik_host }}`)"
+      traefik.http.routers.traefik.middlewares: "traefik-auth"
+      traefik.http.routers.traefik.tls: "true"
+      traefik.http.routers.traefik.tls.certresolver: "cloudflare"
+      traefik.http.routers.traefik.tls.domains[0].main: "{{ root_host }}"
+      traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ root_host }}"
+      traefik.http.routers.traefik.service: "api@internal"
+      
+- name: DumpCertificates
+  community.docker.docker_container:
+    name: certsdump
+    image: ldez/traefik-certs-dumper:{{ certsdump_version }}
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    entrypoint:
+      - sh
+      - -c
+      - |
+        apk add --no-cache jq;
+        while ! [ -e /data/acme.json ] || ! [ "$(jq '.[] | .Certificates | length' /data/acme.json)" != "0" ];
+        do
+          sleep 5;
+        done &&
+        traefik-certs-dumper file --version v2 --domain-subdir --clean=false --watch --source ./acme.json --dest .
+    volumes:
+      - "{{ docker_dir }}/traefik/data/certificates:/data"
+    working_dir: /data
+
+
+
+# - name: Convert CRT to PEM
+#   command: >
+#     openssl x509 -in {{ docker_dir }}/traefik/data/certificates/{{root_host}}/certificate.crt
+#     -out {{ docker_dir }}/traefik/data/certificates/{{root_host}}/certificate.pem -outform PEM
+#   args:
+#     creates: "{{ docker_dir }}/traefik/data/certificates/{{root_host}}/certificate.pem"
+
+# - name: Convert KEY to PEM (if needed)
+#   command: >
+#     openssl rsa -in {{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.key
+#     -out {{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.pem
+#   args:
+#     creates: "{{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.pem"
+
+
+- name: Deploy traefikshaper with docker container
+  community.docker.docker_container:
+    name: traefikshaper
+    image: "874521/traefik-sharper:{{ traefikshaper_version }}"
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: public_network
+    volumes:
+      - "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml:/app/dynamic-whitelist.yml"
+    env:
+      APPURL: "{{ traefikshaper_host }}"
+      GRANT_HTTP_ENDPOINT: "/knock-knock"
+      IPSTRATEGY_DEPTH: "1"
+      EXPIRATION_TIME: "300" 
+      WHITELISTED_IPS: "{{ ansible_host }}"
+      APPRISE_NOTIFICATION_URL: tgram://bot{{ telegram_api_token }}/{{ telegram_user_id }}
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefikshaper.entrypoints: "https"
+      traefik.http.routers.traefikshaper.rule: "Host(`{{ traefikshaper_host }}`)"
+      traefik.http.routers.traefikshaper.tls: "true"
+      traefik.http.routers.traefikshaper.service: "traefikshaper"
+      traefik.http.services.traefikshaper.loadbalancer.server.port: "5000"

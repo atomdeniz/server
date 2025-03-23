@@ -1,0 +1,33 @@
+---
+- name: Create the uptime_kuma directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/uptime_kuma"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Create uptime kuma container
+  community.docker.docker_container:
+    name: uptime_kuma
+    image: louislam/uptime-kuma:{{ uptime_kuma_version }}
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/uptime_kuma/data:/app/data"
+    networks:
+      - name: public_network
+      - name: docker_proxy_network
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.uptime.entrypoints: "https"
+      traefik.http.routers.uptime.rule: "Host(`{{ uptime_kuma_host }}`)"
+      traefik.http.routers.uptime.tls: "true"
+      traefik.http.routers.uptime.service: "uptime"
+      traefik.http.routers.uptime.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.uptime.loadbalancer.server.port: "3001"
+      

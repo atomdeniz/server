@@ -1,0 +1,26 @@
+---
+- name: Create docker_proxy container
+  community.docker.docker_container:
+    name: docker_proxy
+    image: tecnativa/docker-socket-proxy:{{ docker_proxy_version }}
+    pull: "always"
+    state: "started"
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    env:
+      CONTAINERS: "1"
+      IMAGES: "1"
+      NETWORKS: "1"
+      EVENTS: "1"
+      PING: "1"
+      VERSION: "1"
+      IMAGES_DELETE: "1"
+    networks:
+      - name: docker_proxy_network
+      - name: public_network
+      
+

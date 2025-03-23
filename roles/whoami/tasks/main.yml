@@ -1,0 +1,22 @@
+---
+- name: Make sure the whoami container is created and running
+  community.general.docker_container:
+    name: "whoami"
+    image: "traefik/whoami:{{ whoami_version }}"
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: public_network
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.whoami.entrypoints: "https"
+      traefik.http.routers.whoami.rule: "Host(`{{ whoami_host }}`)"
+      traefik.http.routers.whoami.tls: "true"
+      traefik.http.routers.whoami.service: "whoami"
+      traefik.http.routers.whoami.middlewares: "open-external@file"
+      traefik.http.services.whoami.loadbalancer.server.port: "80"

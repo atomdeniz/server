@@ -1,0 +1,80 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+# icons found here https://github.com/walkxcode/dashboard-icons
+
+- Resources:
+    - Watchtower:
+        server: my-docker
+        icon: watchtower.svg
+        widget:
+          type: watchtower
+          url: "http://watchtower:8080"
+          key: "{{ watchtower_token }}"
+    - Grafana:
+        server: my-docker
+        icon: grafana.svg
+        href: "https://{{ grafana_host }}"
+        widget:
+          type: grafana
+          url: "http://grafana:3000"
+          username: admin
+          password: "{{ grafana_password }}"
+    - UptimeKuma:
+        server: my-docker
+        icon: uptime-kuma.png
+        href: "https://{{ uptime_kuma_host }}"
+        widget:
+          type: uptimekuma
+          url: http://uptime_kuma:3001
+          slug: server
+- Network:
+    - Traefik:
+        server: my-docker
+        icon: traefik.svg
+        href: "https://{{ traefik_host }}"
+        widget:
+          type: traefik
+          url: http://traefik:8080
+          username: user
+          password: "{{ traefik_password }}"
+    - Crowdsec:
+        server: my-docker
+        icon: crowdsec.svg
+        href: https://app.crowdsec.net/alerts
+        widget:
+          type: crowdsec
+          url: http://crowdsec:8080
+          username: testMachine
+          password: "{{ crowdsecMachineApiKey }}"
+    - Adguard:
+        server: my-docker
+        icon: adguard-home.svg
+        href: "https://{{ adguard_host }}"
+        widget:
+          type: adguard
+          url: http://adguard-unbound-doh:3000
+          username: admin
+          password: "{{ adguard_password }}"
+    - Wireguard:
+        server: my-docker
+        icon: wireguard.svg
+        href: "https://{{ wireguard_host }}"
+        widget:
+          type: wgeasy
+          url: http://wg-easy:51821
+          username: user
+          password: "{{ wireguard_password }}"
+- Other:
+    - GitHub:
+        icon: github.svg
+        href: https://github.com
+    - WAN IP:
+        widget:
+          type: customapi
+          url: https://api.ipify.org?format=json
+          refreshInterval: 10000
+          method: GET
+          mappings:
+            - field: 'ip'
+              format: text

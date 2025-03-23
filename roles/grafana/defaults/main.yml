@@ -1,0 +1,5 @@
+---
+prometheus_version: "latest"
+node_exporter_version: "latest"
+grafana_version: "latest"
+cadvisor_version: "latest"
