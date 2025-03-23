@@ -18,6 +18,8 @@ This project aims to create a secure, efficient, and highly maintainable self-ho
 
 **Docker Socket Proxy:** Secure Docker socket management.
 
+**N8N**: MCP
+
 **Grafana, Prometheus, cAdvisor, node_exporter:** Comprehensive monitoring and visualization of infrastructure metrics.
 
 **Homepage & Uptime Kuma:** Easy-to-navigate dashboard and uptime monitoring for hosted services.
