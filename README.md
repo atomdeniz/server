@@ -6,7 +6,7 @@ This document outlines the steps required for installing and configuring SelfHos
 
 This project aims to create a secure, efficient, and highly maintainable self-hosting infrastructure. By leveraging modern tools such as Authelia for secure authentication, Traefik for reverse proxy and SSL management, CrowdSec for real-time security protection, and AdGuard combined with Unbound for secure DNS resolution, this setup provides privacy, security, and ease of use for self-hosted services.
 
-
+I am currently running the whole process only on Ubuntu.
 
 **Traefik:** Reverse proxy and automatic SSL handling.
 
@@ -36,7 +36,7 @@ This project aims to create a secure, efficient, and highly maintainable self-ho
 
 ## 0 Set User
 
-[Set User](https://github.com/atomdeniz/server/edit/main/USER.md)
+[Set User](https://github.com/atomdeniz/server/blob/main/USER.md)
 
 
 ## 1. Load SSH Key
@@ -162,3 +162,12 @@ Then rerun the Ansible playbook:
 ansible-playbook -i inventory.yml playbook.yml
 ```
 ---
+
+
+## 5 Add DNS Record To Cloudflare
+
+You can use a different DNS solution, but you'll need to update Traefik's middleware configuration and adjust your SSL settings accordingly.
+
+Cloudflare:
+
+[cf-dns-records.png](https://github.com/atomdeniz/server/blob/main/cf-dns-records.png)
