@@ -27,7 +27,7 @@
 
     - role: docker_network
       tags:
-        - docker_network
+        - docker
 
     - role: docker_proxy
       tags:
@@ -57,9 +57,10 @@
       tags:
         - wireguard
 
-    - role: mywebsite
-      tags:
-        - mywebsite
+    # this is my website role, you can create your own role
+    # - role: mywebsite
+    #   tags:
+    #     - mywebsite
 
     - role: vaultwarden
       tags:

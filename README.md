@@ -79,10 +79,10 @@ ansible-playbook -i inventory.yml playbook.yml --tags "system,security,docker,cr
 
 ### CrowdSec Agent Enrollment
 
-After CrowdSec installation, enroll the agent (replace `context` according to your environment):
+After CrowdSec installation, enroll the agent (replace `key` according to crowsec enroll key):
 
 ```bash
-docker exec crowdsec cscli console enroll -e context
+docker exec crowdsec cscli console enroll -e context key
 ```
 
 ### Add Traefik Bouncer

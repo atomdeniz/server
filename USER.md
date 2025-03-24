@@ -72,8 +72,7 @@ That's it! You can now log in as the **ansible** user via **passwordless SSH**. 
 
 ---
 
-## 6. Grant Sudo Privileges to the Ansible User (Optional)
-If you want the `ansible` user to have sudo privileges, follow these steps:
+## 6. Grant Sudo Privileges to the Ansible User
 
 ### **1. Add Ansible User to the `sudo` Group**
 ```bash

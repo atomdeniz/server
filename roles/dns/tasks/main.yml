@@ -32,6 +32,15 @@
     rsync_opts:
       - "--ignore-existing"
 
+- name: Copy Docker file
+  ansible.builtin.template:
+    src: Dockerfile
+    dest: "{{ docker_dir }}/adguard-unbound-doh/build/Dockerfile"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart adguard-unbound-doh
+
 - name: Build the adguard-unbound Docker image
   community.docker.docker_image:
     name: adguard-unbound-doh
