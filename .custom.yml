@@ -1,9 +1,9 @@
 username: "ansible"
 ansible_host: "192.168.1.1"
 root_host: "example.com"
-ansible_ssh_private_key_file: 
+ansible_ssh_private_key_file: "~/.ssh/ansible"
 dns_nameservers: "cloudflare" #cloudflare, quad9, google
-email_recipient:
-email_smtp_host:
-email_smtp_port:
-email_login:
+email_recipient: "reciever@gmail.com" #email to receive notifications
+email_smtp_host: "smtp.gmail.com" #smtp server
+email_smtp_port: "587" #smtp port
+email_login: "sender@gmail.com" #email to send notifications

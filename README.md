@@ -48,7 +48,11 @@ eval $(ssh-agent)
 ssh-add ~/.ssh/ansible
 ```
 
-## 2. Managing Secrets with Ansible Vault
+## 2. Managing ENV
+
+### Create custom.yml File
+
+Copy the .custom.yml file as custom.yml and fill it in
 
 ### Create and Secure the Secret YAML File:
 
@@ -65,6 +69,7 @@ ansible-vault encrypt secret.yml
 
 ### Edit the Encrypted YAML File:
 
+Example: Using '.secret.yml' as a reference, add your secrets in the following format:
 ```bash
 EDITOR=nano ansible-vault edit secret.yml
 ```
