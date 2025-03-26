@@ -5,7 +5,7 @@
 
 identity_validation:
   reset_password:
-    jwt_secret: "{{ jwt_secret }}"
+    jwt_secret: "{{ authelia_jwt_secret }}"
 
 ntp:
   disable_failure: true

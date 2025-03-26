@@ -94,6 +94,11 @@
       tags:
         - n8n
 
+    - role: freqtrade
+      tags:
+        - freqtrade
+
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp
+

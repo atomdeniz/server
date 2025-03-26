@@ -85,6 +85,8 @@ dns:
       answer: "{{ traefik_host_local_ip }}"
     - domain: "{{ n8n_host }}"
       answer: "{{ traefik_host_local_ip }}"
+    - domain: "{{ freqtrade_host }}"
+      answer: "{{ traefik_host_local_ip }}"
   blocked_services: []
   upstream_timeout: 10s
   private_networks: []

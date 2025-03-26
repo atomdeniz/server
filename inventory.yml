@@ -40,6 +40,8 @@ all:
 
     n8n_host: "n8n.{{ root_host }}"
 
+    freqtrade_host: "freqtrade.{{ root_host }}"
+
     secure_ip: 10.8.1.1
 
     dns_local_ip: 10.8.1.2

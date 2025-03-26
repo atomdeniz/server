@@ -1,0 +1,60 @@
+---
+- name: Clone NostalgiaForInfinity repository
+  git:
+    repo: "{{ freqtrade_repo_url }}"
+    dest: "{{ freqtrade_repo_dest_dir }}"
+    update: yes
+
+- name: Copy recommended config to user_data
+  copy:
+    remote_src: yes
+    src: "{{ freqtrade_repo_dest_dir }}/configs/recommended_config.json"
+    dest: "{{ freqtrade_repo_dest_dir }}/user_data/config.json"
+
+- name: Copy the main config
+  ansible.builtin.template:
+    src: .env
+    dest: "{{ freqtrade_repo_dest_dir }}/.env"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+
+- name: change ownership
+  file:
+    path: "{{ freqtrade_repo_dest_dir }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    state: directory
+    recurse: yes
+
+- name: Make sure the freqtrade container is created and running
+  community.general.docker_container:
+    name: "freqtrade"
+    image: "freqtradeorg/freqtrade:{{ freqtrade_version }}"
+    pull: "always"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ freqtrade_repo_dest_dir }}/user_data:/freqtrade/user_data"
+      - "{{ freqtrade_repo_dest_dir }}/user_data/data:/freqtrade/user_data/data"
+      - "{{ freqtrade_repo_dest_dir }}/configs:/freqtrade/configs"
+      - "{{ freqtrade_repo_dest_dir }}/NostalgiaForInfinityX5.py:/freqtrade/NostalgiaForInfinityX5.py"
+    networks:
+      - name: public_network
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs/freqtrade.log
+      --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
+    env_file: "{{ freqtrade_repo_dest_dir }}/.env"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.freqtrade.entrypoints: "https"
+      traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
+      traefik.http.routers.freqtrade.tls: "true"
+      traefik.http.routers.freqtrade.service: "freqtrade"
+      traefik.http.routers.freqtrade.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.freqtrade.loadbalancer.server.port: "8080"

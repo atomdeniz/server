@@ -1,0 +1,4 @@
+---
+freqtrade_version: "stable"
+freqtrade_repo_url: "https://github.com/iterativv/NostalgiaForInfinity.git"
+freqtrade_repo_dest_dir: "{{docker_dir}}/freqtrade"
