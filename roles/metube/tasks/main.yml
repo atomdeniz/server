@@ -34,7 +34,7 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
+      - name: dns_network
     volumes:
       - "{{ docker_dir }}/metube/downloads:/downloads"
       - "{{ docker_dir }}/metube/cookies:/cookies"
@@ -43,11 +43,12 @@
       YTDL_OPTIONS: '{"cookiefile":"/cookies/cookies.txt"}'
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.metube.entrypoints: "https"
       traefik.http.routers.metube.rule: "Host(`{{ metube_host }}`) && !Path(`/knock-knock`)"
       traefik.http.routers.metube.tls: "true"
       traefik.http.routers.metube.service: "metube"
-      traefik.http.routers.metube.middlewares: "secure-external@file,dynamic-ipwhitelist@file"  
+      traefik.http.routers.metube.middlewares: "dynamic-ipwhitelist@file,secure-external@file"  
       traefik.http.services.metube.loadbalancer.server.port: "8081" 
       traefik.http.routers.metube-dynamic.tls: "true"
       traefik.http.routers.metube-dynamic.rule: "Host(`{{ metube_host }}`) && PathPrefix(`/knock-knock`)"

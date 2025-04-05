@@ -7,8 +7,8 @@
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"
+    privileged: "true"
     security_opts:
-      - no-new-privileges:true
       - apparmor:docker-default
     env:
       WATCHTOWER_CLEANUP: "true"
@@ -25,5 +25,5 @@
       WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD: "{{ email_password }}"
       DOCKER_HOST: tcp://docker_proxy:2375
     networks:
-      - name: public_network
+      - name: homepage_network
       - name: docker_proxy_network

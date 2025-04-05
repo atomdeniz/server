@@ -69,9 +69,11 @@
       - apparmor:docker-default
     networks:
       - name: public_network
-        ipv4_address: "{{ traefik_host_local_ip }}"
       - name: prometheus_network
       - name: docker_proxy_network
+      - name: homepage_network
+      - name: dns_network
+        ipv4_address: "{{ traefik_host_local_ip }}"
     ports:
       - "80:80"
       - "443:443"
@@ -85,6 +87,7 @@
       CF_API_KEY: "{{ cloudflare_api_key }}"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.middlewares.traefik-auth.basicauth.users: "{{ traefik_basic_auth_hash }}"
       traefik.http.routers.traefik.entrypoints: "https"
       traefik.http.routers.traefik.rule: "Host(`{{ traefik_host }}`)"
@@ -135,7 +138,7 @@
 #   args:
 #     creates: "{{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.pem"
 
-
+# https://github.com/l4rm4nd/TraefikShaper Orginal
 - name: Deploy traefikshaper with docker container
   community.docker.docker_container:
     name: traefikshaper
@@ -154,7 +157,7 @@
       APPURL: "{{ traefikshaper_host }}"
       GRANT_HTTP_ENDPOINT: "/knock-knock"
       IPSTRATEGY_DEPTH: "1"
-      EXPIRATION_TIME: "300" 
+      EXPIRATION_TIME: "6000" 
       WHITELISTED_IPS: "{{ ansible_host }}"
       APPRISE_NOTIFICATION_URL: tgram://bot{{ telegram_api_token }}/{{ telegram_user_id }}
     labels:
@@ -164,3 +167,4 @@
       traefik.http.routers.traefikshaper.tls: "true"
       traefik.http.routers.traefikshaper.service: "traefikshaper"
       traefik.http.services.traefikshaper.loadbalancer.server.port: "5000"
+  notify: Restart traefik

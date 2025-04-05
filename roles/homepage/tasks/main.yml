@@ -64,7 +64,8 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
+      - name: homepage_network
+      - name: dns_network
       - name: docker_proxy_network
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"
@@ -72,6 +73,7 @@
       HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }}"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.homepage.entrypoints: "https"
       traefik.http.routers.homepage.rule: "Host(`{{ homepage_host }}`)"
       traefik.http.routers.homepage.tls: "true"

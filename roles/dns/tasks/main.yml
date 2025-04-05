@@ -77,14 +77,19 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
+      - name: dns_network
         ipv4_address: "{{ dns_local_ip }}"
+      - name: homepage_network
     volumes:
       - "{{ docker_dir }}/adguard-unbound-doh/dnscrypt-proxy/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro"
       - "{{ docker_dir }}/adguard-unbound-doh/adguard/work:/opt/adguardhome/work"
       - "{{ docker_dir }}/adguard-unbound-doh/adguard/conf:/opt/adguardhome/conf"
+    ports:
+      - "53:53/tcp" 
+      - "53:53/udp"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.adguard.entrypoints: "https"
       traefik.http.routers.adguard.rule: "Host(`{{ adguard_host }}`)"
       traefik.http.routers.adguard.tls: "true"

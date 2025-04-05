@@ -70,6 +70,7 @@
       - name: public_network
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "public_network"
       traefik.tcp.routers.tgo.tls: "true"
       traefik.tcp.routers.tgo.entrypoints: "https"
       traefik.tcp.routers.tgo.rule: "HostSNI(`{{ tgo_host }}`)"
@@ -96,6 +97,7 @@
       V2RAY_VMESS_AEAD_FORCED: "false"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "public_network"
       traefik.http.routers.api1.entrypoints: "https"
       traefik.http.routers.api1.tls.domains[0].main: "Host(`{{ v2ray_host }}`)"
       traefik.http.routers.api1.rule: PathPrefix(`/wsm`)

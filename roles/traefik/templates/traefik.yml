@@ -71,7 +71,7 @@ entryPoints:
         
 providers:
   docker:
-    network: public_network
+    network: dns_network
     endpoint: tcp://docker_proxy:2375
     exposedByDefault: false
   file:

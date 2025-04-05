@@ -121,13 +121,16 @@
     volumes:
       - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
     networks:
-      - name: public_network
+      - name: dns_network
       - name: prometheus_network
+      - name: homepage_network
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.grafana.entrypoints: "https"
       traefik.http.routers.grafana.rule: "Host(`{{ grafana_host }}`)"
       traefik.http.routers.grafana.tls: "true"
       traefik.http.routers.grafana.service: "grafana"
       traefik.http.routers.grafana.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
+      

@@ -171,3 +171,7 @@ You can use a different DNS solution, but you'll need to update Traefik's middle
 Cloudflare:
 
 [cf-dns-records.png](https://github.com/atomdeniz/server/blob/main/cf-dns-records.png)
+
+## 6 Add Firewall
+
+[firewall.png](https://github.com/atomdeniz/server/blob/main/firewall.png)

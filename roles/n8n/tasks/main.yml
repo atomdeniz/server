@@ -19,7 +19,7 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
+      - name: dns_network
     volumes:
       - "{{ docker_dir }}/n8n/:/home/node/.n8n"
     env:
@@ -27,6 +27,7 @@
       TZ: "Europe/Istanbul"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.n8n.entrypoints: "https"
       traefik.http.routers.n8n.rule: "Host(`{{ n8n_host }}`)"
       traefik.http.routers.n8n.tls: "true"

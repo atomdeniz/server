@@ -14,6 +14,7 @@
       - name: public_network
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "public_network"
       traefik.http.routers.whoami.entrypoints: "https"
       traefik.http.routers.whoami.rule: "Host(`{{ whoami_host }}`)"
       traefik.http.routers.whoami.tls: "true"

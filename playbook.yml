@@ -58,9 +58,9 @@
         - wireguard
 
     # this is my website role, you can create your own role
-    # - role: mywebsite
-    #   tags:
-    #     - mywebsite
+    - role: mywebsite
+      tags:
+        - mywebsite
 
     - role: vaultwarden
       tags:

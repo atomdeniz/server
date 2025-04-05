@@ -8,7 +8,13 @@
   community.general.docker_container:
     name: traefik
     restart: yes
+  notify: Restart traefikshaper
 
+- name: Restart traefikshaper
+  community.general.docker_container:
+    name: traefikshaper
+    restart: yes
+    
 - name: Restart crowdsec
   community.general.docker_container:
     name: crowdsec
@@ -22,4 +28,9 @@
 - name: Restart homepage
   community.docker.docker_container:
     name: homepage
+    restart: yes
+
+- name: Restart freqtrade
+  community.docker.docker_container:
+    name: freqtrade
     restart: yes

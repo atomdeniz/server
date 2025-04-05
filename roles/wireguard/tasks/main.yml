@@ -1,5 +1,5 @@
 ---
-- name: Create the Vaultwarden directory
+- name: Create the WireGuard directory
   ansible.builtin.file:
     path: "{{ docker_dir }}/wg-easy"
     state: directory
@@ -18,8 +18,9 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
+      - name: dns_network
       - name: public_network
-        ipv4_address: "{{ vpn_local_ip }}"
+      - name: homepage_network
     sysctls:
       "net.ipv4.conf.all.src_valid_mark": "1"
       "net.ipv4.ip_forward": "1"
@@ -28,7 +29,7 @@
       - sys_module
     env:
       WG_HOST: "{{ ansible_host }}"
-      WG_DEFAULT_DNS: "{{ dns_local_ip }}"
+      WG_DEFAULT_DNS: "{{ ansible_host }}"
       WG_DEFAULT_ADDRESS: "{{ wireguard_subnet }}"
       WG_PORT: "{{ wireguard_port }}"
       WG_PERSISTENT_KEEPALIVE: "25"
@@ -40,12 +41,13 @@
       - "{{ docker_dir }}/wg-easy:/etc/wireguard"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "public_network"
       traefik.http.routers.wg.entrypoints: "https"
       traefik.http.routers.wg.rule: "Host(`{{ wireguard_host }}`) && !Path(`/knock-knock`)"
       traefik.http.routers.wg.tls: "true"
       traefik.http.routers.wg.service: "wg"
       traefik.http.services.wg.loadbalancer.server.port: "51821"
-      traefik.http.routers.wg.middlewares: "secure-external@file,dynamic-ipwhitelist@file"   
+      traefik.http.routers.wg.middlewares: "dynamic-ipwhitelist@file,secure-external@file"   
       traefik.http.routers.wg-dynamic.entrypoints: "https"
       traefik.http.routers.wg-dynamic.rule: "Host(`{{ wireguard_host }}`) && PathPrefix(`/knock-knock`)"
       traefik.http.routers.wg-dynamic.tls: "true"

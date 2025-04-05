@@ -18,6 +18,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
+  notify: Restart freqtrade
 
 - name: change ownership
   file:
@@ -27,16 +28,24 @@
     state: directory
     recurse: yes
 
+- name: Build custom freqtrade Docker image
+  community.general.docker_image:
+    name: "freqtradeorg/freqtrade:{{ freqtrade_version }}"
+    build:
+      path: "{{ freqtrade_repo_dest_dir }}"
+      dockerfile: "docker/Dockerfile.custom"
+    source: build
+    force_source: true
+
 - name: Make sure the freqtrade container is created and running
   community.general.docker_container:
     name: "freqtrade"
     image: "freqtradeorg/freqtrade:{{ freqtrade_version }}"
-    pull: "always"
+    pull: no
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"
     security_opts:
-      - no-new-privileges:true
       - apparmor:docker-default
     volumes:
       - "{{ freqtrade_repo_dest_dir }}/user_data:/freqtrade/user_data"
@@ -44,7 +53,7 @@
       - "{{ freqtrade_repo_dest_dir }}/configs:/freqtrade/configs"
       - "{{ freqtrade_repo_dest_dir }}/NostalgiaForInfinityX5.py:/freqtrade/NostalgiaForInfinityX5.py"
     networks:
-      - name: public_network
+      - name: dns_network
     command: >
       trade
       --logfile /freqtrade/user_data/logs/freqtrade.log
@@ -52,6 +61,7 @@
     env_file: "{{ freqtrade_repo_dest_dir }}/.env"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.freqtrade.entrypoints: "https"
       traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
       traefik.http.routers.freqtrade.tls: "true"

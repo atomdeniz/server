@@ -13,6 +13,7 @@
       - name: public_network
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "public_network"
       traefik.http.routers.mywebsite.entrypoints: "https"
       traefik.http.routers.mywebsite.rule: "Host(`{{ root_host }}`) || Host(`{{ www_host }}`)"
       traefik.http.routers.mywebsite.tls: "true"

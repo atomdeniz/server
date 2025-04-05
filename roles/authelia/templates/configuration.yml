@@ -34,7 +34,7 @@ access_control:
       policy: bypass
 
 session:
-  secret: "{{ session_secret }}"
+  secret: "{{ authelia_session_secret }}"
   cookies:
     - name: authelia_session
       domain: "{{ root_host }}"
@@ -51,7 +51,7 @@ regulation:
   ban_time: 300
 
 storage:
-  encryption_key: "{{ storage_encryption_key }}"
+  encryption_key: "{{ authelia_storage_encryption_key }}"
   local:
     path: /config/db.sqlite3
 

@@ -18,9 +18,10 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
+      - name: dns_network
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.vault.entrypoints: "https"
       traefik.http.routers.vault.rule: "Host(`{{ vaultwarden_host }}`)"
       traefik.http.routers.vault.tls: "true"

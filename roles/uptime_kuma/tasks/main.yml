@@ -20,10 +20,12 @@
     volumes:
       - "{{ docker_dir }}/uptime_kuma/data:/app/data"
     networks:
-      - name: public_network
+      - name: dns_network
+      - name: homepage_network
       - name: docker_proxy_network
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "dns_network"
       traefik.http.routers.uptime.entrypoints: "https"
       traefik.http.routers.uptime.rule: "Host(`{{ uptime_kuma_host }}`)"
       traefik.http.routers.uptime.tls: "true"

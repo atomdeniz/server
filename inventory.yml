@@ -44,11 +44,9 @@ all:
 
     secure_ip: 10.8.1.1
 
-    dns_local_ip: 10.8.1.2
+    dns_local_ip: 10.8.4.2
 
-    traefik_host_local_ip: 10.8.1.3
-
-    vpn_local_ip: 10.8.1.4
+    traefik_host_local_ip: 10.8.4.4
 
     wireguard_subnet: "10.8.0.x"
 
@@ -93,6 +91,12 @@ all:
       - desc: "Allow SSH"
         proto: tcp
         port: "{{ ssh_port }}"
+      - desc: "Allow DNS"
+        proto: tcp
+        port: "53"
+      - desc: "Allow DNS"
+        proto: udp
+        port: "53"
 
     pip_install_packages:
       - name: docker

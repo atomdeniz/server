@@ -58,6 +58,7 @@
       - "{{ docker_dir }}/authelia:/config"
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "public_network"
       traefik.http.routers.authelia.rule: "Host(`{{ authelia_host }}`)"
       traefik.http.routers.authelia.entrypoints: "https"
       traefik.http.routers.authelia.middlewares: "open-external@file"
