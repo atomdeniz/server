@@ -4,6 +4,7 @@
     name: "whoami"
     image: "traefik/whoami:{{ whoami_version }}"
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"

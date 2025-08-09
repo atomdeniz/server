@@ -12,6 +12,7 @@
     name: "vaultwarden"
     image: "vaultwarden/server:{{ vaultwarden_version }}"
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
     security_opts:

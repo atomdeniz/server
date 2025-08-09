@@ -36,8 +36,6 @@ all:
 
     traefikshaper_host : "traefikshaper.{{ root_host }}"
 
-    metube_host : "metube.{{ root_host }}"
-
     n8n_host: "n8n.{{ root_host }}"
 
     freqtrade_host: "freqtrade.{{ root_host }}"

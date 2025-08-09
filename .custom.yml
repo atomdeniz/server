@@ -7,3 +7,4 @@ email_recipient: "reciever@gmail.com" #email to receive notifications
 email_smtp_host: "smtp.gmail.com" #smtp server
 email_smtp_port: "587" #smtp port
 email_login: "sender@gmail.com" #email to send notifications
+force_recreate: false

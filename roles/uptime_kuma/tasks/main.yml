@@ -12,6 +12,7 @@
     name: uptime_kuma
     image: louislam/uptime-kuma:{{ uptime_kuma_version }}
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
     security_opts:

@@ -4,6 +4,7 @@
     name: docker_proxy
     image: tecnativa/docker-socket-proxy:{{ docker_proxy_version }}
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: "started"
     restart_policy: unless-stopped
     security_opts:

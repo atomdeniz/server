@@ -4,21 +4,31 @@
     repo: "{{ freqtrade_repo_url }}"
     dest: "{{ freqtrade_repo_dest_dir }}"
     update: yes
-
-- name: Copy recommended config to user_data
-  copy:
-    remote_src: yes
-    src: "{{ freqtrade_repo_dest_dir }}/configs/recommended_config.json"
-    dest: "{{ freqtrade_repo_dest_dir }}/user_data/config.json"
+    force: yes
 
 - name: Copy the main config
+  ansible.builtin.template:
+    src: config.json
+    dest: "{{ freqtrade_repo_dest_dir }}/user_data/config.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+
+- name: Copy the env
   ansible.builtin.template:
     src: .env
     dest: "{{ freqtrade_repo_dest_dir }}/.env"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  notify: Restart freqtrade
+  
+- name: Copy the dockercompose
+  ansible.builtin.template:
+    src: docker-compose.yml
+    dest: "{{ freqtrade_repo_dest_dir }}/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
 
 - name: change ownership
   file:
@@ -28,43 +38,40 @@
     state: directory
     recurse: yes
 
-- name: Build custom freqtrade Docker image
-  community.general.docker_image:
-    name: "freqtradeorg/freqtrade:{{ freqtrade_version }}"
-    build:
-      path: "{{ freqtrade_repo_dest_dir }}"
-      dockerfile: "docker/Dockerfile.custom"
-    source: build
-    force_source: true
+- name: Docker Compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ freqtrade_repo_dest_dir }}"
+    state: present
 
-- name: Make sure the freqtrade container is created and running
-  community.general.docker_container:
-    name: "freqtrade"
-    image: "freqtradeorg/freqtrade:{{ freqtrade_version }}"
-    pull: no
-    state: started
-    restart_policy: unless-stopped
-    user: "1000:1000"
-    security_opts:
-      - apparmor:docker-default
-    volumes:
-      - "{{ freqtrade_repo_dest_dir }}/user_data:/freqtrade/user_data"
-      - "{{ freqtrade_repo_dest_dir }}/user_data/data:/freqtrade/user_data/data"
-      - "{{ freqtrade_repo_dest_dir }}/configs:/freqtrade/configs"
-      - "{{ freqtrade_repo_dest_dir }}/NostalgiaForInfinityX5.py:/freqtrade/NostalgiaForInfinityX5.py"
-    networks:
-      - name: dns_network
-    command: >
-      trade
-      --logfile /freqtrade/user_data/logs/freqtrade.log
-      --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
-    env_file: "{{ freqtrade_repo_dest_dir }}/.env"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "dns_network"
-      traefik.http.routers.freqtrade.entrypoints: "https"
-      traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
-      traefik.http.routers.freqtrade.tls: "true"
-      traefik.http.routers.freqtrade.service: "freqtrade"
-      traefik.http.routers.freqtrade.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.freqtrade.loadbalancer.server.port: "8080"
+# - name: Make sure the freqtrade container is created and running
+#   community.general.docker_container:
+#     name: "freqtrade"
+#     image: "deniz/freqtrade:{{ freqtrade_version }}"
+#     pull: no
+#     state: started
+#     restart_policy: unless-stopped
+#     user: "1000:1000"
+#     security_opts:
+#       - apparmor:docker-default
+#     volumes:
+#       - "{{ freqtrade_repo_dest_dir }}/user_data:/freqtrade/user_data"
+#       - "{{ freqtrade_repo_dest_dir }}/user_data/data:/freqtrade/user_data/data"
+#       - "{{ freqtrade_repo_dest_dir }}/configs:/freqtrade/configs"
+#       - "{{ freqtrade_repo_dest_dir }}/NostalgiaForInfinityX6.py:/freqtrade/NostalgiaForInfinityX6.py"
+#     networks:
+#       - name: dns_network
+#     command: >
+#       trade
+#       --logfile /freqtrade/user_data/logs/freqtrade.log
+#       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
+#       --strategy-path .
+#     env_file: "{{ freqtrade_repo_dest_dir }}/.env"
+#     labels:
+#       traefik.enable: "true"
+#       traefik.docker.network: "dns_network"
+#       traefik.http.routers.freqtrade.entrypoints: "https"
+#       traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
+#       traefik.http.routers.freqtrade.tls: "true"
+#       traefik.http.routers.freqtrade.service: "freqtrade"
+#       traefik.http.routers.freqtrade.middlewares: "secure-vpn-with-auth@file"
+#       traefik.http.services.freqtrade.loadbalancer.server.port: "8080"

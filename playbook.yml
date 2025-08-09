@@ -86,10 +86,6 @@
       tags:
         - proxy
 
-    - role: metube
-      tags:
-        - metube
-
     - role: n8n
       tags:
         - n8n

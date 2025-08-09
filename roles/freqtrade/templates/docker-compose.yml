@@ -1,0 +1,56 @@
+---
+
+x-common-settings:
+  &common-settings
+  image: freqtradeorg/freqtrade:stable
+  build:
+    context: .
+    dockerfile: "./docker/Dockerfile.custom"
+  restart: unless-stopped
+  volumes:
+    - "./user_data:/freqtrade/user_data"
+    - "./user_data/data:/freqtrade/user_data/data"
+    - "./configs:/freqtrade/configs"
+    - "./${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}.py:/freqtrade/${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}.py"
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}"]
+    interval: 1m30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
+    start_interval: 5s
+  env_file:
+    - path: .env
+      required: false # default true
+  
+services:
+  freqtrade:
+    <<: *common-settings
+    container_name: ${FREQTRADE__BOT_NAME:-Example_Test_Account}_${FREQTRADE__EXCHANGE__NAME:-binance}_${FREQTRADE__TRADING_MODE:-futures}-${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}
+    ports:
+      - "${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}"
+    networks:
+      - dns_network
+    user: "1000:1000"
+    security_opt:
+      - apparmor:docker-default
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "dns_network"
+      traefik.http.routers.freqtrade.entrypoints: "https"
+      traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
+      traefik.http.routers.freqtrade.tls: "true"
+      traefik.http.routers.freqtrade.service: "freqtrade"
+      traefik.http.routers.freqtrade.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.freqtrade.loadbalancer.server.port: "8080"
+    command: >
+      trade
+      --db-url sqlite:////freqtrade/user_data/${FREQTRADE__BOT_NAME:-Example_Test_Account}_${FREQTRADE__EXCHANGE__NAME:-binance}_${FREQTRADE__TRADING_MODE:-futures}-tradesv3.sqlite
+      --log-file user_data/logs/${FREQTRADE__BOT_NAME:-Example_Test_Account}-${FREQTRADE__EXCHANGE__NAME:-binance}-${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}-${FREQTRADE__TRADING_MODE:-futures}.log
+      --strategy-path .
+
+      
+networks:
+  dns_network:
+    external: true
+    name: dns_network

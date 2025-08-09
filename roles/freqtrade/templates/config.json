@@ -1,0 +1,10 @@
+{
+  "strategy": "NostalgiaForInfinityX6",
+  "add_config_files": [
+    "../configs/trading_mode-spot.json",
+    "../configs/pairlist-volume-kucoin-usdt.json",
+    "../configs/blacklist-kucoin.json",
+    "../configs/exampleconfig.json",
+    "../configs/exampleconfig_secret.json"
+  ]
+}

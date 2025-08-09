@@ -1,9 +1,9 @@
 ---
-- name: Update and upgrade apt packages
-  ansible.builtin.apt:
-    upgrade: yes
-    autoremove: yes
-    update_cache: yes
+# - name: Update and upgrade apt packages
+#   ansible.builtin.apt:
+#     upgrade: yes
+#     autoremove: yes
+#     update_cache: yes
 
 - name: Install unattended upgrades package
   ansible.builtin.package:

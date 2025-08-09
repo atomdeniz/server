@@ -12,6 +12,7 @@
     name: "n8n"
     image: "docker.n8n.io/n8nio/n8n:{{ n8n_version }}"
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"

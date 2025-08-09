@@ -38,6 +38,7 @@
     networks:
       - name: redis_network
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: "started"
     restart_policy: unless-stopped
 
@@ -46,6 +47,7 @@
     name: "authelia"
     image: "authelia/authelia:{{ authelia_version }}"
     pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
     state: "started"
     restart_policy: unless-stopped
     security_opts:
