@@ -54,8 +54,6 @@ all:
 
     wireguard_port: "51820"
 
-    dns_nameservers: cloudflare
-
     autoupdate_reboot_time: 03:00
 
     docker_dir: "/opt/docker"
