@@ -6,33 +6,13 @@
     group: "{{ username }}"
     mode: 0755
 
-- name: Create prometheus.yml file
-  ansible.builtin.copy:
-    content: |
-      global:
-        scrape_interval: 15s
-      scrape_configs:
-        - job_name: 'prometheus'
-          scrape_interval: 5s
-          static_configs:
-            - targets: ['localhost:9090']
-        - job_name: 'node_exporter'
-          static_configs:
-            - targets: ['node_exporter:9100']
-        - job_name: 'cadvisor'
-          static_configs:
-            - targets: ['cadvisor:8080']
-        - job_name: 'traefik'
-          metrics_path: "/metrics"
-          static_configs:
-            - targets: ['traefik:8899']
-        - job_name: 'crowdsec'
-          static_configs:
-            - targets: ['crowdsec:6060']
-    dest: /etc/prometheus/prometheus.yml
+- name: Copy the prometheus.yml
+  ansible.builtin.template:
+    src: prometheus.yml
+    dest: "/etc/prometheus/prometheus.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: 0640
 
 - name: Create volumes for monitoring containers
   community.docker.docker_volume:
@@ -137,4 +117,3 @@
       traefik.http.routers.grafana.service: "grafana"
       traefik.http.routers.grafana.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
-      

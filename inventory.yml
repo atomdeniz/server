@@ -34,7 +34,7 @@ all:
 
     whoami_vpn_host: "whoamivpn.{{ root_host }}"
 
-    traefikshaper_host : "traefikshaper.{{ root_host }}"
+    traefikshaper_host: "traefikshaper.{{ root_host }}"
 
     n8n_host: "n8n.{{ root_host }}"
 
@@ -42,7 +42,9 @@ all:
 
     secure_ip: 10.8.1.1
 
-    dns_local_ip: 10.8.4.2
+    adguard_local_ip: 10.8.4.2
+
+    unbound_local_ip: 10.8.4.3
 
     traefik_host_local_ip: 10.8.4.4
 
@@ -89,12 +91,6 @@ all:
       - desc: "Allow SSH"
         proto: tcp
         port: "{{ ssh_port }}"
-      - desc: "Allow DNS"
-        proto: tcp
-        port: "53"
-      - desc: "Allow DNS"
-        proto: udp
-        port: "53"
 
     pip_install_packages:
       - name: docker

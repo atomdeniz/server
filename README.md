@@ -34,10 +34,14 @@ I am currently running the whole process only on Ubuntu.
 
 **Security Enhancements:** AppArmor profiles and iptables rules for further security hardening.
 
+```bash
+ansible-galaxy role install -r requirements.yml --force
+ansible-galaxy collection install -r requirements.yml --force
+```
+
 ## 0 Set User
 
 [Set User](https://github.com/atomdeniz/server/blob/main/USER.md)
-
 
 ## 1. Load SSH Key
 
@@ -70,6 +74,7 @@ ansible-vault encrypt secret.yml
 ### Edit the Encrypted YAML File:
 
 Example: Using '.secret.yml' as a reference, add your secrets in the following format:
+
 ```bash
 EDITOR=nano ansible-vault edit secret.yml
 ```
@@ -156,13 +161,14 @@ docker exec -it crowdsec cscli machines add testMachine --force --password "your
 ```
 
 ## 4 Install SelfHosted
+
 Then rerun the Ansible playbook:
 
 ```bash
 ansible-playbook -i inventory.yml playbook.yml
 ```
----
 
+---
 
 ## 5 Add DNS Record To Cloudflare
 

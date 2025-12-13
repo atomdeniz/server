@@ -20,6 +20,10 @@
       - apparmor:docker-default
     networks:
       - name: dns_network
+        driver_opts:
+          com.docker.network.endpoint.ifname: "myeth"
+      - name: public_network
+      - name: homepage_network
     sysctls:
       "net.ipv4.conf.all.src_valid_mark": "1"
       "net.ipv4.ip_forward": "1"
@@ -28,12 +32,14 @@
       - sys_module
     env:
       WG_HOST: "{{ ansible_host }}"
-      WG_DEFAULT_DNS: "{{ ansible_host }}"
+      WG_DEFAULT_DNS: "{{ adguard_local_ip }}"
       WG_DEFAULT_ADDRESS: "{{ wireguard_subnet }}"
       WG_PORT: "{{ wireguard_port }}"
       WG_PERSISTENT_KEEPALIVE: "25"
       WG_ALLOWED_IPS: "{{ wireguard_client_allowed_ips }}"
       PASSWORD_HASH: "{{ wireguard_password_hash }}"
+      WG_DEVICE: "myeth"
+      WG_MTU: "1280"
     ports:
       - "{{ wireguard_port }}:51820/udp"
     volumes:
@@ -46,25 +52,9 @@
       traefik.http.routers.wg.tls: "true"
       traefik.http.routers.wg.service: "wg"
       traefik.http.services.wg.loadbalancer.server.port: "51821"
-      traefik.http.routers.wg.middlewares: "dynamic-ipwhitelist@file,secure-external@file"   
+      traefik.http.routers.wg.middlewares: "dynamic-ipwhitelist@file,secure-external@file"
       traefik.http.routers.wg-dynamic.entrypoints: "https"
       traefik.http.routers.wg-dynamic.rule: "Host(`{{ wireguard_host }}`) && PathPrefix(`/knock-knock`)"
       traefik.http.routers.wg-dynamic.tls: "true"
       traefik.http.routers.wg-dynamic.service: "traefikshaper"
       traefik.http.services.wg-dynamic.loadbalancer.server.port: "5000"
-      
-- name: Connect wg-easy to public_network via eth1
-  ansible.builtin.command: >
-    docker network connect
-    --opt com.docker.network.endpoint.ifname=eth1
-    public_network wg-easy
-  args:
-    creates: "/var/run/docker.sock"
-
-- name: Connect wg-easy to homepage_network via eth2
-  ansible.builtin.command: >
-    docker network connect
-    --opt com.docker.network.endpoint.ifname=eth2
-    homepage_network wg-easy
-  args:
-    creates: "/var/run/docker.sock"

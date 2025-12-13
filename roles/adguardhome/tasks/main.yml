@@ -1,0 +1,49 @@
+---
+- name: Create the adguardhome config folders
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0750
+  loop:
+    - adguardhome
+    - adguardhome/work
+    - adguardhome/conf
+
+- name: Copy adguardhome config
+  ansible.builtin.template:
+    src: AdGuardHome.yaml
+    dest: "{{ docker_dir }}/adguardhome/conf/AdGuardHome.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart adguardhome
+
+- name: Run AdGuard Home
+  community.docker.docker_container:
+    name: adguardhome
+    image: "adguard/adguardhome:{{ adguardhome_version }}"
+    state: "started"
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    recreate: "{{ force_recreate | default(false) }}"
+    pull: "always"
+    volumes:
+      - "{{ docker_dir }}/adguardhome/work:/opt/adguardhome/work"
+      - "{{ docker_dir }}/adguardhome/conf:/opt/adguardhome/conf"
+    networks:
+      - name: dns_network
+        ipv4_address: "{{ adguard_local_ip }}"
+      - name: homepage_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "dns_network"
+      traefik.http.routers.adguard.entrypoints: "https"
+      traefik.http.routers.adguard.rule: "Host(`{{ adguard_host }}`)"
+      traefik.http.routers.adguard.tls: "true"
+      traefik.http.routers.adguard.service: "adguard"
+      traefik.http.routers.adguard.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.adguard.loadbalancer.server.port: "3000"

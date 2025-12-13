@@ -67,5 +67,3 @@
       traefik.http.routers.authelia.service: "authelia"
       traefik.http.routers.authelia.tls: "true"
       traefik.http.services.authelia.loadbalancer.server.port: "9091"
-      
-

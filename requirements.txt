@@ -1,8 +1,0 @@
-cryptography
-pyOpenSSL
-certbot
-requests<2.29.2
-passlib 
-bcrypt 
-wheel
-ansible>=4.10

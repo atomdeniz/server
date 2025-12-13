@@ -8,11 +8,8 @@ roles:
     src: https://github.com/geerlingguy/ansible-role-pip
 
 collections:
-  - name: https://github.com/ansible-collections/community.docker
-    type: git
-  - name: https://github.com/ansible-collections/community.general
-    type: git
-  - name: https://github.com/ansible-collections/community.crypto
-    type: git
-  - name: https://github.com/ansible-collections/ansible.posix
-    type: git
+  - name: community.docker
+    version: ">=5.0.0"
+  - name: community.general
+  - name: community.crypto
+  - name: ansible.posix

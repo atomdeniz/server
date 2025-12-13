@@ -53,7 +53,7 @@
         href: "https://{{ adguard_host }}"
         widget:
           type: adguard
-          url: http://adguard-unbound-doh:3000
+          url: http://adguardhome:3000
           username: admin
           password: "{{ adguard_password }}"
     - Wireguard:
@@ -75,5 +75,5 @@
           refreshInterval: 10000
           method: GET
           mappings:
-            - field: 'ip'
+            - field: "ip"
               format: text

@@ -20,7 +20,7 @@
     - role: security
       tags:
         - security
-        
+
     - role: geerlingguy.docker
       tags:
         - docker
@@ -49,9 +49,13 @@
       tags:
         - whoami
 
-    - role: dns
+    - role: unbound
       tags:
-        - dns
+        - unbound
+
+    - role: adguardhome
+      tags:
+        - adguardhome
 
     - role: wireguard
       tags:
@@ -77,11 +81,11 @@
     - role: uptime_kuma
       tags:
         - uptime_kuma
-    
+
     - role: watchtower
       tags:
         - watchtower
-    
+
     - role: proxy
       tags:
         - proxy
@@ -97,4 +101,3 @@
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp
-

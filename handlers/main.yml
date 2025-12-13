@@ -14,15 +14,20 @@
   community.general.docker_container:
     name: traefikshaper
     restart: yes
-    
+
 - name: Restart crowdsec
   community.general.docker_container:
     name: crowdsec
     restart: yes
 
-- name: Restart adguard-unbound-doh
+- name: Restart adguardhome
   community.docker.docker_container:
-    name: adguard-unbound-doh
+    name: adguardhome
+    restart: yes
+
+- name: Restart unbound
+  community.docker.docker_container:
+    name: unbound
     restart: yes
 
 - name: Restart homepage

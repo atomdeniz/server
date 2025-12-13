@@ -1,0 +1,43 @@
+---
+- name: Create the config folder
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/unbound"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0755
+
+# - name: Copy Unbound configuration file
+#   ansible.builtin.template:
+#     src: unbound.conf
+#     dest: "{{ docker_dir }}/unbound/unbound.conf"
+#     owner: "{{ username }}"
+#     group: "{{ username }}"
+#     mode: 0640
+#   notify: Restart unbound
+
+- name: Copy Unbound configuration file
+  ansible.builtin.template:
+    src: forward-records.conf
+    dest: "{{ docker_dir }}/unbound/forward-records.conf"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0640
+  notify: Restart unbound
+
+- name: Run Unbound DNS (privacy-hardened)
+  community.docker.docker_container:
+    name: unbound
+    image: "mvance/unbound-rpi:{{ unbound_version }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    recreate: "{{ force_recreate | default(false) }}"
+    pull: "always"
+    volumes:
+      - "{{ docker_dir }}/unbound/forward-records.conf:/opt/unbound/etc/unbound/forward-records.conf:ro"
+    networks:
+      - name: dns_network
+        ipv4_address: "{{ unbound_local_ip }}"
