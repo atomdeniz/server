@@ -28,8 +28,6 @@ I am currently running the whole process only on Ubuntu.
 
 **Vaultwarden:** Self-hosted password management.
 
-**Watchtower:** Automatic Docker container updates.
-
 **Whoami:** Simple service for testing and debugging HTTP requests.
 
 **Security Enhancements:** AppArmor profiles and iptables rules for further security hardening.

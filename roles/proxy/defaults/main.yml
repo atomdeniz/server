@@ -1,4 +1,4 @@
 ---
-caddy_version: "2.6-alpine"
+caddy_version: "latest"
 trojan_version: "latest"
 v2fly_version: "latest"

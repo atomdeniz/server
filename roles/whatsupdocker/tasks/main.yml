@@ -1,12 +1,4 @@
 ---
-- name: Create the cyberchef directory
-  ansible.builtin.file:
-    path: "{{ docker_dir }}/cyberchef"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0775"
-
 - name: Make sure the whatsupdocker container is created and running
   community.general.docker_container:
     name: "whatsupdocker"
@@ -22,8 +14,16 @@
       - name: homepage_network
       - name: docker_proxy_network
       - name: reverse_proxy_network
+      - name: bridge
     env:
       DOCKER_HOST: tcp://docker_proxy:2375
+      WUD_TRIGGER_SMTP_GMAIL_HOST: "{{ email_smtp_host }}"
+      WUD_TRIGGER_SMTP_GMAIL_PORT: "{{ email_smtp_port }}"
+      WUD_TRIGGER_SMTP_GMAIL_USER: "{{ email_login }}"
+      WUD_TRIGGER_SMTP_GMAIL_PASS: "{{ email_password }}"
+      WUD_TRIGGER_SMTP_GMAIL_FROM: "{{ email_login }}"
+      WUD_TRIGGER_SMTP_GMAIL_TO: "{{ email_recipient }}"
+      WUD_TRIGGER_SMTP_GMAIL_TLS_ENABLED: "false"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"
