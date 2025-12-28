@@ -57,11 +57,11 @@
       tags:
         - adguardhome
 
-    - role: wireguard
+    - role: amnezia_wg
       tags:
-        - wireguard
+        - amnezia_wg
 
-    # this is my website role, you can create your own role
+    # This is my website role, you can create your own role
     - role: mywebsite
       tags:
         - mywebsite
@@ -82,10 +82,6 @@
       tags:
         - uptime_kuma
 
-    - role: watchtower
-      tags:
-        - watchtower
-
     - role: proxy
       tags:
         - proxy
@@ -97,6 +93,10 @@
     - role: freqtrade
       tags:
         - freqtrade
+
+    - role: whatsupdocker
+      tags:
+        - whatsupdocker
 
     - role: chriswayg.msmtp-mailer
       tags:

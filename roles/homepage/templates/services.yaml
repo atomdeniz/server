@@ -4,13 +4,6 @@
 # icons found here https://github.com/walkxcode/dashboard-icons
 
 - Resources:
-    - Watchtower:
-        server: my-docker
-        icon: watchtower.svg
-        widget:
-          type: watchtower
-          url: "http://watchtower:8080"
-          key: "{{ watchtower_token }}"
     - Grafana:
         server: my-docker
         icon: grafana.svg
@@ -56,14 +49,14 @@
           url: http://adguardhome:3000
           username: admin
           password: "{{ adguard_password }}"
-    - Wireguard:
+    - AmneziaWG:
         server: my-docker
         icon: wireguard.svg
-        href: "https://{{ wireguard_host }}"
+        href: "https://{{ vpn_host }}"
         widget:
           type: wgeasy
-          url: http://wg-easy:51821
-          password: "{{ wireguard_password }}"
+          url: http://amnezia-wg:51821
+          password: "{{ amnezia_password }}"
 - Other:
     - GitHub:
         icon: github.svg

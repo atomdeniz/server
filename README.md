@@ -24,7 +24,7 @@ I am currently running the whole process only on Ubuntu.
 
 **Homepage & Uptime Kuma:** Easy-to-navigate dashboard and uptime monitoring for hosted services.
 
-**V2ray (vmess/vless on WS), Trojan, WireGuard:** Secure VPN and proxy solutions ensuring privacy.
+**V2ray (vmess/vless on WS), Trojan, AmneziaWG:** Secure VPN and proxy solutions ensuring privacy.
 
 **Vaultwarden:** Self-hosted password management.
 
@@ -158,6 +158,12 @@ To add a new CrowdSec machine:
 
 ```bash
 docker exec -it crowdsec cscli machines add testMachine --force --password "your_password"
+```
+
+Add the generated API key (`crowdsecMachineApiKey`) into your previously created `secret.yml`:
+
+```yaml
+crowdsecMachineApiKey: "your_password"
 ```
 
 ## 4 Install SelfHosted

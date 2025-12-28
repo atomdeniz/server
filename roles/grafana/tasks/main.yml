@@ -10,9 +10,9 @@
   ansible.builtin.template:
     src: prometheus.yml
     dest: "/etc/prometheus/prometheus.yml"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: 0640
+    owner: root
+    group: root
+    mode: 0644
 
 - name: Create volumes for monitoring containers
   community.docker.docker_volume:
@@ -105,12 +105,12 @@
     volumes:
       - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
     networks:
-      - name: dns_network
+      - name: reverse_proxy_network
       - name: prometheus_network
       - name: homepage_network
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "dns_network"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.http.routers.grafana.entrypoints: "https"
       traefik.http.routers.grafana.rule: "Host(`{{ grafana_host }}`)"
       traefik.http.routers.grafana.tls: "true"

@@ -16,7 +16,7 @@ all:
 
     v2ray_host: "v2ray.{{ root_host }}"
 
-    wireguard_host: "vpn.{{ root_host }}"
+    vpn_host: "vpn.{{ root_host }}"
 
     vaultwarden_host: "password.{{ root_host }}"
 
@@ -32,27 +32,29 @@ all:
 
     whoami_host: "whoami.{{ root_host }}"
 
-    whoami_vpn_host: "whoamivpn.{{ root_host }}"
-
     traefikshaper_host: "traefikshaper.{{ root_host }}"
 
     n8n_host: "n8n.{{ root_host }}"
 
     freqtrade_host: "freqtrade.{{ root_host }}"
 
-    secure_ip: 10.8.1.1
+    whatsupdocker_host: "whatsupdocker.{{ root_host }}"
+
+    traefik_reverse_proxy_network_gateway: 10.8.6.1
+
+    traefik_reverse_proxy_network_local_ip: 10.8.6.2
 
     adguard_local_ip: 10.8.4.2
 
     unbound_local_ip: 10.8.4.3
 
-    traefik_host_local_ip: 10.8.4.4
+    vpn_subnet: "10.8.0.x"
 
-    wireguard_subnet: "10.8.0.x"
+    vpn_subnet_cidr: "10.8.0.0/24"
 
-    wireguard_client_allowed_ips: "0.0.0.0/0, ::/0"
+    vpn_client_allowed_ips: "0.0.0.0/0"
 
-    wireguard_port: "51820"
+    vpn_port: "51820"
 
     autoupdate_reboot_time: 03:00
 
@@ -77,9 +79,9 @@ all:
     ssh_allow_cidr: 0.0.0.0/0
 
     iptables_allow_rules:
-      - desc: "Allow Wireguard"
+      - desc: "Allow VPN"
         proto: udp
-        port: "{{ wireguard_port }}"
+        port: "{{ vpn_port }}"
       - desc: "Allow HTTP"
         proto: tcp
         port: "80"

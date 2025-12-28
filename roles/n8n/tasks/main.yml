@@ -20,7 +20,8 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: dns_network
+      - name: public_network
+      - name: reverse_proxy_network
     volumes:
       - "{{ docker_dir }}/n8n/:/home/node/.n8n"
     env:
@@ -28,11 +29,10 @@
       TZ: "Europe/Istanbul"
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "dns_network"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.http.routers.n8n.entrypoints: "https"
       traefik.http.routers.n8n.rule: "Host(`{{ n8n_host }}`)"
       traefik.http.routers.n8n.tls: "true"
       traefik.http.routers.n8n.service: "n8n"
       traefik.http.routers.n8n.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.n8n.loadbalancer.server.port: "5678"
-      

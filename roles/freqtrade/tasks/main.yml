@@ -21,7 +21,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  
+
 - name: Copy the dockercompose
   ansible.builtin.template:
     src: docker-compose.yml
@@ -42,36 +42,3 @@
   community.docker.docker_compose_v2:
     project_src: "{{ freqtrade_repo_dest_dir }}"
     state: present
-
-# - name: Make sure the freqtrade container is created and running
-#   community.general.docker_container:
-#     name: "freqtrade"
-#     image: "deniz/freqtrade:{{ freqtrade_version }}"
-#     pull: no
-#     state: started
-#     restart_policy: unless-stopped
-#     user: "1000:1000"
-#     security_opts:
-#       - apparmor:docker-default
-#     volumes:
-#       - "{{ freqtrade_repo_dest_dir }}/user_data:/freqtrade/user_data"
-#       - "{{ freqtrade_repo_dest_dir }}/user_data/data:/freqtrade/user_data/data"
-#       - "{{ freqtrade_repo_dest_dir }}/configs:/freqtrade/configs"
-#       - "{{ freqtrade_repo_dest_dir }}/NostalgiaForInfinityX6.py:/freqtrade/NostalgiaForInfinityX6.py"
-#     networks:
-#       - name: dns_network
-#     command: >
-#       trade
-#       --logfile /freqtrade/user_data/logs/freqtrade.log
-#       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
-#       --strategy-path .
-#     env_file: "{{ freqtrade_repo_dest_dir }}/.env"
-#     labels:
-#       traefik.enable: "true"
-#       traefik.docker.network: "dns_network"
-#       traefik.http.routers.freqtrade.entrypoints: "https"
-#       traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
-#       traefik.http.routers.freqtrade.tls: "true"
-#       traefik.http.routers.freqtrade.service: "freqtrade"
-#       traefik.http.routers.freqtrade.middlewares: "secure-vpn-with-auth@file"
-#       traefik.http.services.freqtrade.loadbalancer.server.port: "8080"

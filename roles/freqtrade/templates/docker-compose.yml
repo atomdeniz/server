@@ -1,7 +1,5 @@
 ---
-
-x-common-settings:
-  &common-settings
+x-common-settings: &common-settings
   image: freqtradeorg/freqtrade:stable
   build:
     context: .
@@ -13,7 +11,13 @@ x-common-settings:
     - "./configs:/freqtrade/configs"
     - "./${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}.py:/freqtrade/${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}.py"
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}"]
+    test:
+      [
+        "CMD",
+        "curl",
+        "-f",
+        "http://localhost:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}",
+      ]
     interval: 1m30s
     timeout: 10s
     retries: 3
@@ -22,7 +26,7 @@ x-common-settings:
   env_file:
     - path: .env
       required: false # default true
-  
+
 services:
   freqtrade:
     <<: *common-settings
@@ -30,13 +34,14 @@ services:
     ports:
       - "${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}"
     networks:
-      - dns_network
+      - reverse_proxy_network
+      - public_network
     user: "1000:1000"
     security_opt:
       - apparmor:docker-default
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "dns_network"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.http.routers.freqtrade.entrypoints: "https"
       traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
       traefik.http.routers.freqtrade.tls: "true"
@@ -49,8 +54,10 @@ services:
       --log-file user_data/logs/${FREQTRADE__BOT_NAME:-Example_Test_Account}-${FREQTRADE__EXCHANGE__NAME:-binance}-${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}-${FREQTRADE__TRADING_MODE:-futures}.log
       --strategy-path .
 
-      
 networks:
-  dns_network:
+  public_network:
     external: true
-    name: dns_network
+    name: public_network
+  reverse_proxy_network:
+    external: true
+    name: reverse_proxy_network

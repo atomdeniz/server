@@ -74,7 +74,8 @@
       - name: docker_proxy_network
       - name: homepage_network
       - name: dns_network
-        ipv4_address: "{{ traefik_host_local_ip }}"
+      - name: reverse_proxy_network
+        ipv4_address: "{{ traefik_reverse_proxy_network_local_ip }}"
     ports:
       - "80:80"
       - "443:443"
@@ -88,7 +89,6 @@
       CF_API_KEY: "{{ cloudflare_api_key }}"
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "dns_network"
       traefik.http.middlewares.traefik-auth.basicauth.users: "{{ traefik_basic_auth_hash }}"
       traefik.http.routers.traefik.entrypoints: "https"
       traefik.http.routers.traefik.rule: "Host(`{{ traefik_host }}`)"
@@ -98,7 +98,7 @@
       traefik.http.routers.traefik.tls.domains[0].main: "{{ root_host }}"
       traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ root_host }}"
       traefik.http.routers.traefik.service: "api@internal"
-      
+
 - name: DumpCertificates
   community.docker.docker_container:
     name: certsdump
@@ -124,22 +124,6 @@
       - "{{ docker_dir }}/traefik/data/certificates:/data"
     working_dir: /data
 
-
-
-# - name: Convert CRT to PEM
-#   command: >
-#     openssl x509 -in {{ docker_dir }}/traefik/data/certificates/{{root_host}}/certificate.crt
-#     -out {{ docker_dir }}/traefik/data/certificates/{{root_host}}/certificate.pem -outform PEM
-#   args:
-#     creates: "{{ docker_dir }}/traefik/data/certificates/{{root_host}}/certificate.pem"
-
-# - name: Convert KEY to PEM (if needed)
-#   command: >
-#     openssl rsa -in {{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.key
-#     -out {{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.pem
-#   args:
-#     creates: "{{ docker_dir }}/traefik/data/certificates/{{root_host}}/privatekey.pem"
-
 # https://github.com/l4rm4nd/TraefikShaper Orginal
 - name: Deploy traefikshaper with docker container
   community.docker.docker_container:
@@ -154,17 +138,19 @@
       - apparmor:docker-default
     networks:
       - name: public_network
+      - name: reverse_proxy_network
     volumes:
       - "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml:/app/dynamic-whitelist.yml"
     env:
       APPURL: "{{ traefikshaper_host }}"
       GRANT_HTTP_ENDPOINT: "/knock-knock"
       IPSTRATEGY_DEPTH: "1"
-      EXPIRATION_TIME: "6000" 
+      EXPIRATION_TIME: "6000"
       WHITELISTED_IPS: "{{ ansible_host }}"
       APPRISE_NOTIFICATION_URL: tgram://bot{{ telegram_api_token }}/{{ telegram_user_id }}
     labels:
       traefik.enable: "true"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.http.routers.traefikshaper.entrypoints: "https"
       traefik.http.routers.traefikshaper.rule: "Host(`{{ traefikshaper_host }}`)"
       traefik.http.routers.traefikshaper.tls: "true"

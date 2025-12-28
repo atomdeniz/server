@@ -15,7 +15,7 @@ http:
           enabled: true
           defaultDecisionSeconds: 60
           crowdsecMode: live
-          crowdsecAppsecEnabled: true 
+          crowdsecAppsecEnabled: true
           crowdsecAppsecHost: crowdsec:7422
           crowdsecAppsecFailureBlock: true
           crowdsecAppsecUnreachableBlock: true
@@ -24,9 +24,9 @@ http:
           crowdsecLapiScheme: http
           crowdsecLapiTLSInsecureVerify: false
           forwardedHeadersTrustedIPs:
-            - "{{ secure_ip }}"
+            - "{{ traefik_reverse_proxy_network_gateway }}"
           clientTrustedIPs:
-            - "{{ secure_ip }}"
+            - "{{ traefik_reverse_proxy_network_gateway }}"
     https-only:
       redirectscheme:
         scheme: https

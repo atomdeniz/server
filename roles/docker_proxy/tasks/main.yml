@@ -22,6 +22,4 @@
       IMAGES_DELETE: "1"
     networks:
       - name: docker_proxy_network
-      - name: public_network
-      
-
+      - name: reverse_proxy_network

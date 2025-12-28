@@ -1,0 +1,35 @@
+---
+- name: Create the cyberchef directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/cyberchef"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Make sure the whatsupdocker container is created and running
+  community.general.docker_container:
+    name: "whatsupdocker"
+    image: "getwud/wud:{{ whatsupdocker_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: homepage_network
+      - name: docker_proxy_network
+      - name: reverse_proxy_network
+    env:
+      DOCKER_HOST: tcp://docker_proxy:2375
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "reverse_proxy_network"
+      traefik.http.routers.whatsupdocker.entrypoints: "https"
+      traefik.http.routers.whatsupdocker.rule: "Host(`{{ whatsupdocker_host }}`)"
+      traefik.http.routers.whatsupdocker.tls: "true"
+      traefik.http.routers.whatsupdocker.service: "whatsupdocker"
+      traefik.http.routers.whatsupdocker.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.whatsupdocker.loadbalancer.server.port: "3000"

@@ -1,0 +1,82 @@
+---
+- name: Create the AmneziaWG directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/amnezia-wg"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Copy the AmneziaWG Dockerfile
+  ansible.builtin.template:
+    src: Dockerfile
+    dest: "{{ docker_dir }}/amnezia-wg/Dockerfile"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0644
+
+- name: Build amnezia-wg image locally (on the target host)
+  community.docker.docker_image:
+    name: "amnezia-wg-easy-local"
+    tag: "{{ amnezia_wg_version }}"
+    source: build
+    build:
+      path: "{{ docker_dir }}/amnezia-wg"
+      pull: true
+  register: amnezia_build
+
+- name: Configure AmneziaWG to use as a proxy
+  community.general.docker_container:
+    name: "amnezia-wg"
+    image: "amnezia-wg-easy-local:{{ amnezia_wg_version }}"
+    pull: False
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: dns_network
+        driver_opts:
+          com.docker.network.endpoint.ifname: "myeth"
+      - name: reverse_proxy_network
+      - name: homepage_network
+    sysctls:
+      "net.ipv4.conf.all.src_valid_mark": "1"
+      "net.ipv4.ip_forward": "1"
+    capabilities:
+      - net_admin
+      - sys_module
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    env:
+      WG_HOST: "{{ ansible_host }}"
+      WG_DEFAULT_DNS: "{{ adguard_local_ip }}"
+      WG_DEFAULT_ADDRESS: "{{ vpn_subnet }}"
+      WG_PORT: "{{ vpn_port }}"
+      WG_PERSISTENT_KEEPALIVE: "25"
+      WG_ALLOWED_IPS: "{{ vpn_client_allowed_ips }}"
+      PASSWORD_HASH: "{{ amnezia_password_hash }}"
+      WG_DEVICE: "myeth"
+      WG_MTU: "1280"
+      WG_POST_UP: "iptables -t nat -A POSTROUTING -s {{ vpn_subnet_cidr }} ! -o wg0 -j MASQUERADE"
+      WG_POST_DOWN: "iptables -t nat -D POSTROUTING -s {{ vpn_subnet_cidr }} ! -o wg0 -j MASQUERADE"
+    ports:
+      - "{{ vpn_port }}:51820/udp"
+    volumes:
+      - "{{ docker_dir }}/amnezia-wg:/etc/amnezia/amneziawg/"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "reverse_proxy_network"
+      traefik.http.routers.amnezia-wg.entrypoints: "https"
+      traefik.http.routers.amnezia-wg.rule: "Host(`{{ vpn_host }}`) && !Path(`/knock-knock`)"
+      traefik.http.routers.amnezia-wg.tls: "true"
+      traefik.http.routers.amnezia-wg.service: "amnezia-wg"
+      traefik.http.services.amnezia-wg.loadbalancer.server.port: "51821"
+      traefik.http.routers.amnezia-wg.middlewares: "dynamic-ipwhitelist@file,secure-external@file"
+      traefik.http.routers.amnezia-wg-dynamic.entrypoints: "https"
+      traefik.http.routers.amnezia-wg-dynamic.rule: "Host(`{{ vpn_host }}`) && PathPrefix(`/knock-knock`)"
+      traefik.http.routers.amnezia-wg-dynamic.tls: "true"
+      traefik.http.routers.amnezia-wg-dynamic.service: "traefikshaper"
+      traefik.http.services.amnezia-wg-dynamic.loadbalancer.server.port: "5000"

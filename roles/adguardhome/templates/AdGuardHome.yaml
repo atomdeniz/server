@@ -72,23 +72,23 @@ dns:
   cache_time: 30
   rewrites:
     - domain: "{{ vaultwarden_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ adguard_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ homepage_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ traefik_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ grafana_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ uptime_kuma_host }}"
-      answer: "{{ traefik_host_local_ip }}"
-    - domain: "{{ whoami_vpn_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ n8n_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ freqtrade_host }}"
-      answer: "{{ traefik_host_local_ip }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
+    - domain: "{{ whatsupdocker_host }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
   blocked_services: []
   upstream_timeout: 10s
   private_networks: []

@@ -58,6 +58,7 @@
       - apparmor:docker-default
     networks:
       - name: public_network
+      - name: reverse_proxy_network
       - name: prometheus_network
       - name: homepage_network
     ports:
@@ -71,4 +72,3 @@
     env:
       GID: "1000"
       COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios crowdsecurity/sshd crowdsecurity/linux crowdsecurity/appsec-generic-rules crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs"
-      

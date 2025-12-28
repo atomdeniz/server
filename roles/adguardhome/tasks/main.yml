@@ -37,10 +37,11 @@
     networks:
       - name: dns_network
         ipv4_address: "{{ adguard_local_ip }}"
+      - name: reverse_proxy_network
       - name: homepage_network
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "dns_network"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.http.routers.adguard.entrypoints: "https"
       traefik.http.routers.adguard.rule: "Host(`{{ adguard_host }}`)"
       traefik.http.routers.adguard.tls: "true"

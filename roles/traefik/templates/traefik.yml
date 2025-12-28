@@ -68,10 +68,10 @@ entryPoints:
         - 2405:8100::/32
         - 2a06:98c0::/29
         - 2c0f:f248::/32
-        
+
 providers:
   docker:
-    network: dns_network
+    network: reverse_proxy_network
     endpoint: tcp://docker_proxy:2375
     exposedByDefault: false
   file:
@@ -103,14 +103,14 @@ accessLog:
   format: json
   filters:
     statusCodes:
-      - "200-299" 
+      - "200-299"
       - "400-599"
   bufferingSize: 0
   fields:
     headers:
       defaultMode: drop
       names:
-          User-Agent: keep
+        User-Agent: keep
 
 metrics:
   prometheus:

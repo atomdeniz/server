@@ -52,7 +52,7 @@
       - "{{ docker_dir }}/caddy/index.html:/srv/index.html"
     networks:
       - name: public_network
-
+      - name: reverse_proxy_network
 
 - name: Install Trojan server using Docker
   community.general.docker_container:
@@ -70,9 +70,10 @@
       - "{{ docker_dir }}/traefik/data/certificates/{{root_host}}:/etc/data"
     networks:
       - name: public_network
+      - name: reverse_proxy_network
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "public_network"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.tcp.routers.tgo.tls: "true"
       traefik.tcp.routers.tgo.entrypoints: "https"
       traefik.tcp.routers.tgo.rule: "HostSNI(`{{ tgo_host }}`)"
@@ -96,11 +97,12 @@
       - "{{ docker_dir }}/v2ray:/etc/v2ray"
     networks:
       - name: public_network
+      - name: reverse_proxy_network
     env:
       V2RAY_VMESS_AEAD_FORCED: "false"
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "public_network"
+      traefik.docker.network: "reverse_proxy_network"
       traefik.http.routers.api1.entrypoints: "https"
       traefik.http.routers.api1.tls.domains[0].main: "Host(`{{ v2ray_host }}`)"
       traefik.http.routers.api1.rule: PathPrefix(`/wsm`)
@@ -113,4 +115,3 @@
       traefik.http.routers.api2.tls: "true"
       traefik.http.routers.api2.service: api2
       traefik.http.services.api2.loadbalancer.server.port: "1001"
-      
