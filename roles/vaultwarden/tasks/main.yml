@@ -20,6 +20,7 @@
       - apparmor:docker-default
     networks:
       - name: reverse_proxy_network
+      - name: dns_network
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"
@@ -27,7 +28,7 @@
       traefik.http.routers.vault.rule: "Host(`{{ vaultwarden_host }}`)"
       traefik.http.routers.vault.tls: "true"
       traefik.http.routers.vault.service: "vault"
-      traefik.http.routers.vault.middlewares: "secure-external@file"
+      traefik.http.routers.vault.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.vault.loadbalancer.server.port: "80"
     volumes:
       - "{{ docker_dir }}/vw-data:/data"

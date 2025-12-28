@@ -176,14 +176,7 @@ ansible-playbook -i inventory.yml playbook.yml
 
 ---
 
-## 5 Add DNS Record To Cloudflare
+## 5 Add Firewall
 
-You can use a different DNS solution, but you'll need to update Traefik's middleware configuration and adjust your SSL settings accordingly.
-
-Cloudflare:
-
-[cf-dns-records.png](https://github.com/atomdeniz/server/blob/main/cf-dns-records.png)
-
-## 6 Add Firewall
-
-[firewall.png](https://github.com/atomdeniz/server/blob/main/firewall.png)
+80, 443, 51820 - allow from any
+22 (SSH) - only allow from my IP
