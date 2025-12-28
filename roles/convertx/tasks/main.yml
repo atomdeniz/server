@@ -1,0 +1,36 @@
+---
+- name: Create the convertx directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/convertx"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Make sure the convertx container is created and running
+  community.general.docker_container:
+    name: "convertx"
+    image: "ghcr.io/c4illin/convertx:{{ convertx_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: reverse_proxy_network
+      - name: bridge
+    env:
+      ALLOW_UNAUTHENTICATED: "true"
+    volumes:
+      - "{{ docker_dir }}/convertx:/app/data"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "reverse_proxy_network"
+      traefik.http.routers.convertx.entrypoints: "https"
+      traefik.http.routers.convertx.rule: "Host(`{{ convertx_host }}`)"
+      traefik.http.routers.convertx.tls: "true"
+      traefik.http.routers.convertx.service: "convertx"
+      traefik.http.routers.convertx.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.convertx.loadbalancer.server.port: "3000"

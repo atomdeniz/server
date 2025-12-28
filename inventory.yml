@@ -40,6 +40,10 @@ all:
 
     whatsupdocker_host: "whatsupdocker.{{ root_host }}"
 
+    web_check_host: "web.{{ root_host }}"
+
+    convertx_host: "convertx.{{ root_host }}"
+
     traefik_reverse_proxy_network_gateway: 10.8.6.1
 
     traefik_reverse_proxy_network_local_ip: 10.8.6.2

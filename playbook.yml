@@ -102,6 +102,14 @@
       tags:
         - whatsupdocker
 
+    - role: web_check
+      tags:
+        - web_check
+
+    - role: convertx
+      tags:
+        - convertx
+
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp

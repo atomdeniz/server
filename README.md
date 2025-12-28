@@ -6,7 +6,7 @@ This document outlines the steps required for installing and configuring SelfHos
 
 This project aims to create a secure, efficient, and highly maintainable self-hosting infrastructure. By leveraging modern tools such as Authelia for secure authentication, Traefik for reverse proxy and SSL management, CrowdSec for real-time security protection, and AdGuard combined with Unbound for secure DNS resolution, this setup provides privacy, security, and ease of use for self-hosted services.
 
-I am currently running the whole process only on Ubuntu.
+I am currently running the whole process only on Ubuntu ARM64.
 
 **Traefik:** Reverse proxy and automatic SSL handling.
 
@@ -17,6 +17,16 @@ I am currently running the whole process only on Ubuntu.
 **AdGuard & Unbound:** DNS filtering and secure DNS resolution with DNS-over-HTTPS (DoH).
 
 **Docker Socket Proxy:** Secure Docker socket management.
+
+**Freqtrade:** Open source crypto trading bot with NostalgiaForInfinity strategy.
+
+**WhatsUpDocker:** Tool to get notified when Docker images are updated.
+
+**ConvertX:** Converter
+
+**WhatuspDocker:** Docker image updates notifier
+
+**Web Check:** Web check
 
 **N8N**: MCP
 

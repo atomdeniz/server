@@ -9,15 +9,9 @@ x-common-settings: &common-settings
     - "./user_data:/freqtrade/user_data"
     - "./user_data/data:/freqtrade/user_data/data"
     - "./configs:/freqtrade/configs"
-    - "./${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}.py:/freqtrade/${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}.py"
+    - "./NostalgiaForInfinityX6.py:/freqtrade/NostalgiaForInfinityX6.py"
   healthcheck:
-    test:
-      [
-        "CMD",
-        "curl",
-        "-f",
-        "http://localhost:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}",
-      ]
+    test: ["CMD", "curl", "-f", "http://localhost:8080"]
     interval: 1m30s
     timeout: 10s
     retries: 3
@@ -30,9 +24,7 @@ x-common-settings: &common-settings
 services:
   freqtrade:
     <<: *common-settings
-    container_name: ${FREQTRADE__BOT_NAME:-Example_Test_Account}_${FREQTRADE__EXCHANGE__NAME:-binance}_${FREQTRADE__TRADING_MODE:-futures}-${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}
-    ports:
-      - "${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}:${FREQTRADE__API_SERVER__LISTEN_PORT:-8080}"
+    container_name: freqtrade
     networks:
       - reverse_proxy_network
       - public_network
@@ -46,12 +38,12 @@ services:
       traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
       traefik.http.routers.freqtrade.tls: "true"
       traefik.http.routers.freqtrade.service: "freqtrade"
-      traefik.http.routers.freqtrade.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.routers.freqtrade.middlewares: "secure-vpn@file"
       traefik.http.services.freqtrade.loadbalancer.server.port: "8080"
     command: >
       trade
-      --db-url sqlite:////freqtrade/user_data/${FREQTRADE__BOT_NAME:-Example_Test_Account}_${FREQTRADE__EXCHANGE__NAME:-binance}_${FREQTRADE__TRADING_MODE:-futures}-tradesv3.sqlite
-      --log-file user_data/logs/${FREQTRADE__BOT_NAME:-Example_Test_Account}-${FREQTRADE__EXCHANGE__NAME:-binance}-${FREQTRADE__STRATEGY:-NostalgiaForInfinityX6}-${FREQTRADE__TRADING_MODE:-futures}.log
+      --db-url sqlite:////freqtrade/user_data/freqtrade-tradesv3.sqlite
+      --log-file user_data/logs/freqtrade.log
       --strategy-path .
 
 networks:

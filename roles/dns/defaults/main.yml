@@ -30,6 +30,11 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: true
 
+  - name: "web"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
   - name: "v2ray"
     type: A
     content: "{{ ansible_host }}"

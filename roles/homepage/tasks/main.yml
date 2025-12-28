@@ -67,6 +67,7 @@
       - name: homepage_network
       - name: docker_proxy_network
       - name: reverse_proxy_network
+      - name: bridge
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"
     env:

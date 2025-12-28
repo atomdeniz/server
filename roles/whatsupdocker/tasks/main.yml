@@ -24,6 +24,8 @@
       WUD_TRIGGER_SMTP_GMAIL_FROM: "{{ email_login }}"
       WUD_TRIGGER_SMTP_GMAIL_TO: "{{ email_recipient }}"
       WUD_TRIGGER_SMTP_GMAIL_TLS_ENABLED: "false"
+      WUD_AUTH_BASIC_ADMIN_USER: "admin"
+      WUD_AUTH_BASIC_ADMIN_PASS: "{{ whatsupdocker_password }}"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"

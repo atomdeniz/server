@@ -1,5 +1,27 @@
 {
+  "bot_name": "DenizBot",
+  "max_open_trades": 10,
+  "trading_mode": "spot",
+  "dry_run": false,
   "strategy": "NostalgiaForInfinityX6",
+  "exchange": {
+    "name": "kucoin",
+    "key": "{{ kucoin_exchange_api_key }}",
+    "secret": "{{ kucoin_exchange_api_secret }}",
+    "password": "{{ kucoin_exchange_api_password }}"
+  },
+  "telegram": {
+    "enabled": true,
+    "token": "{{ telegram_api_token }}",
+    "chat_id": "{{ telegram_user_id }}"
+  },
+  "api_server": {
+    "enabled": true,
+    "username": "{{ freqtrade_api_username }}",
+    "password": "{{ freqtrade_api_password }}",
+    "ws_token": "{{ freqtrade_ws_token }}",
+    "CORS_origins": ["https://{{ freqtrade_host }}"]
+  },
   "add_config_files": [
     "../configs/trading_mode-spot.json",
     "../configs/pairlist-volume-kucoin-usdt.json",

@@ -14,14 +14,6 @@
     group: "{{ username }}"
     mode: 0640
 
-- name: Copy the env
-  ansible.builtin.template:
-    src: .env
-    dest: "{{ freqtrade_repo_dest_dir }}/.env"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: 0640
-
 - name: Copy the dockercompose
   ansible.builtin.template:
     src: docker-compose.yml

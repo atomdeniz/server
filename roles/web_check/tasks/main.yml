@@ -1,0 +1,23 @@
+---
+- name: Make sure the web_check container is created and running
+  community.general.docker_container:
+    name: "web-check"
+    image: "lissy93/web-check:{{ web_check_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: reverse_proxy_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "reverse_proxy_network"
+      traefik.http.routers.web-check.entrypoints: "https"
+      traefik.http.routers.web-check.rule: "Host(`{{ web_check_host }}`)"
+      traefik.http.routers.web-check.tls: "true"
+      traefik.http.routers.web-check.service: "web-check"
+      traefik.http.routers.web-check.middlewares: "open-external@file"
+      traefik.http.services.web-check.loadbalancer.server.port: "3000"
