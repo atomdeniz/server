@@ -21,6 +21,10 @@
       tags:
         - security
 
+    - role: dns
+      tags:
+        - dns
+
     - role: geerlingguy.docker
       tags:
         - docker

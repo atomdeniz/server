@@ -1,0 +1,41 @@
+---
+dns_records:
+  - name: "{{ root_host }}"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "www"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "auth"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "traefikshaper"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "vpn"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "whoami"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "v2ray"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
+
+  - name: "tgo"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
