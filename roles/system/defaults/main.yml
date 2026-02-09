@@ -1,0 +1,4 @@
+---
+docker_image_prune_enabled: true
+docker_image_prune_on_calendar: "daily"
+docker_image_prune_until: "168h"

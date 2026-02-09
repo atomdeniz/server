@@ -4,3 +4,6 @@
 
 - name: Configure the firewall
   ansible.builtin.include_tasks: firewall.yml
+
+- name: Configure Docker image prune
+  ansible.builtin.include_tasks: docker_image_prune.yml

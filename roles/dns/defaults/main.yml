@@ -44,3 +44,8 @@ dns_records:
     type: A
     content: "{{ ansible_host }}"
     proxied: false
+
+  - name: "photos"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false

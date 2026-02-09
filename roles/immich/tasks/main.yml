@@ -1,0 +1,118 @@
+---
+- name: Create Immich directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/immich"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Create Immich data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ immich_upload_location }}"
+    - "{{ docker_dir }}/immich/postgres"
+    - "{{ immich_storage_box_mount_path }}"
+
+- name: Install rclone and fuse (for Storage Box mount)
+  ansible.builtin.package:
+    name:
+      - rclone
+      - fuse3
+    state: present
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Allow FUSE allow_other for rclone mount
+  ansible.builtin.lineinfile:
+    path: /etc/fuse.conf
+    regexp: '^#?user_allow_other'
+    line: 'user_allow_other'
+    state: present
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Create mount point
+  ansible.builtin.file:
+    path: "{{ immich_storage_box_mount_path }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Create rclone config directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/immich/rclone"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0700"
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Create rclone cache directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/immich/rclone-cache"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0750"
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Write rclone config
+  ansible.builtin.template:
+    src: "rclone.conf.j2"
+    dest: "{{ docker_dir }}/immich/rclone/rclone.conf"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0600"
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Install systemd service for rclone mount
+  ansible.builtin.template:
+    src: "immich-storagebox.service.j2"
+    dest: "/etc/systemd/system/immich-storagebox.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Enable and start Storage Box mount
+  ansible.builtin.systemd:
+    name: "immich-storagebox.service"
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Ensure Storage Box path exists
+  ansible.builtin.command:
+    cmd: >-
+      rclone mkdir storagebox:{{ immich_storage_box_remote_path }}
+      --config {{ docker_dir }}/immich/rclone/rclone.conf
+  changed_when: false
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml
+    dest: "{{ docker_dir }}/immich/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Copy .env
+  ansible.builtin.template:
+    src: .env
+    dest: "{{ docker_dir }}/immich/.env"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Docker Compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_dir }}/immich"
+    state: present

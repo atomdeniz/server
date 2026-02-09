@@ -2,7 +2,7 @@ http:
   middlewares:
     forward-auth:
       forwardAuth:
-        address: "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{ authelia_host }}%2F'"
+        address: "http://authelia:9091/api/authz/forward-auth?authelia_url=https://{{ authelia_host }}/"
         trustForwardHeader: true
         authResponseHeaders:
           - "Remote-User"

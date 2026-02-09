@@ -1,0 +1,15 @@
+---
+immich_db_password: ""
+immich_host: ""
+
+# Storage location (used in .env)
+immich_upload_location: "{{ docker_dir }}/immich/library"
+
+# Storage Box mount
+immich_storage_box_mount_enabled: false
+immich_storage_box_mount_path: "{{ docker_dir }}/immich/external"
+immich_storage_box_host: ""
+immich_storage_box_port: 22
+immich_storage_box_user: ""
+immich_storage_box_pass: ""
+immich_storage_box_remote_path: "immich"

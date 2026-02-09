@@ -110,6 +110,10 @@
       tags:
         - convertx
 
+    - role: immich
+      tags:
+        - immich
+
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp
