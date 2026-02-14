@@ -90,3 +90,5 @@ networks:
     external: true
   postgres_network:
     external: true
+  public_network:
+    external: true
