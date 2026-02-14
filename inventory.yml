@@ -1,5 +1,9 @@
 ---
 all:
+  hosts:
+    server:
+      ansible_host: "{{ ansible_host }}"
+      ansible_user: "{{ username }}"
   vars:
     www_host: "www.{{ root_host }}"
 
