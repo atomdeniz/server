@@ -3,6 +3,7 @@
 - name: Install and configure
   hosts: all
   become: true
+  gather_facts: true
 
   vars_files:
     - custom.yml
