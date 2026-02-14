@@ -1,5 +1,6 @@
 ---
 - name: Install docker image prune service
+  become: true
   ansible.builtin.template:
     src: docker-image-prune.service.j2
     dest: /etc/systemd/system/docker-image-prune.service
@@ -7,6 +8,7 @@
   when: docker_image_prune_enabled | bool
 
 - name: Install docker image prune timer
+  become: true
   ansible.builtin.template:
     src: docker-image-prune.timer.j2
     dest: /etc/systemd/system/docker-image-prune.timer
@@ -14,11 +16,13 @@
   when: docker_image_prune_enabled | bool
 
 - name: Reload systemd
+  become: true
   ansible.builtin.systemd:
     daemon_reload: true
   when: docker_image_prune_enabled | bool
 
 - name: Enable and start docker image prune timer
+  become: true
   ansible.builtin.systemd:
     name: docker-image-prune.timer
     enabled: true
