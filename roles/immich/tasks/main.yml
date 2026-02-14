@@ -82,6 +82,7 @@
   when: immich_storage_box_mount_enabled | default(false)
 
 - name: Enable and start Storage Box mount
+  become: true
   ansible.builtin.systemd:
     name: "immich-storagebox.service"
     enabled: true
