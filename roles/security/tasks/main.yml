@@ -28,6 +28,7 @@
     mode: 755
 
 - name: Template the sshd
+  become: true
   ansible.builtin.template:
     src: sshd
     dest: /etc/pam.d/sshd
