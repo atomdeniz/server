@@ -45,6 +45,21 @@
     group: root
     mode: "0755"
 
+- name: Verify privilege escalation for sysctl tasks
+  become: true
+  ansible.builtin.command: id -u
+  register: system_become_uid
+  changed_when: false
+
+- name: Abort when sysctl tasks are not running as root
+  ansible.builtin.assert:
+    that:
+      - system_become_uid.stdout == "0"
+    fail_msg: >-
+      Privilege escalation is required for sysctl persistence.
+      Ensure the connection user has sudo access and run ansible with become enabled
+      (for example: ansible-playbook -i inventory.yml playbook.yml -b -K).
+
 - name: Persist swappiness setting with elevated privileges
   become: true
   ansible.builtin.copy:
