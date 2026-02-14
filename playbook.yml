@@ -6,7 +6,7 @@
 
   vars_files:
     - custom.yml
-    - secret.yml
+    # - secret.yml
 
   handlers:
     - name: Import global handlers
