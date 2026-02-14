@@ -8,6 +8,7 @@
     mode: "0775"
 
 - name: Create Immich data directories
+  become: true
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
