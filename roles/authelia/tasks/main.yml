@@ -1,5 +1,6 @@
 ---
 - name: Create the config folder
+  become: true
   ansible.builtin.file:
     path: "{{ docker_dir }}/authelia"
     state: directory
