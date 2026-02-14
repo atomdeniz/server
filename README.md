@@ -1,6 +1,6 @@
 # SelfHosted Setup Guide
 
-This document outlines the steps required for installing and configuring SelfHosted using Ansible.
+This document outlines the steps required for installing and configuring SelfHosted with **Semaphore UI** (Ansible is executed from Semaphore, not directly from CLI).
 
 ## Project Overview
 
@@ -42,58 +42,43 @@ I am currently running the whole process only on Ubuntu ARM64.
 
 **Security Enhancements:** AppArmor profiles and iptables rules for further security hardening.
 
-```bash
-ansible-galaxy role install -r requirements.yml --force
-ansible-galaxy collection install -r requirements.yml --force
-```
+If you use this repository with Semaphore, install role/collection dependencies in the project repository setup (or before first run) so `requirements.yml` is available to jobs.
 
 ## 0 Set User
 
 [Set User](https://github.com/atomdeniz/server/blob/main/USER.md)
 
-## 1. Load SSH Key
+## 1. Add SSH Key (Semaphore)
 
-Load the SSH key to use with Ansible connections:
+Add the SSH private key you use for server access in Semaphore:
+- `Key Store` -> `New Key` -> `SSH Key`
+- Use this key in your Task Template
 
-```bash
-eval $(ssh-agent)
-ssh-add ~/.ssh/ansible
-```
+## 2. Managing Variables and Secrets (Semaphore)
 
-## 2. Managing ENV
-
-### Create custom.yml File
+### Create custom.yml File in Repo
 
 Copy the .custom.yml file as custom.yml and fill it in
 
-### Create and Secure the Secret YAML File:
+### Create and Secure the Secret YAML File in Repo:
 
 ```bash
 touch secret.yml
 chmod 600 secret.yml
 ```
 
-### Encrypt the Secret YAML File with Ansible Vault:
+### Secrets
 
-```bash
-ansible-vault encrypt secret.yml
-```
+Because you are running via Semaphore UI, keep secrets in Semaphore `Key Store` / environment variables whenever possible.
 
-### Edit the Encrypted YAML File:
-
-Example: Using '.secret.yml' as a reference, add your secrets in the following format:
-
-```bash
-EDITOR=nano ansible-vault edit secret.yml
-```
+If you still use `secret.yml`, prepare it in the repository before running templates (do not run `ansible-vault` manually from CLI unless you explicitly want local vault workflow).
 
 ## 3.1 CrowdSec Installation
 
-Run the Ansible playbook to install CrowdSec:
-
-```bash
-ansible-playbook -i inventory.yml playbook.yml --tags "system,security,docker,crowdsec"
-```
+Run a Semaphore Task Template with:
+- `Playbook`: `playbook.yml`
+- `Inventory`: `inventory.yml`
+- `Limit/Tags`: `system,security,docker,crowdsec`
 
 ### CrowdSec Agent Enrollment
 
@@ -176,11 +161,10 @@ crowdsecMachineApiKey: "your_password"
 
 ## 4 Install SelfHosted
 
-Then rerun the Ansible playbook:
-
-```bash
-ansible-playbook -i inventory.yml playbook.yml
-```
+Run a Semaphore Task Template with:
+- `Playbook`: `playbook.yml`
+- `Inventory`: `inventory.yml`
+- `Tags`: empty (full deploy)
 
 ---
 
