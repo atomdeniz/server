@@ -58,6 +58,7 @@ services:
       disable: false
     networks:
       - redis_network
+      - public_network
 
   database:
     container_name: immich_postgres
