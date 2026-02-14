@@ -85,7 +85,8 @@ services:
     networks:
       - postgres_network
 
-volumes: {}
+volumes:
+  model-cache:
 
 networks:
   reverse_proxy_network:
