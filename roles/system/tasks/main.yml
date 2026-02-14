@@ -3,7 +3,10 @@
   ansible.builtin.include_tasks: setup.yml
 
 - name: Configure swap
-  ansible.builtin.include_tasks: swap.yml
+  ansible.builtin.include_tasks:
+    file: swap.yml
+    apply:
+      become: true
   when: system_swap_enabled
 
 - name: Configure the firewall

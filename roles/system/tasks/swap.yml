@@ -45,7 +45,7 @@
     group: root
     mode: "0755"
 
-- name: Persist swappiness setting
+- name: Persist swappiness setting with elevated privileges
   become: true
   ansible.builtin.copy:
     dest: /etc/sysctl.d/99-swappiness.conf
