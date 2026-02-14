@@ -1,4 +1,5 @@
 - name: Install AppArmor
+  become: true
   apt:
     name: apparmor
     state: present
@@ -23,7 +24,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 755
-  
+
 - name: Template the sshd
   ansible.builtin.template:
     src: sshd
