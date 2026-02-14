@@ -2,6 +2,10 @@
 - name: Update the packages and configure auto-updates
   ansible.builtin.include_tasks: setup.yml
 
+- name: Configure swap
+  ansible.builtin.include_tasks: swap.yml
+  when: system_swap_enabled
+
 - name: Configure the firewall
   ansible.builtin.include_tasks: firewall.yml
 

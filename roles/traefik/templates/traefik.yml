@@ -37,6 +37,11 @@ entryPoints:
         - 2405:8100::/32
         - 2a06:98c0::/29
         - 2c0f:f248::/32
+    transport:
+      respondingTimeouts:
+        readTimeout: 10m
+        writeTimeout: 0s
+        idleTimeout: 10m
     http:
       redirections:
         entryPoint:
@@ -68,6 +73,11 @@ entryPoints:
         - 2405:8100::/32
         - 2a06:98c0::/29
         - 2c0f:f248::/32
+    transport:
+      respondingTimeouts:
+        readTimeout: 10m
+        writeTimeout: 0s
+        idleTimeout: 10m
 
 providers:
   docker:
