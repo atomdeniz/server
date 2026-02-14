@@ -23,9 +23,9 @@
     mode: 0640
 
 - name: Enable and start the iptables service
+  become: true
   notify: Restart iptables
   ansible.builtin.service:
     name: iptables
     state: started
     enabled: yes
-    become: yes
