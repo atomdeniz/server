@@ -24,7 +24,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - redis
       - database
     restart: always
     healthcheck:
@@ -57,13 +56,8 @@ services:
     restart: always
     healthcheck:
       disable: false
-
-  redis:
-    container_name: immich_redis
-    image: docker.io/valkey/valkey:9@sha256:546304417feac0874c3dd576e0952c6bb8f06bb4093ea0c9ca303c73cf458f63
-    healthcheck:
-      test: redis-cli ping || exit 1
-    restart: always
+    networks:
+      - redis_network
 
   database:
     container_name: immich_postgres
