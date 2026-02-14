@@ -19,6 +19,7 @@
     update_cache: yes
 
 - name: Template the pam-notification.sh
+  become: true
   ansible.builtin.template:
     src: pam-notification.sh
     dest: /opt/pam-notification.sh
