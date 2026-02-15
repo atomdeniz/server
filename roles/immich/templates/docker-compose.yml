@@ -81,7 +81,7 @@ services:
     healthcheck:
       disable: false
     labels:
-      com.centurylinklabs.watchtower.enable: "false"
+      wud.watch: "false"
     networks:
       - postgres_network
 
