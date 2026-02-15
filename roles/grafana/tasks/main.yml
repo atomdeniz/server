@@ -48,6 +48,7 @@
     command: "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - name: prometheus_network
+      - name: homepage_network
 
 - name: Create node exporter container
   community.docker.docker_container:
