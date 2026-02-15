@@ -21,6 +21,21 @@
           type: uptimekuma
           url: http://uptime_kuma:3001
           slug: server
+    - Prometheus:
+        server: my-docker
+        icon: prometheus.svg
+        widget:
+          type: prometheus
+          url: http://prometheus:9090
+    - Immich:
+        server: my-docker
+        icon: immich.svg
+        href: "https://{{ immich_host }}"
+        widget:
+          type: immich
+          url: http://immich_server:2283
+          key: "{{ immich_api_key | default('') }}"
+          version: 2
 - Network:
     - Traefik:
         server: my-docker
@@ -57,7 +72,20 @@
           type: wgeasy
           url: http://amnezia-wg:51821
           password: "{{ amnezia_password }}"
+    - Caddy:
+        server: my-docker
+        icon: caddy.svg
+        widget:
+          type: caddy
+          url: http://caddy:2019
 - Other:
+    - WhatsUpDocker:
+        server: my-docker
+        icon: docker.svg
+        href: "https://{{ whatsupdocker_host }}"
+        widget:
+          type: whatsupdocker
+          url: http://whatsupdocker:3000
     - GitHub:
         icon: github.svg
         href: https://github.com
