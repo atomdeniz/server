@@ -64,7 +64,7 @@ services:
 
   database:
     container_name: immich_postgres
-    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
     pull_policy: always
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -80,6 +80,8 @@ services:
     restart: always
     healthcheck:
       disable: false
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
     networks:
       - postgres_network
 
