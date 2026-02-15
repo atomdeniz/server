@@ -7,13 +7,13 @@ cardBlur: md
 color: zinc
 fiveColumns: false
 layout:
-  Resources:
+  Monitoring:
     style: row
     columns: 2
-  Network:
+  Network & Security:
     style: row
     columns: 2
-  Other:
+  Apps:
     style: row
     columns: 3
 quicklaunch:

@@ -3,7 +3,7 @@
 # https://gethomepage.dev/latest/configs/services
 # icons found here https://github.com/walkxcode/dashboard-icons
 
-- Resources:
+- Monitoring:
     - Grafana:
         server: my-docker
         icon: grafana.svg
@@ -27,16 +27,14 @@
         widget:
           type: prometheus
           url: http://prometheus:9090
-    - Immich:
+    - WhatsUpDocker:
         server: my-docker
-        icon: immich.svg
-        href: "https://{{ immich_host }}"
+        icon: docker.svg
+        href: "https://{{ whatsupdocker_host }}"
         widget:
-          type: immich
-          url: http://immich_server:2283
-          key: "{{ immich_api_key | default('') }}"
-          version: 2
-- Network:
+          type: whatsupdocker
+          url: http://whatsupdocker:3000
+- Network & Security:
     - Traefik:
         server: my-docker
         icon: traefik.svg
@@ -72,14 +70,16 @@
           type: wgeasy
           url: http://amnezia-wg:51821
           password: "{{ amnezia_password }}"
-- Other:
-    - WhatsUpDocker:
+- Apps:
+    - Immich:
         server: my-docker
-        icon: docker.svg
-        href: "https://{{ whatsupdocker_host }}"
+        icon: immich.svg
+        href: "https://{{ immich_host }}"
         widget:
-          type: whatsupdocker
-          url: http://whatsupdocker:3000
+          type: immich
+          url: http://immich_server:2283
+          key: "{{ immich_api_key | default('') }}"
+          version: 2
     - GitHub:
         icon: github.svg
         href: https://github.com
