@@ -53,6 +53,7 @@
     networks:
       - name: public_network
       - name: reverse_proxy_network
+      - name: homepage_network
 
 - name: Install Trojan server using Docker
   community.general.docker_container:
