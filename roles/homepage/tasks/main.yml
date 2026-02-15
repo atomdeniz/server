@@ -43,6 +43,15 @@
     mode: "0664"
   notify: Restart homepage
 
+- name: Template the Homepage custom CSS
+  ansible.builtin.template:
+    src: "custom.css"
+    dest: "{{ docker_dir }}/homepage/custom.css"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
 - name: Template the Homepage docker settings
   ansible.builtin.template:
     src: "docker.yaml"

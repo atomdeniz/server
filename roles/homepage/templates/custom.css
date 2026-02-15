@@ -1,0 +1,39 @@
+:root {
+  --card-radius: 14px;
+}
+
+/* Group containers: clearer visual separation between sections */
+.services-group {
+  border: 1px solid color-mix(in srgb, var(--color-400) 18%, transparent);
+  border-radius: 16px;
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--color-950) 75%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.services-group h2 {
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.55rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-300) 20%, transparent);
+}
+
+/* Card polish */
+.service-card {
+  border-radius: var(--card-radius);
+  border: 1px solid color-mix(in srgb, var(--color-400) 14%, transparent);
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+
+.service-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-300) 34%, transparent);
+}
+
+/* Slightly denser cards for better scanning */
+.service-card .card-content {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}

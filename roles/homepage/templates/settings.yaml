@@ -5,7 +5,17 @@ theme: dark
 headerStyle: clean
 cardBlur: md
 color: zinc
-fiveColumns: true
+fiveColumns: false
+layout:
+  Resources:
+    style: row
+    columns: 2
+  Network:
+    style: row
+    columns: 2
+  Other:
+    style: row
+    columns: 3
 quicklaunch:
   searchDescriptions: true
   hideInternetSearch: true

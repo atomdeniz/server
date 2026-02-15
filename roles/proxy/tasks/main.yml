@@ -54,8 +54,6 @@
       - name: public_network
       - name: reverse_proxy_network
       - name: homepage_network
-    env:
-      CADDY_ADMIN: "0.0.0.0:2019"
 
 - name: Install Trojan server using Docker
   community.general.docker_container:

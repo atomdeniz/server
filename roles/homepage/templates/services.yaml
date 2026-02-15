@@ -72,12 +72,6 @@
           type: wgeasy
           url: http://amnezia-wg:51821
           password: "{{ amnezia_password }}"
-    - Caddy:
-        server: my-docker
-        icon: caddy.svg
-        widget:
-          type: caddy
-          url: http://caddy:2019
 - Other:
     - WhatsUpDocker:
         server: my-docker
