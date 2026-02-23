@@ -1,5 +1,6 @@
 ---
 - name: Create the ollama directory
+  become: true
   ansible.builtin.file:
     path: "{{ docker_dir }}/ollama"
     state: directory
