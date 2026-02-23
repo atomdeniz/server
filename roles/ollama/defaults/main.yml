@@ -7,7 +7,7 @@ ollama_cpus: 1.0
 ollama_num_parallel: "1"
 ollama_max_loaded_models: "1"
 ollama_keep_alive: "2m"
-ollama_web_enabled: false
+ollama_web_enabled: true
 ollama_pull_models: true
 ollama_models:
   - "qwen2.5:0.5b"
