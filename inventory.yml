@@ -33,6 +33,8 @@ all:
 
     n8n_host: "n8n.{{ root_host }}"
 
+    ollama_host: "ollama.{{ root_host }}"
+
     freqtrade_host: "freqtrade.{{ root_host }}"
 
     whatsupdocker_host: "whatsupdocker.{{ root_host }}"

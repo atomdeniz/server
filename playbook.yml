@@ -94,6 +94,10 @@
       tags:
         - n8n
 
+    - role: ollama
+      tags:
+        - ollama
+
     - role: freqtrade
       tags:
         - freqtrade

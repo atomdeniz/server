@@ -85,6 +85,8 @@ dns:
       answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ n8n_host }}"
       answer: "{{ traefik_reverse_proxy_network_local_ip }}"
+    - domain: "{{ ollama_host }}"
+      answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ freqtrade_host }}"
       answer: "{{ traefik_reverse_proxy_network_local_ip }}"
     - domain: "{{ whatsupdocker_host }}"

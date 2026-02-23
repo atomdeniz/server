@@ -27,6 +27,7 @@
     env:
       GENERIC_TIMEZONE: "Europe/Istanbul"
       TZ: "Europe/Istanbul"
+      OLLAMA_BASE_URL: "http://ollama:11434"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"

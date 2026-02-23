@@ -1,0 +1,85 @@
+---
+- name: Create the ollama directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/ollama"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Make sure the ollama container is created and running
+  community.general.docker_container:
+    name: "ollama"
+    image: "ollama/ollama:{{ ollama_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    memory: "{{ ollama_memory }}"
+    cpus: "{{ ollama_cpus }}"
+    networks:
+      - name: public_network
+      - name: reverse_proxy_network
+    volumes:
+      - "{{ docker_dir }}/ollama:/root/.ollama"
+    env:
+      OLLAMA_HOST: "0.0.0.0:{{ ollama_port }}"
+      OLLAMA_NUM_PARALLEL: "{{ ollama_num_parallel }}"
+      OLLAMA_MAX_LOADED_MODELS: "{{ ollama_max_loaded_models }}"
+      OLLAMA_KEEP_ALIVE: "{{ ollama_keep_alive }}"
+    labels:
+      traefik.enable: "{{ ollama_web_enabled | ternary('true', 'false') }}"
+      traefik.docker.network: "reverse_proxy_network"
+      traefik.http.routers.ollama.entrypoints: "https"
+      traefik.http.routers.ollama.rule: "Host(`{{ ollama_host }}`)"
+      traefik.http.routers.ollama.tls: "true"
+      traefik.http.routers.ollama.service: "ollama"
+      traefik.http.routers.ollama.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.ollama.loadbalancer.server.port: "{{ ollama_port }}"
+
+- name: Wait until ollama API is ready
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - ollama
+      - ollama
+      - list
+  register: ollama_ready_check
+  changed_when: false
+  retries: 20
+  delay: 3
+  until: ollama_ready_check.rc == 0
+  when: ollama_pull_models | bool
+
+- name: Check if ollama model exists
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - ollama
+      - ollama
+      - show
+      - "{{ item }}"
+  register: ollama_model_check
+  changed_when: false
+  failed_when: false
+  loop: "{{ ollama_models }}"
+  when: ollama_pull_models | bool
+
+- name: Pull missing ollama models
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - ollama
+      - ollama
+      - pull
+      - "{{ item.item }}"
+  loop: "{{ ollama_model_check.results }}"
+  when:
+    - ollama_pull_models | bool
+    - item.rc != 0
