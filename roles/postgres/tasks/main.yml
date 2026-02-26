@@ -1,11 +1,9 @@
 ---
 - name: Create shared postgres data directory
+  become: true
   ansible.builtin.file:
     path: "{{ postgres_data_dir }}"
     state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0775"
 
 - name: Run shared postgres container
   community.docker.docker_container:
