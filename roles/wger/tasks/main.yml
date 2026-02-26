@@ -34,3 +34,26 @@
     project_src: "{{ wger_project_dir }}"
     state: present
     remove_orphans: true
+
+- name: Collect wger static files
+  become: true
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - -f
+      - "{{ wger_project_dir }}/docker-compose.yml"
+      - --project-name
+      - wger
+      - exec
+      - -T
+      - web
+      - python
+      - manage.py
+      - collectstatic
+      - --noinput
+  register: wger_collectstatic
+  changed_when: false
+  retries: 10
+  delay: 3
+  until: wger_collectstatic.rc == 0
