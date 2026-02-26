@@ -9,12 +9,24 @@ services:
       - "8000"
     networks:
       - default
-      - reverse_proxy_network
       - postgres_network
       - redis_network
     volumes:
       - static:/home/wger/static
       - media:/home/wger/media
+
+  nginx:
+    image: docker.io/nginx:stable
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - default
+      - reverse_proxy_network
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static:/home/wger/static:ro
+      - media:/home/wger/media:ro
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"
@@ -23,7 +35,7 @@ services:
       traefik.http.routers.wger.tls: "true"
       traefik.http.routers.wger.service: "wger"
       traefik.http.routers.wger.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.wger.loadbalancer.server.port: "8000"
+      traefik.http.services.wger.loadbalancer.server.port: "80"
 
   celery_worker:
     image: "docker.io/wger/server:{{ wger_version }}"
