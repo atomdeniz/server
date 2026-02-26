@@ -1,5 +1,6 @@
 ---
 - name: Create wger directories
+  become: true
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -11,6 +12,7 @@
     - "{{ wger_project_dir }}/config"
 
 - name: Template wger compose stack
+  become: true
   ansible.builtin.template:
     src: docker-compose.yml
     dest: "{{ wger_project_dir }}/docker-compose.yml"
@@ -19,6 +21,7 @@
     mode: "0640"
 
 - name: Template wger production env
+  become: true
   ansible.builtin.template:
     src: prod.env
     dest: "{{ wger_project_dir }}/config/prod.env"
@@ -27,6 +30,7 @@
     mode: "0640"
 
 - name: Template wger redis config
+  become: true
   ansible.builtin.template:
     src: redis.conf
     dest: "{{ wger_project_dir }}/config/redis.conf"
