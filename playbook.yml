@@ -114,9 +114,17 @@
       tags:
         - convertx
 
+    - role: postgres
+      tags:
+        - postgres
+
     - role: immich
       tags:
         - immich
+
+    - role: wger
+      tags:
+        - wger
 
     - role: chriswayg.msmtp-mailer
       tags:
