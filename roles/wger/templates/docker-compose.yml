@@ -3,9 +3,6 @@ services:
   web:
     image: "docker.io/wger/server:{{ wger_version }}"
     restart: unless-stopped
-    depends_on:
-      cache:
-        condition: service_healthy
     env_file:
       - ./config/prod.env
     expose:
@@ -14,6 +11,7 @@ services:
       - default
       - reverse_proxy_network
       - postgres_network
+      - redis_network
     volumes:
       - static:/home/wger/static
       - media:/home/wger/media
@@ -27,30 +25,16 @@ services:
       traefik.http.routers.wger.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.wger.loadbalancer.server.port: "8000"
 
-  cache:
-    image: "docker.io/redis:{{ wger_redis_version }}"
-    restart: unless-stopped
-    command: ["redis-server", "/etc/redis.conf"]
-    volumes:
-      - ./config/redis.conf:/etc/redis.conf:ro
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   celery_worker:
     image: "docker.io/wger/server:{{ wger_version }}"
     restart: unless-stopped
     command: /start-worker
-    depends_on:
-      cache:
-        condition: service_healthy
     env_file:
       - ./config/prod.env
     networks:
       - default
       - postgres_network
+      - redis_network
     volumes:
       - media:/home/wger/media
 
@@ -58,14 +42,12 @@ services:
     image: "docker.io/wger/server:{{ wger_version }}"
     restart: unless-stopped
     command: /start-beat
-    depends_on:
-      cache:
-        condition: service_healthy
     env_file:
       - ./config/prod.env
     networks:
       - default
       - postgres_network
+      - redis_network
     volumes:
       - media:/home/wger/media
 
@@ -77,4 +59,6 @@ networks:
   reverse_proxy_network:
     external: true
   postgres_network:
+    external: true
+  redis_network:
     external: true

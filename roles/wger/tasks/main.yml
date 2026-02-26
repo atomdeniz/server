@@ -29,16 +29,8 @@
     group: "{{ username }}"
     mode: "0640"
 
-- name: Template wger redis config
-  become: true
-  ansible.builtin.template:
-    src: redis.conf
-    dest: "{{ wger_project_dir }}/config/redis.conf"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0640"
-
 - name: Start wger stack
   community.docker.docker_compose_v2:
     project_src: "{{ wger_project_dir }}"
     state: present
+    remove_orphans: true

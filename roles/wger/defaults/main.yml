@@ -1,6 +1,6 @@
 ---
 wger_version: "latest"
-wger_redis_version: "latest"
+wger_redis_url: "redis://redis:6379/2"
 
 wger_project_dir: "{{ docker_dir }}/wger"
 wger_timezone: "Europe/Istanbul"
