@@ -48,7 +48,7 @@
       - exec
       - -T
       - web
-      - python
+      - python3
       - manage.py
       - collectstatic
       - --noinput
