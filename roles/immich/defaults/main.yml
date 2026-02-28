@@ -11,3 +11,6 @@ immich_storage_box_enabled: true
 
 # Storage location (used in .env)
 immich_upload_location: "{{ immich_storage_box_mount_path }}"
+
+# Database hostname for Immich API
+immich_db_hostname: "{{ postgres_container_name }}"

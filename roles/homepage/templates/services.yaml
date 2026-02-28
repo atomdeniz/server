@@ -71,9 +71,6 @@
           url: http://amnezia-wg:51821
           password: "{{ amnezia_password }}"
 - Apps:
-    - Wger:
-        server: my-docker
-        href: "https://{{ wger_host }}"
     - Immich:
         server: my-docker
         icon: immich.svg

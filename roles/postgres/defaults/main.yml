@@ -3,6 +3,9 @@ postgres_container_name: "immich_postgres"
 postgres_image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
 postgres_data_dir: "{{ docker_dir }}/immich/postgres"
 postgres_shm_size: "128M"
+postgres_network_aliases:
+  - "{{ postgres_container_name }}"
+  - "postgres"
 
 # bootstrap DB (kept as Immich defaults to preserve existing setup)
 postgres_bootstrap_db: "immich"
@@ -13,7 +16,3 @@ postgres_bootstrap_password: "{{ immich_db_password }}"
 postgres_immich_db_name: "immich"
 postgres_immich_db_user: "postgres"
 postgres_immich_db_password: "{{ immich_db_password }}"
-
-postgres_wger_db_name: "{{ wger_db_name | default('wger') }}"
-postgres_wger_db_user: "{{ wger_db_user | default('wger') }}"
-postgres_wger_db_password: "{{ wger_db_password | default('wger') }}"

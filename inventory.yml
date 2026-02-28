@@ -45,8 +45,6 @@ all:
 
     immich_host: "photos.{{ root_host }}"
 
-    wger_host: "wger.{{ root_host }}"
-
     traefik_reverse_proxy_network_gateway: 10.8.6.1
 
     traefik_reverse_proxy_network_local_ip: 10.8.6.2

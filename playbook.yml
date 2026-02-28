@@ -122,10 +122,6 @@
       tags:
         - immich
 
-    - role: wger
-      tags:
-        - wger
-
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp
