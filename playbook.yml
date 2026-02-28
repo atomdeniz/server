@@ -6,7 +6,6 @@
 
   vars_files:
     - custom.yml
-    # - secret.yml
 
   handlers:
     - name: Import global handlers
@@ -94,13 +93,13 @@
       tags:
         - n8n
 
-    - role: ollama
-      tags:
-        - ollama
+    # - role: ollama
+    #   tags:
+    #     - ollama
 
-    - role: freqtrade
-      tags:
-        - freqtrade
+    # - role: freqtrade
+    #   tags:
+    #     - freqtrade
 
     - role: whatsupdocker
       tags:
@@ -110,9 +109,9 @@
       tags:
         - web_check
 
-    - role: convertx
-      tags:
-        - convertx
+    # - role: convertx
+    #   tags:
+    #     - convertx
 
     - role: postgres
       tags:
