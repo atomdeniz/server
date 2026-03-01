@@ -12,12 +12,26 @@
     - openclaw/data
     - openclaw/browser
 
+- name: Create Claude Code CLI directories
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ username }}/.claude/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0750"
+  loop:
+    - downloads
+    - bin
+
 - name: Install Claude Code CLI
   become: true
   become_user: "{{ username }}"
   ansible.builtin.shell:
     cmd: curl -fsSL https://claude.ai/install.sh | bash
     creates: /home/{{ username }}/.claude/bin/claude
+  environment:
+    HOME: /home/{{ username }}
 
 - name: Install Node.js and npm
   become: true
