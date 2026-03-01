@@ -22,7 +22,7 @@
     recreate: "{{ force_recreate | default(false) }}"
     pull: always
     env:
-      TELEGRAM_BOT_TOKEN: "{{ telegram_api_token }}"
+      TELEGRAM_BOT_TOKEN: "{{ openclaw_telegram_bot_token }}"
       NODE_ENV: "production"
       OPENCLAW_DATA_DIR: "/home/openclaw/data"
     volumes:
