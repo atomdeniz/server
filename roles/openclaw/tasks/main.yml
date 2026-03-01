@@ -20,7 +20,7 @@
     entrypoint:
       - sh
       - -c
-      - "npm install -g claude-max-api-proxy && claude-max-api"
+      - "npm install -g claude-max-api-proxy"
     state: started
     restart_policy: unless-stopped
     security_opts:
