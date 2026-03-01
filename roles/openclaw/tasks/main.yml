@@ -69,6 +69,7 @@
       OPENAI_API_KEY: "not-needed"
       OPENAI_BASE_URL: "http://claude-max-api-proxy:3456/v1"
       AUTH_PASSWORD: "{{ openclaw_auth_password }}"
+      OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
       BROWSER_CDP_URL: "http://openclaw-browser:9223"
       BROWSER_EVALUATE_ENABLED: "true"
       BROWSER_SNAPSHOT_MODE: "efficient"
