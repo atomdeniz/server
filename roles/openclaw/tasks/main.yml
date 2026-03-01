@@ -1,5 +1,6 @@
 ---
 - name: Create openclaw config directory
+  become: true
   ansible.builtin.file:
     path: "{{ docker_dir }}/{{ item }}"
     state: directory
