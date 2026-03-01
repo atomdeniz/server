@@ -50,12 +50,13 @@
   notify: Restart traefik
 
 - name: Create acme.json file
+  become: true
   ansible.builtin.file:
     path: "{{ docker_dir }}/traefik/data/certificates/acme.json"
     state: touch
-    mode: 0600
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    mode: "0600"
+    owner: "0"
+    group: "0"
     access_time: preserve
     modification_time: preserve
 

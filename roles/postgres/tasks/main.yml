@@ -18,6 +18,12 @@
       - apparmor:docker-default
     cap_drop:
       - ALL
+    capabilities:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     shm_size: "{{ postgres_shm_size }}"
     env:
       POSTGRES_PASSWORD: "{{ postgres_bootstrap_password }}"
