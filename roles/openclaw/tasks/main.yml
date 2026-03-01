@@ -126,5 +126,5 @@
       traefik.http.routers.openclaw.rule: "Host(`{{ openclaw_host }}`)"
       traefik.http.routers.openclaw.tls: "true"
       traefik.http.routers.openclaw.service: "openclaw"
-      traefik.http.routers.openclaw.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.routers.openclaw.middlewares: "ecure-vpn@file"
       traefik.http.services.openclaw.loadbalancer.server.port: "8080"
