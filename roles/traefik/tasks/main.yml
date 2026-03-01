@@ -13,12 +13,13 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0750
+    mode: "0755"
   loop:
     - traefik
     - traefik/data
     - traefik/data/configs
     - traefik/data/certificates
+    - traefik/data/logs
 
 - name: Copy the traefik.yml
   ansible.builtin.template:
@@ -26,7 +27,7 @@
     dest: "{{ docker_dir }}/traefik/data/traefik.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0644"
   notify: Restart traefik
 
 - name: Copy the config.yml
@@ -35,7 +36,7 @@
     dest: "{{ docker_dir }}/traefik/data/configs/config.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0644"
   notify: Restart traefik
 
 - name: Copy the dynamic-ipwhitelist.yml
@@ -44,7 +45,7 @@
     dest: "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0644"
   notify: Restart traefik
 
 - name: Create acme.json file
