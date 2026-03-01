@@ -1,5 +1,5 @@
 ---
 prometheus_version: "v3.10.0"
 node_exporter_version: "v1.10.2"
-grafana_version: "11.5.8"
-cadvisor_version: "v0.49.2"
+grafana_version: "12.4.0"
+cadvisor_version: "v0.55.1"

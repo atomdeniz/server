@@ -31,7 +31,7 @@
 - name: Make sure the Redis container is created and running
   community.general.docker_container:
     name: "redis"
-    image: "redis:8.6.1-alpine3.23"
+    image: "redis:8.6.1"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       start_period: 5s
