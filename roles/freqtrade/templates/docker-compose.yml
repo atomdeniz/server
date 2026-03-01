@@ -1,6 +1,6 @@
 ---
 x-common-settings: &common-settings
-  image: freqtradeorg/freqtrade:stable
+  image: freqtradeorg/freqtrade:{{ freqtrade_version }}
   build:
     context: .
     dockerfile: "./docker/Dockerfile.custom"

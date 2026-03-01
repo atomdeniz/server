@@ -1,5 +1,5 @@
 ---
-ollama_version: "0.6"
+ollama_version: "0.17.5"
 ollama_port: "11434"
 ollama_host: "ollama.{{ root_host }}"
 ollama_memory: "2g"

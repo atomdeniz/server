@@ -98,7 +98,7 @@
       traefik.http.routers.traefik.tls.domains[0].main: "{{ root_host }}"
       traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ root_host }}"
       traefik.http.routers.traefik.service: "api@internal"
-  no_log: true
+  no_log: false  # temporary for debugging; set back to true after fixing
 
 - name: DumpCertificates
   community.docker.docker_container:

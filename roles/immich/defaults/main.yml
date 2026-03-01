@@ -1,4 +1,6 @@
 ---
+immich_version: "v1.91.1"
+
 # Storage Box mount
 immich_storage_box_mount_enabled: true
 immich_storage_box_mount_path: "{{ docker_dir }}/immich/external"
