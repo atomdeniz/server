@@ -13,6 +13,11 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    cap_drop:
+      - ALL
     shm_size: "{{ postgres_shm_size }}"
     env:
       POSTGRES_PASSWORD: "{{ postgres_bootstrap_password }}"
@@ -25,7 +30,7 @@
       wud.watch: "false"
     networks:
       - name: postgres_network
-        aliases: "{{ postgres_network_aliases }}"
+  no_log: true
 
 - name: Wait for postgres readiness
   ansible.builtin.command:

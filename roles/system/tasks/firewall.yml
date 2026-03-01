@@ -3,9 +3,9 @@
   ansible.builtin.template:
     src: iptables.conf
     dest: /etc/iptables.conf
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: 0640
+    owner: root
+    group: root
+    mode: "0600"
 
 - name: Check the location of iptables-restore
   register: "iptables_restore"
@@ -18,9 +18,9 @@
   ansible.builtin.template:
     src: systemd/iptables.service.j2
     dest: /etc/systemd/system/iptables.service
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: 0640
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Enable and start the iptables service
   become: true

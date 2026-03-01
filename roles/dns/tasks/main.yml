@@ -9,3 +9,4 @@
     account_api_key: "{{ cloudflare_api_key }}"
     account_email: "{{ cloudflare_email }}"
   loop: "{{ dns_records }}"
+  no_log: true

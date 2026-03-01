@@ -39,6 +39,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    cap_drop:
+      - ALL
     volumes:
       - /etc/prometheus/:/etc/prometheus/
       - prometheus-data:/prometheus
@@ -61,6 +63,8 @@
     user: "1000:1000"
     pid_mode: host
     command: "--path.rootfs=/host"
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -100,6 +104,8 @@
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default

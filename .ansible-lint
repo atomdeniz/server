@@ -3,7 +3,6 @@ exclude_paths:
   - .git/
   - .github/
 warn_list:
-  - package-latest
   - yaml
   - fqcn
   - var-naming[no-role-prefix]

@@ -1,4 +1,4 @@
 ---
-traefik_version: "latest"
-certsdump_version: "latest"
-traefikshaper_version: "latest"
+traefik_version: "v3"
+certsdump_version: "v2"
+traefikshaper_version: "1"

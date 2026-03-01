@@ -20,7 +20,7 @@
       - apparmor:docker-default
     networks:
       - name: reverse_proxy_network
-      - name: bridge
+      - name: public_network
     env:
       ALLOW_UNAUTHENTICATED: "true"
     volumes:

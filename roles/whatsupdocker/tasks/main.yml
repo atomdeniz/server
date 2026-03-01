@@ -7,6 +7,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -14,7 +16,7 @@
       - name: homepage_network
       - name: docker_proxy_network
       - name: reverse_proxy_network
-      - name: bridge
+      - name: public_network
     env:
       DOCKER_HOST: tcp://docker_proxy:2375
       WUD_TRIGGER_SMTP_GMAIL_HOST: "{{ email_smtp_host }}"
@@ -33,3 +35,4 @@
       traefik.http.routers.whatsupdocker.service: "whatsupdocker"
       traefik.http.routers.whatsupdocker.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.whatsupdocker.loadbalancer.server.port: "3000"
+  no_log: true

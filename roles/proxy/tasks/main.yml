@@ -45,6 +45,11 @@
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -63,6 +68,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -91,6 +98,8 @@
     state: started
     restart_policy: unless-stopped
     user: "1000:1000"
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default

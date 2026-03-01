@@ -65,6 +65,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -98,6 +100,7 @@
       traefik.http.routers.traefik.tls.domains[0].main: "{{ root_host }}"
       traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ root_host }}"
       traefik.http.routers.traefik.service: "api@internal"
+  no_log: true
 
 - name: DumpCertificates
   community.docker.docker_container:
@@ -133,6 +136,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    cap_drop:
+      - ALL
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
@@ -156,4 +161,5 @@
       traefik.http.routers.traefikshaper.tls: "true"
       traefik.http.routers.traefikshaper.service: "traefikshaper"
       traefik.http.services.traefikshaper.loadbalancer.server.port: "5000"
+  no_log: true
   notify: Restart traefik

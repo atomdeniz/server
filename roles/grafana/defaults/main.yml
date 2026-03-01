@@ -1,5 +1,5 @@
 ---
-prometheus_version: "latest"
-node_exporter_version: "latest"
-grafana_version: "latest"
-cadvisor_version: "latest"
+prometheus_version: "v3"
+node_exporter_version: "v1"
+grafana_version: "11"
+cadvisor_version: "v0.49"

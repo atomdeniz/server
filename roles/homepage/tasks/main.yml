@@ -76,11 +76,17 @@
       - name: homepage_network
       - name: docker_proxy_network
       - name: reverse_proxy_network
-      - name: bridge
+      - name: public_network
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"
     env:
       HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }}"
+      HOMEPAGE_VAR_GRAFANA_PASSWORD: "{{ grafana_password | default('') }}"
+      HOMEPAGE_VAR_TRAEFIK_PASSWORD: "{{ traefik_password | default('') }}"
+      HOMEPAGE_VAR_CROWDSEC_MACHINE_API_KEY: "{{ crowdsecMachineApiKey | default('') }}"
+      HOMEPAGE_VAR_ADGUARD_PASSWORD: "{{ adguard_password | default('') }}"
+      HOMEPAGE_VAR_AMNEZIA_PASSWORD: "{{ amnezia_password | default('') }}"
+      HOMEPAGE_VAR_IMMICH_API_KEY: "{{ immich_api_key | default('') }}"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"
@@ -90,3 +96,4 @@
       traefik.http.routers.homepage.service: "homepage"
       traefik.http.routers.homepage.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.homepage.loadbalancer.server.port: "3000"
+  no_log: true

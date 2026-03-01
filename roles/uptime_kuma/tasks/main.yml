@@ -24,7 +24,8 @@
       - name: reverse_proxy_network
       - name: homepage_network
       - name: docker_proxy_network
-      - name: bridge
+      - name: public_network
+      - name: postgres_network
     labels:
       traefik.enable: "true"
       traefik.docker.network: "reverse_proxy_network"

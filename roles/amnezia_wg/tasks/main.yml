@@ -80,3 +80,4 @@
       traefik.http.routers.amnezia-wg-dynamic.tls: "true"
       traefik.http.routers.amnezia-wg-dynamic.service: "traefikshaper"
       traefik.http.services.amnezia-wg-dynamic.loadbalancer.server.port: "5000"
+  no_log: true
