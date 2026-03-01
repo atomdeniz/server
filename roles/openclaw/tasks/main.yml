@@ -36,7 +36,7 @@
 - name: Deploy OpenClaw browser sidecar
   community.docker.docker_container:
     name: openclaw-browser
-    image: "kasmweb/chrome:latest"
+    image: "ghcr.io/coollabsio/openclaw-browser:latest"
     state: started
     restart_policy: unless-stopped
     recreate: "{{ force_recreate | default(false) }}"
@@ -69,7 +69,7 @@
       OPENAI_API_KEY: "not-needed"
       OPENAI_BASE_URL: "http://claude-max-api-proxy:3456/v1"
       AUTH_PASSWORD: "{{ openclaw_auth_password }}"
-      BROWSER_CDP_URL: "http://openclaw-browser:9222"
+      BROWSER_CDP_URL: "http://openclaw-browser:9223"
       BROWSER_EVALUATE_ENABLED: "true"
       BROWSER_SNAPSHOT_MODE: "efficient"
     volumes:
