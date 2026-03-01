@@ -4,7 +4,8 @@ compress
   daily
   rotate 14
   missingok
-  notifempty postrotate
-  docker kill --signal="USR1" traefik
+  notifempty
+  postrotate
+    docker kill --signal="USR1" traefik
   endscript
 }

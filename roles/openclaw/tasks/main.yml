@@ -1,0 +1,32 @@
+---
+- name: Create openclaw config directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0750
+  loop:
+    - openclaw
+    - openclaw/data
+
+- name: Run OpenClaw
+  community.docker.docker_container:
+    name: openclaw
+    image: "ghcr.io/openclaw/openclaw:{{ openclaw_version | default('latest') }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+    recreate: "{{ force_recreate | default(false) }}"
+    pull: always
+    env:
+      TELEGRAM_BOT_TOKEN: "{{ telegram_api_token }}"
+      NODE_ENV: "production"
+      OPENCLAW_DATA_DIR: "/home/openclaw/data"
+    volumes:
+      - "{{ docker_dir }}/openclaw/data:/home/openclaw/data"
+    networks:
+      - name: app_network
+    labels:
+      traefik.enable: "false"
