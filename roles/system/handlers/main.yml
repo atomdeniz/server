@@ -4,3 +4,9 @@
   ansible.builtin.service:
     name: iptables
     state: restarted
+
+- name: Restart docker
+  become: true
+  ansible.builtin.service:
+    name: docker
+    state: restarted
