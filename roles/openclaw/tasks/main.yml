@@ -108,6 +108,7 @@
       OPENCLAW_DATA_DIR: "/home/openclaw/data"
       OPENAI_API_KEY: "not-needed"
       OPENAI_BASE_URL: "http://172.17.0.1:3456/v1"
+      AUTH_USERNAME: "{{ openclaw_auth_username | default('admin') }}"
       AUTH_PASSWORD: "{{ openclaw_auth_password }}"
       OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
       BROWSER_CDP_URL: "http://browser:9223"
