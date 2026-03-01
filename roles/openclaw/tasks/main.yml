@@ -12,26 +12,46 @@
     - openclaw/data
     - openclaw/browser
 
-# Requires Claude Code CLI to be authenticated on the server (~/.claude must exist)
-- name: Deploy claude-max-api-proxy
-  community.docker.docker_container:
+- name: Install Claude Code CLI
+  become: true
+  become_user: "{{ username }}"
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://claude.ai/install.sh | bash
+    creates: /home/{{ username }}/.claude/bin/claude
+
+- name: Install Node.js and npm
+  become: true
+  ansible.builtin.apt:
+    name:
+      - nodejs
+      - npm
+    state: present
+    update_cache: true
+
+- name: Install claude-max-api-proxy globally
+  become: true
+  community.general.npm:
     name: claude-max-api-proxy
-    image: "node:20-alpine"
-    entrypoint:
-      - sh
-      - -c
-      - "npm install -g claude-max-api-proxy"
+    global: true
+    state: present
+
+- name: Deploy claude-max-api-proxy systemd service
+  become: true
+  ansible.builtin.template:
+    src: claude-max-api-proxy.service.j2
+    dest: /etc/systemd/system/claude-max-api-proxy.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart claude-max-api-proxy
+
+- name: Enable and start claude-max-api-proxy
+  become: true
+  ansible.builtin.systemd:
+    name: claude-max-api-proxy
+    enabled: true
     state: started
-    restart_policy: unless-stopped
-    security_opts:
-      - no-new-privileges:true
-    recreate: "{{ force_recreate | default(false) }}"
-    volumes:
-      - "/home/{{ username }}/.claude:/root/.claude:ro"
-    networks:
-      - name: app_network
-    labels:
-      traefik.enable: "false"
+    daemon_reload: true
 
 - name: Deploy OpenClaw browser sidecar
   community.docker.docker_container:
@@ -67,7 +87,7 @@
       NODE_ENV: "production"
       OPENCLAW_DATA_DIR: "/home/openclaw/data"
       OPENAI_API_KEY: "not-needed"
-      OPENAI_BASE_URL: "http://claude-max-api-proxy:3456/v1"
+      OPENAI_BASE_URL: "http://172.17.0.1:3456/v1"
       AUTH_PASSWORD: "{{ openclaw_auth_password }}"
       OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
       BROWSER_CDP_URL: "http://openclaw-browser:9223"

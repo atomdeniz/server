@@ -1,0 +1,15 @@
+[Unit]
+Description=Claude Max API Proxy
+After=network.target
+
+[Service]
+Type=simple
+User={{ username }}
+Environment=HOME=/home/{{ username }}
+Environment=PORT=3456
+ExecStart=/usr/bin/npx claude-max-api-proxy
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

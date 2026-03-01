@@ -39,3 +39,10 @@
   community.docker.docker_container:
     name: freqtrade
     restart: yes
+
+- name: Restart claude-max-api-proxy
+  become: true
+  ansible.builtin.systemd:
+    name: claude-max-api-proxy
+    state: restarted
+    daemon_reload: true
