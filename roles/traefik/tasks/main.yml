@@ -8,6 +8,7 @@
     mode: 0640
 
 - name: Create traefik data directories
+  become: true
   ansible.builtin.file:
     path: "{{ docker_dir }}/{{ item }}"
     state: directory
