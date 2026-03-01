@@ -1,16 +1,16 @@
 ---
-- name: Create the public_network
+- name: Create the edge_network
   community.general.docker_network:
-    name: public_network
+    name: edge_network
     driver: bridge
     ipam_config:
       - subnet: 10.8.1.0/24
         gateway: 10.8.1.1
         iprange: 10.8.1.128/25
 
-- name: Create the redis_network
+- name: Create the redis_data_network
   community.general.docker_network:
-    name: redis_network
+    name: redis_data_network
     driver: bridge
     internal: true
     ipam_config:
@@ -18,9 +18,9 @@
         gateway: 10.8.2.1
         iprange: 10.8.2.128/25
 
-- name: Create the postgres_network
+- name: Create the postgres_data_network
   community.general.docker_network:
-    name: postgres_network
+    name: postgres_data_network
     driver: bridge
     internal: true
     ipam_config:
@@ -28,9 +28,9 @@
         gateway: 10.8.7.1
         iprange: 10.8.7.128/25
 
-- name: Create the prometheus_network
+- name: Create the ops_network
   community.general.docker_network:
-    name: prometheus_network
+    name: ops_network
     driver: bridge
     internal: true
     ipam_config:
@@ -47,28 +47,12 @@
         gateway: 10.8.4.1
         iprange: 10.8.4.128/25
 
-- name: Create the homepage_network
+- name: Create the app_network
   community.general.docker_network:
-    name: homepage_network
-    driver: bridge
-    internal: true
-    ipam_config:
-      - subnet: 10.8.5.0/24
-        gateway: 10.8.5.1
-        iprange: 10.8.5.128/25
-
-- name: Create the reverse_proxy_network
-  community.general.docker_network:
-    name: reverse_proxy_network
+    name: app_network
     driver: bridge
     internal: true
     ipam_config:
       - subnet: 10.8.6.0/24
         gateway: 10.8.6.1
         iprange: 10.8.6.128/25
-
-- name: Create the docker_proxy_network
-  community.general.docker_network:
-    name: docker_proxy_network
-    driver: bridge
-    internal: true

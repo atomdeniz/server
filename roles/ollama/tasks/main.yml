@@ -22,8 +22,8 @@
     memory: "{{ ollama_memory }}"
     cpus: "{{ ollama_cpus }}"
     networks:
-      - name: public_network
-      - name: reverse_proxy_network
+      - name: edge_network
+      - name: app_network
     volumes:
       - "{{ docker_dir }}/ollama:/root/.ollama"
     env:
@@ -33,7 +33,7 @@
       OLLAMA_KEEP_ALIVE: "{{ ollama_keep_alive }}"
     labels:
       traefik.enable: "{{ ollama_web_enabled | ternary('true', 'false') }}"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.ollama.entrypoints: "https"
       traefik.http.routers.ollama.rule: "Host(`{{ ollama_host }}`)"
       traefik.http.routers.ollama.tls: "true"

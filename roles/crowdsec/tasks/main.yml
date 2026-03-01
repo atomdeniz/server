@@ -58,10 +58,9 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
-      - name: reverse_proxy_network
-      - name: prometheus_network
-      - name: homepage_network
+      - name: edge_network
+      - name: app_network
+      - name: ops_network
     ports:
       - "9876:8080"
     volumes:

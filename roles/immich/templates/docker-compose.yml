@@ -28,12 +28,12 @@ services:
     healthcheck:
       disable: false
     networks:
-      - reverse_proxy_network
-      - postgres_network
-      - redis_network
+      - app_network
+      - postgres_data_network
+      - redis_data_network
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.immich.entrypoints: "https"
       traefik.http.routers.immich.rule: "Host(`{{ immich_host }}`)"
       traefik.http.routers.immich.tls: "true"
@@ -57,18 +57,18 @@ services:
     healthcheck:
       disable: false
     networks:
-      - public_network
-      - redis_network
+      - edge_network
+      - redis_data_network
 
 volumes:
   model-cache:
 
 networks:
-  reverse_proxy_network:
+  app_network:
     external: true
-  redis_network:
+  redis_data_network:
     external: true
-  postgres_network:
+  postgres_data_network:
     external: true
-  public_network:
+  edge_network:
     external: true

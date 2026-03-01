@@ -73,10 +73,9 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: homepage_network
-      - name: docker_proxy_network
-      - name: reverse_proxy_network
-      - name: public_network
+      - name: ops_network
+      - name: app_network
+      - name: edge_network
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"
     env:
@@ -89,7 +88,7 @@
       HOMEPAGE_VAR_IMMICH_API_KEY: "{{ immich_api_key | default('') }}"
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.homepage.entrypoints: "https"
       traefik.http.routers.homepage.rule: "Host(`{{ homepage_host }}`)"
       traefik.http.routers.homepage.tls: "true"

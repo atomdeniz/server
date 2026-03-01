@@ -26,14 +26,14 @@ services:
     <<: *common-settings
     container_name: freqtrade
     networks:
-      - reverse_proxy_network
-      - public_network
+      - app_network
+      - edge_network
     user: "1000:1000"
     security_opt:
       - apparmor:docker-default
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.freqtrade.entrypoints: "https"
       traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
       traefik.http.routers.freqtrade.tls: "true"
@@ -47,9 +47,9 @@ services:
       --strategy-path .
 
 networks:
-  public_network:
+  edge_network:
     external: true
-    name: public_network
-  reverse_proxy_network:
+    name: edge_network
+  app_network:
     external: true
-    name: reverse_proxy_network
+    name: app_network

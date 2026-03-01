@@ -49,8 +49,7 @@
       - apparmor:docker-default
     command: "--config.file=/etc/prometheus/prometheus.yml"
     networks:
-      - name: prometheus_network
-      - name: homepage_network
+      - name: ops_network
 
 - name: Create node exporter container
   community.docker.docker_container:
@@ -71,7 +70,7 @@
     volumes:
       - /:/host:ro,rslave
     networks:
-      - name: prometheus_network
+      - name: ops_network
 
 - name: Create cadvisor container
   community.docker.docker_container:
@@ -93,7 +92,7 @@
     devices:
       - /dev/kmsg
     networks:
-      - name: prometheus_network
+      - name: ops_network
 
 - name: Create grafana container
   community.docker.docker_container:
@@ -112,12 +111,11 @@
     volumes:
       - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
     networks:
-      - name: reverse_proxy_network
-      - name: prometheus_network
-      - name: homepage_network
+      - name: app_network
+      - name: ops_network
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.grafana.entrypoints: "https"
       traefik.http.routers.grafana.rule: "Host(`{{ grafana_host }}`)"
       traefik.http.routers.grafana.tls: "true"

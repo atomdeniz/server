@@ -39,7 +39,7 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: redis_network
+      - name: redis_data_network
     pull: "always"
     recreate: "{{ force_recreate | default(false) }}"
     state: "started"
@@ -57,14 +57,14 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
-      - name: redis_network
-      - name: reverse_proxy_network
+      - name: edge_network
+      - name: redis_data_network
+      - name: app_network
     volumes:
       - "{{ docker_dir }}/authelia:/config"
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.authelia.rule: "Host(`{{ authelia_host }}`)"
       traefik.http.routers.authelia.entrypoints: "https"
       traefik.http.routers.authelia.middlewares: "open-external@file"

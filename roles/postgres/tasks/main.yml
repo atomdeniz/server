@@ -29,7 +29,7 @@
     labels:
       wud.watch: "false"
     networks:
-      - name: postgres_network
+      - name: postgres_data_network
   no_log: true
 
 - name: Wait for postgres readiness

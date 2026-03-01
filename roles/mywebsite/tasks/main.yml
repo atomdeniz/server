@@ -11,10 +11,10 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: reverse_proxy_network
+      - name: app_network
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.mywebsite.entrypoints: "https"
       traefik.http.routers.mywebsite.rule: "Host(`{{ root_host }}`) || Host(`{{ www_host }}`)"
       traefik.http.routers.mywebsite.tls: "true"

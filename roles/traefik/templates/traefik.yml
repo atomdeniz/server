@@ -81,7 +81,7 @@ entryPoints:
 
 providers:
   docker:
-    network: reverse_proxy_network
+    network: app_network
     endpoint: tcp://docker_proxy:2375
     exposedByDefault: false
   file:

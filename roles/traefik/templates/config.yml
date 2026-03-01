@@ -24,9 +24,9 @@ http:
           crowdsecLapiScheme: http
           crowdsecLapiTLSInsecureVerify: false
           forwardedHeadersTrustedIPs:
-            - "{{ traefik_reverse_proxy_network_gateway }}"
+            - "{{ traefik_app_network_gateway }}"
           clientTrustedIPs:
-            - "{{ traefik_reverse_proxy_network_gateway }}"
+            - "{{ traefik_app_network_gateway }}"
     https-only:
       redirectscheme:
         scheme: https

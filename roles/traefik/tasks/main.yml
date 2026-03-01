@@ -71,13 +71,11 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
-      - name: prometheus_network
-      - name: docker_proxy_network
-      - name: homepage_network
+      - name: edge_network
+      - name: ops_network
       - name: dns_network
-      - name: reverse_proxy_network
-        ipv4_address: "{{ traefik_reverse_proxy_network_local_ip }}"
+      - name: app_network
+        ipv4_address: "{{ traefik_app_network_local_ip }}"
     ports:
       - "80:80"
       - "443:443"
@@ -142,8 +140,8 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: public_network
-      - name: reverse_proxy_network
+      - name: edge_network
+      - name: app_network
     volumes:
       - "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml:/app/dynamic-whitelist.yml"
     env:
@@ -155,7 +153,7 @@
       APPRISE_NOTIFICATION_URL: tgram://bot{{ telegram_api_token }}/{{ telegram_user_id }}
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.traefikshaper.entrypoints: "https"
       traefik.http.routers.traefikshaper.rule: "Host(`{{ traefikshaper_host }}`)"
       traefik.http.routers.traefikshaper.tls: "true"

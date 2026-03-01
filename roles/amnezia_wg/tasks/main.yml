@@ -40,8 +40,8 @@
       - name: dns_network
         driver_opts:
           com.docker.network.endpoint.ifname: "myeth"
-      - name: reverse_proxy_network
-      - name: homepage_network
+      - name: app_network
+      - name: ops_network
     sysctls:
       "net.ipv4.conf.all.src_valid_mark": "1"
       "net.ipv4.ip_forward": "1"
@@ -68,7 +68,7 @@
       - "{{ docker_dir }}/amnezia-wg:/etc/amnezia/amneziawg/"
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "reverse_proxy_network"
+      traefik.docker.network: "app_network"
       traefik.http.routers.amnezia-wg.entrypoints: "https"
       traefik.http.routers.amnezia-wg.rule: "Host(`{{ vpn_host }}`) && !Path(`/knock-knock`)"
       traefik.http.routers.amnezia-wg.tls: "true"
