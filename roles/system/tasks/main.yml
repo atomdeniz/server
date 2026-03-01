@@ -10,7 +10,10 @@
   when: system_swap_enabled
 
 - name: Configure the firewall
-  ansible.builtin.include_tasks: firewall.yml
+  ansible.builtin.include_tasks:
+    file: firewall.yml
+    apply:
+      become: true
 
 - name: Configure Docker image prune
   ansible.builtin.include_tasks: docker_image_prune.yml
