@@ -93,6 +93,8 @@ dns:
       answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ convertx_host }}"
       answer: "{{ traefik_app_network_local_ip }}"
+    - domain: "{{ openclaw_host }}"
+      answer: "{{ traefik_app_network_local_ip }}"
   blocked_services: []
   upstream_timeout: 10s
   private_networks: []
