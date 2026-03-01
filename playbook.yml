@@ -121,6 +121,10 @@
       tags:
         - immich
 
+    - role: openclaw
+      tags:
+        - openclaw
+
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp
