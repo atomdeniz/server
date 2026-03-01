@@ -69,7 +69,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0600"
-  no_log: true
+
   when: immich_storage_box_mount_enabled | default(false)
 
 - name: Install systemd service for rclone mount
@@ -96,7 +96,6 @@
       rclone mkdir storagebox:{{ immich_storage_box_remote_path }}
       --config {{ docker_dir }}/immich/rclone/rclone.conf
   changed_when: false
-  no_log: true
   when: immich_storage_box_mount_enabled | default(false)
 
 - name: Copy docker-compose.yml
@@ -114,7 +113,6 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0640"
-  no_log: true
 
 - name: Docker Compose up
   community.docker.docker_compose_v2:

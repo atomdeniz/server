@@ -43,7 +43,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  no_log: true
+
   notify: Restart crowdsec
 
 - name: Make sure crowdsec container container is created and running

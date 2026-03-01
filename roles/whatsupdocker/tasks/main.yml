@@ -34,4 +34,3 @@
       traefik.http.routers.whatsupdocker.service: "whatsupdocker"
       traefik.http.routers.whatsupdocker.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.whatsupdocker.loadbalancer.server.port: "3000"
-  no_log: true

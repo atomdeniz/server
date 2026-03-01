@@ -18,7 +18,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  no_log: true
+
   notify: Restart adguardhome
 
 - name: Run AdGuard Home

@@ -95,4 +95,3 @@
       traefik.http.routers.homepage.service: "homepage"
       traefik.http.routers.homepage.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.homepage.loadbalancer.server.port: "3000"
-  no_log: true

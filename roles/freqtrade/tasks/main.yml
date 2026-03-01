@@ -13,7 +13,6 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  no_log: true
 
 - name: Copy the dockercompose
   ansible.builtin.template:

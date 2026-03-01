@@ -15,7 +15,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  no_log: true
+
   notify: Restart authelia
 
 - name: Copy the users database
@@ -25,7 +25,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-  no_log: true
+
   notify: Restart authelia
 
 - name: Make sure the Redis container is created and running

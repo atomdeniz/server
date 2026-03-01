@@ -26,7 +26,6 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 755
-  no_log: true
 
 - name: Template the sshd
   become: true
