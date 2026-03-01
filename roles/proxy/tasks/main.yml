@@ -50,6 +50,8 @@
       - /tmp
     cap_drop:
       - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
