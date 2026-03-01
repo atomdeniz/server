@@ -61,13 +61,14 @@
   community.docker.docker_container:
     name: traefik
     image: traefik:{{ traefik_version }}
-    user: "0:0"
     pull: "always"
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
     cap_drop:
       - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
