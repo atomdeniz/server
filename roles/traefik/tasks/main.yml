@@ -40,10 +40,10 @@
     mode: "0644"
   notify: Restart traefik
 
-- name: Copy the dynamic-ipwhitelist.yml
+- name: Copy the dynamic-whitelist.yml
   ansible.builtin.template:
-    src: dynamic-ipwhitelist.yml
-    dest: "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml"
+    src: dynamic-whitelist.yml
+    dest: "{{ docker_dir }}/traefik/data/configs/dynamic-whitelist.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
@@ -147,7 +147,7 @@
       - name: edge_network
       - name: app_network
     volumes:
-      - "{{ docker_dir }}/traefik/data/configs/dynamic-ipwhitelist.yml:/app/dynamic-whitelist.yml"
+      - "{{ docker_dir }}/traefik/data/configs/dynamic-whitelist.yml:/app/dynamic-whitelist.yml"
     env:
       APPURL: "{{ traefikshaper_host }}"
       GRANT_HTTP_ENDPOINT: "/knock-knock"
