@@ -61,6 +61,7 @@
   community.docker.docker_container:
     name: traefik
     image: traefik:{{ traefik_version }}
+    user: "0:0"
     pull: "always"
     recreate: "{{ force_recreate | default(false) }}"
     state: started

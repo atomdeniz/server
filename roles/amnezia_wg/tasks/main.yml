@@ -6,6 +6,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0775"
+  become: true
 
 - name: Copy the AmneziaWG Dockerfile
   ansible.builtin.template:
