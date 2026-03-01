@@ -1,20 +1,61 @@
 ---
-- name: Create openclaw config directory
+- name: Create openclaw config directories
   become: true
   ansible.builtin.file:
     path: "{{ docker_dir }}/{{ item }}"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0750
+    mode: "0750"
   loop:
     - openclaw
     - openclaw/data
+    - openclaw/browser
+
+# Requires Claude Code CLI to be authenticated on the server (~/.claude must exist)
+- name: Deploy claude-max-api-proxy
+  community.docker.docker_container:
+    name: claude-max-api-proxy
+    image: "node:20-alpine"
+    entrypoint:
+      - sh
+      - -c
+      - "npm install -g claude-max-api-proxy && claude-max-api"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+    recreate: "{{ force_recreate | default(false) }}"
+    volumes:
+      - "/home/{{ username }}/.claude:/root/.claude:ro"
+    networks:
+      - name: app_network
+    labels:
+      traefik.enable: "false"
+
+- name: Deploy OpenClaw browser sidecar
+  community.docker.docker_container:
+    name: openclaw-browser
+    image: "kasmweb/chrome:latest"
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ force_recreate | default(false) }}"
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - seccomp:unconfined
+    shm_size: "1g"
+    volumes:
+      - "{{ docker_dir }}/openclaw/browser:/home/kasm-user"
+    networks:
+      - name: app_network
+    labels:
+      traefik.enable: "false"
 
 - name: Run OpenClaw
   community.docker.docker_container:
     name: openclaw
-    image: "ghcr.io/openclaw/openclaw:{{ openclaw_version | default('latest') }}"
+    image: "coollabsio/openclaw:{{ openclaw_version | default('latest') }}"
     state: started
     restart_policy: unless-stopped
     security_opts:
@@ -25,9 +66,23 @@
       TELEGRAM_BOT_TOKEN: "{{ openclaw_telegram_bot_token }}"
       NODE_ENV: "production"
       OPENCLAW_DATA_DIR: "/home/openclaw/data"
+      OPENAI_API_KEY: "not-needed"
+      OPENAI_BASE_URL: "http://claude-max-api-proxy:3456/v1"
+      AUTH_PASSWORD: "{{ openclaw_auth_password }}"
+      BROWSER_CDP_URL: "http://openclaw-browser:9222"
+      BROWSER_EVALUATE_ENABLED: "true"
+      BROWSER_SNAPSHOT_MODE: "efficient"
     volumes:
       - "{{ docker_dir }}/openclaw/data:/home/openclaw/data"
     networks:
+      - name: edge_network
       - name: app_network
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.openclaw.entrypoints: "https"
+      traefik.http.routers.openclaw.rule: "Host(`{{ openclaw_host }}`)"
+      traefik.http.routers.openclaw.tls: "true"
+      traefik.http.routers.openclaw.service: "openclaw"
+      traefik.http.routers.openclaw.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.openclaw.loadbalancer.server.port: "8080"
