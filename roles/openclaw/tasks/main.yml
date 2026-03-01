@@ -78,11 +78,17 @@
       - SYS_ADMIN
     security_opts:
       - seccomp:unconfined
-    shm_size: "1g"
+    shm_size: "2g"
     volumes:
-      - "{{ docker_dir }}/openclaw/browser:/home/kasm-user"
+      - "{{ docker_dir }}/openclaw/browser:/config"
+    env:
+      PUID: "1000"
+      PGID: "1000"
+      CHROME_CLI: "--remote-debugging-port=9222"
     networks:
       - name: app_network
+        aliases:
+          - browser
     labels:
       traefik.enable: "false"
 
@@ -104,7 +110,7 @@
       OPENAI_BASE_URL: "http://172.17.0.1:3456/v1"
       AUTH_PASSWORD: "{{ openclaw_auth_password }}"
       OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
-      BROWSER_CDP_URL: "http://openclaw-browser:9223"
+      BROWSER_CDP_URL: "http://browser:9223"
       BROWSER_EVALUATE_ENABLED: "true"
       BROWSER_SNAPSHOT_MODE: "efficient"
     volumes:
