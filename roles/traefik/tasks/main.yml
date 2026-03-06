@@ -1,5 +1,6 @@
 ---
 - name: Copy the traefik log delete file
+  become: true
   ansible.builtin.template:
     src: log-delete
     dest: "/etc/logrotate.d/traefik"
