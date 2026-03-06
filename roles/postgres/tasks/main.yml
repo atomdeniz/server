@@ -25,6 +25,14 @@
       - SETGID
       - SETUID
     shm_size: "{{ postgres_shm_size }}"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_replication_slots=5"
+      - "-c"
+      - "max_wal_senders=5"
     env:
       POSTGRES_PASSWORD: "{{ postgres_bootstrap_password }}"
       POSTGRES_USER: "{{ postgres_bootstrap_user }}"

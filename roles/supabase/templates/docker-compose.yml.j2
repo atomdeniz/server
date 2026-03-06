@@ -1,0 +1,271 @@
+---
+# Supabase self-hosted — external PostgreSQL edition
+# DB host: {{ postgres_container_name }} on postgres_data_network
+#
+# NOTE: Realtime requires wal_level=logical on postgres.
+# If you don't need DB-change subscriptions, it still starts in broadcast mode.
+
+services:
+
+  ##############################################################################
+  # Kong — API gateway (Traefik entry point for all /auth /rest /storage etc.)
+  ##############################################################################
+  supabase-kong:
+    image: kong:{{ supabase_kong_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
+    volumes:
+      - {{ supabase_data_dir }}/kong.yml:/var/lib/kong/kong.yml:ro
+    networks:
+      - app_network
+      - supabase_internal
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.supabase-api.entrypoints: "https"
+      traefik.http.routers.supabase-api.rule: "Host(`{{ supabase_api_host }}`)"
+      traefik.http.routers.supabase-api.tls: "true"
+      traefik.http.routers.supabase-api.service: "supabase-api"
+      traefik.http.routers.supabase-api.middlewares: "secure-vpn@file"
+      traefik.http.services.supabase-api.loadbalancer.server.port: "8000"
+      wud.watch: "false"
+
+  ##############################################################################
+  # Studio — web dashboard
+  ##############################################################################
+  supabase-studio:
+    image: supabase/studio:{{ supabase_studio_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      POSTGRES_PASSWORD: "{{ supabase_db_password }}"
+      DEFAULT_ORGANIZATION_NAME: "{{ supabase_org_name }}"
+      DEFAULT_PROJECT_NAME: "{{ supabase_project_name }}"
+      SUPABASE_URL: "https://{{ supabase_api_host }}"
+      SUPABASE_PUBLIC_URL: "https://{{ supabase_api_host }}"
+      SUPABASE_ANON_KEY: "{{ supabase_anon_key }}"
+      SUPABASE_SERVICE_KEY: "{{ supabase_service_role_key }}"
+      AUTH_JWT_SECRET: "{{ supabase_jwt_secret }}"
+      LOGFLARE_API_KEY: ""
+      LOGFLARE_URL: ""
+      NEXT_PUBLIC_ENABLE_LOGS: "false"
+    networks:
+      - app_network
+      - supabase_internal
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.supabase.entrypoints: "https"
+      traefik.http.routers.supabase.rule: "Host(`{{ supabase_host }}`)"
+      traefik.http.routers.supabase.tls: "true"
+      traefik.http.routers.supabase.service: "supabase"
+      traefik.http.routers.supabase.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.supabase.loadbalancer.server.port: "3000"
+      wud.watch: "false"
+
+  ##############################################################################
+  # Auth (GoTrue)
+  ##############################################################################
+  supabase-auth:
+    image: supabase/gotrue:{{ supabase_auth_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      supabase-kong:
+        condition: service_started
+    environment:
+      GOTRUE_API_HOST: "0.0.0.0"
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: "https://{{ supabase_api_host }}"
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: "postgres://{{ supabase_db_user }}:{{ supabase_db_password }}@{{ postgres_container_name }}:5432/{{ supabase_db_name }}?search_path=auth"
+      GOTRUE_DB_AUTOMIGRATE: "true"
+      GOTRUE_SITE_URL: "https://{{ supabase_host }}"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_EXP: "{{ supabase_jwt_expiry }}"
+      GOTRUE_JWT_SECRET: "{{ supabase_jwt_secret }}"
+      GOTRUE_JWT_EXP: "{{ supabase_jwt_expiry }}"
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      GOTRUE_SMTP_HOST: "{{ email_smtp_host }}"
+      GOTRUE_SMTP_PORT: "{{ email_smtp_port }}"
+      GOTRUE_SMTP_USER: "{{ email_login }}"
+      GOTRUE_SMTP_PASS: "{{ email_password }}"
+      GOTRUE_SMTP_ADMIN_EMAIL: "{{ email_login }}"
+      GOTRUE_MAILER_URLPATHS_INVITE: "/auth/v1/verify"
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: "/auth/v1/verify"
+      GOTRUE_MAILER_URLPATHS_RECOVERY: "/auth/v1/verify"
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: "/auth/v1/verify"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_SMS_AUTOCONFIRM: "false"
+    networks:
+      - supabase_internal
+      - postgres_data_network
+    labels:
+      wud.watch: "false"
+
+  ##############################################################################
+  # REST (PostgREST)
+  ##############################################################################
+  supabase-rest:
+    image: postgrest/postgrest:{{ supabase_rest_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      supabase-kong:
+        condition: service_started
+    environment:
+      PGRST_DB_URI: "postgres://{{ supabase_db_user }}:{{ supabase_db_password }}@{{ postgres_container_name }}:5432/{{ supabase_db_name }}"
+      PGRST_DB_SCHEMAS: "public,storage,graphql_public"
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: "{{ supabase_jwt_secret }}"
+      PGRST_APP_SETTINGS_JWT_EXP: "{{ supabase_jwt_expiry }}"
+      PGRST_JWT_SECRET: "{{ supabase_jwt_secret }}"
+    networks:
+      - supabase_internal
+      - postgres_data_network
+    command: ["postgrest"]
+    labels:
+      wud.watch: "false"
+
+  ##############################################################################
+  # Realtime
+  # NOTE: For DB-change subscriptions wal_level=logical is required on postgres.
+  # Without it, broadcast/presence still work.
+  ##############################################################################
+  supabase-realtime:
+    image: supabase/realtime:{{ supabase_realtime_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      supabase-kong:
+        condition: service_started
+    environment:
+      PORT: "4000"
+      DB_HOST: "{{ postgres_container_name }}"
+      DB_PORT: "5432"
+      DB_USER: "{{ supabase_db_user }}"
+      DB_PASSWORD: "{{ supabase_db_password }}"
+      DB_NAME: "{{ supabase_db_name }}"
+      DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+      DB_ENC_KEY: "{{ supabase_realtime_enc_key }}"
+      API_JWT_SECRET: "{{ supabase_jwt_secret }}"
+      FLY_ALLOC_ID: "local"
+      FLY_APP_NAME: "realtime"
+      SECRET_KEY_BASE: "{{ supabase_realtime_secret_key_base }}"
+      ERL_AFLAGS: "-proto_dist inet_tcp"
+      ENABLE_TAILSCALE: "false"
+      DNS_NODES: "''"
+    networks:
+      - supabase_internal
+      - postgres_data_network
+    labels:
+      wud.watch: "false"
+
+  ##############################################################################
+  # Storage
+  ##############################################################################
+  supabase-storage:
+    image: supabase/storage-api:{{ supabase_storage_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      supabase-rest:
+        condition: service_started
+    environment:
+      ANON_KEY: "{{ supabase_anon_key }}"
+      SERVICE_KEY: "{{ supabase_service_role_key }}"
+      POSTGREST_URL: http://supabase-rest:3000
+      PGRST_JWT_SECRET: "{{ supabase_jwt_secret }}"
+      DATABASE_URL: "postgres://{{ supabase_db_user }}:{{ supabase_db_password }}@{{ postgres_container_name }}:5432/{{ supabase_db_name }}"
+      FILE_SIZE_LIMIT: "{{ supabase_file_size_limit }}"
+      STORAGE_BACKEND: "{{ supabase_storage_backend }}"
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://supabase-imgproxy:5001
+    volumes:
+      - {{ supabase_data_dir }}/storage:/var/lib/storage
+    networks:
+      - supabase_internal
+      - postgres_data_network
+    labels:
+      wud.watch: "false"
+
+  ##############################################################################
+  # imgproxy (image transformations for Storage)
+  ##############################################################################
+  supabase-imgproxy:
+    image: darthsim/imgproxy:{{ supabase_imgproxy_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+      IMGPROXY_KEY: "{{ supabase_imgproxy_key }}"
+      IMGPROXY_SALT: "{{ supabase_imgproxy_salt }}"
+    volumes:
+      - {{ supabase_data_dir }}/storage:/var/lib/storage:ro
+    networks:
+      - supabase_internal
+    labels:
+      wud.watch: "false"
+
+  ##############################################################################
+  # Meta (postgres-meta — used by Studio for DB explorer)
+  ##############################################################################
+  supabase-meta:
+    image: supabase/postgres-meta:{{ supabase_meta_version }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      PG_META_PORT: "8080"
+      PG_META_DB_HOST: "{{ postgres_container_name }}"
+      PG_META_DB_PORT: "5432"
+      PG_META_DB_NAME: "{{ supabase_db_name }}"
+      PG_META_DB_USER: "{{ supabase_db_user }}"
+      PG_META_DB_PASSWORD: "{{ supabase_db_password }}"
+    networks:
+      - supabase_internal
+      - postgres_data_network
+    labels:
+      wud.watch: "false"
+
+###############################################################################
+# Networks
+###############################################################################
+networks:
+  # Internal service-to-service communication (Kong → auth/rest/realtime/etc.)
+  supabase_internal:
+    driver: bridge
+
+  # Traefik routing
+  app_network:
+    external: true
+
+  # Shared postgres access
+  postgres_data_network:
+    external: true
