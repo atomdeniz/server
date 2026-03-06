@@ -1,0 +1,82 @@
+#!/usr/bin/env ansible-playbook
+---
+# One-time migration: move /opt/docker to the HC volume and symlink back.
+# Run with: ansible-playbook migrate-docker-dir.yml -i inventory.yml
+#
+# Safe to re-run — skips copy/symlink if already done.
+
+- name: Migrate /opt/docker to HC volume
+  hosts: all
+  gather_facts: false
+
+  vars_files:
+    - custom.yml
+
+  vars:
+    hc_mount: "/mnt/HC_Volume_104986964"
+    docker_target: "/mnt/HC_Volume_104986964/docker"
+
+  tasks:
+    - name: Ensure HC volume is mounted
+      ansible.builtin.command: mountpoint -q {{ hc_mount }}
+      changed_when: false
+
+    - name: Stop all running containers
+      ansible.builtin.command: docker stop $(docker ps -q)
+      register: stop_result
+      changed_when: stop_result.stdout != ""
+      failed_when: false
+
+    - name: Check if /opt/docker is already a symlink
+      ansible.builtin.stat:
+        path: /opt/docker
+      register: docker_stat
+
+    - name: Rsync /opt/docker → HC volume
+      become: true
+      ansible.builtin.command:
+        cmd: rsync -a /opt/docker/ {{ docker_target }}/
+      when: not docker_stat.stat.islnk
+
+    - name: Replace /opt/docker with symlink
+      become: true
+      when: not docker_stat.stat.islnk
+      block:
+        - name: Move original dir aside
+          ansible.builtin.command: mv /opt/docker /opt/docker.bak
+
+        - name: Create symlink
+          ansible.builtin.file:
+            src: "{{ docker_target }}"
+            dest: /opt/docker
+            state: link
+
+    - name: Ensure fstab entry for HC volume persists across reboots
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: "HC_Volume_104986964"
+        line: "/dev/sdb  {{ hc_mount }}  ext4  defaults,nofail  0  2"
+        state: present
+
+    - name: Start all containers
+      ansible.builtin.command: docker start $(docker ps -aq)
+      register: start_result
+      changed_when: start_result.stdout != ""
+      failed_when: false
+
+    - name: Show disk usage
+      ansible.builtin.command: df -h /dev/sda1 /dev/sdb
+      register: df_result
+      changed_when: false
+
+    - name: Print disk usage
+      ansible.builtin.debug:
+        msg: "{{ df_result.stdout_lines }}"
+
+    - name: Remind to remove backup
+      ansible.builtin.debug:
+        msg: >-
+          Migration done. Once you've verified everything works,
+          run: sudo rm -rf /opt/docker.bak
+      when: not docker_stat.stat.islnk
