@@ -96,15 +96,22 @@
   when: not traefik_bouncer_exists
   changed_when: true
 
-- name: Set crowdsecLapiKey fact for this run
-  ansible.builtin.set_fact:
-    crowdsecLapiKey: "{{ new_lapi_key.stdout | trim }}"
+- name: Persist crowdsecLapiKey to server
+  ansible.builtin.copy:
+    content: "{{ new_lapi_key.stdout | trim }}"
+    dest: "{{ docker_dir }}/crowdsec/.traefik-bouncer-key"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
   when: not traefik_bouncer_exists
 
-- name: Persist crowdsecLapiKey to secret.yml
-  delegate_to: localhost
-  ansible.builtin.lineinfile:
-    path: "{{ playbook_dir }}/secret.yml"
-    regexp: '^crowdsecLapiKey:'
-    line: "crowdsecLapiKey: \"{{ crowdsecLapiKey }}\""
-  when: not traefik_bouncer_exists
+- name: Read crowdsecLapiKey from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.traefik-bouncer-key"
+  register: lapi_key_file
+  become: true
+
+- name: Set crowdsecLapiKey fact for this run
+  ansible.builtin.set_fact:
+    crowdsecLapiKey: "{{ lapi_key_file.content | b64decode | trim }}"
