@@ -9,23 +9,23 @@
     mode: 0755
 
 - name: Copy the main config
+  become: true
   ansible.builtin.template:
     src: configuration.yml
     dest: "{{ docker_dir }}/authelia/configuration.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-
   notify: Restart authelia
 
 - name: Copy the users database
+  become: true
   ansible.builtin.template:
     src: users_database.yml
     dest: "{{ docker_dir }}/authelia/users_database.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: 0640
-
   notify: Restart authelia
 
 - name: Make sure the Redis container is created and running
