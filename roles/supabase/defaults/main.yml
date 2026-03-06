@@ -1,6 +1,6 @@
 ---
 # Image versions
-supabase_studio_version: "20250224-1a4c2b8"
+supabase_studio_version: "latest"
 supabase_kong_version: "2.8.1"
 supabase_auth_version: "v2.167.0"
 supabase_rest_version: "v12.2.8"
