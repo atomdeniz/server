@@ -46,7 +46,7 @@
 
   notify: Restart crowdsec
 
-- name: Make sure crowdsec container container is created and running
+- name: Make sure crowdsec container is created and running
   community.docker.docker_container:
     name: crowdsec
     image: crowdsecurity/crowdsec:{{ crowdsec_version }}
@@ -72,3 +72,39 @@
     env:
       GID: "1000"
       COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios crowdsecurity/sshd crowdsecurity/linux crowdsecurity/appsec-generic-rules crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs"
+
+- name: Wait for CrowdSec LAPI to be ready
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers list -o json
+  register: bouncers_result
+  retries: 15
+  delay: 5
+  until: bouncers_result.rc == 0
+  changed_when: false
+
+- name: Check if traefik-bouncer already exists
+  ansible.builtin.set_fact:
+    traefik_bouncer_exists: >-
+      {{ (bouncers_result.stdout | from_json)
+         | selectattr('name', 'equalto', 'traefik-bouncer')
+         | list | length > 0 }}
+
+- name: Add traefik-bouncer and capture key
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers add traefik-bouncer -o raw
+  register: new_lapi_key
+  when: not traefik_bouncer_exists
+  changed_when: true
+
+- name: Set crowdsecLapiKey fact for this run
+  ansible.builtin.set_fact:
+    crowdsecLapiKey: "{{ new_lapi_key.stdout | trim }}"
+  when: not traefik_bouncer_exists
+
+- name: Persist crowdsecLapiKey to secret.yml
+  delegate_to: localhost
+  ansible.builtin.lineinfile:
+    path: "{{ playbook_dir }}/secret.yml"
+    regexp: '^crowdsecLapiKey:'
+    line: "crowdsecLapiKey: \"{{ crowdsecLapiKey }}\""
+  when: not traefik_bouncer_exists
