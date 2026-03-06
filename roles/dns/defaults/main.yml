@@ -49,3 +49,13 @@ dns_records:
     type: A
     content: "{{ ansible_host }}"
     proxied: false
+
+  - name: "supabase"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
+
+  - name: "supabase-api"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
