@@ -23,6 +23,18 @@
     - traefik/data/certificates
     - traefik/data/logs
 
+- name: Read crowdsecLapiKey from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.traefik-bouncer-key"
+  register: lapi_key_file
+  become: true
+  when: crowdsecLapiKey is not defined
+
+- name: Set crowdsecLapiKey fact for this run
+  ansible.builtin.set_fact:
+    crowdsecLapiKey: "{{ lapi_key_file.content | b64decode | trim }}"
+  when: crowdsecLapiKey is not defined
+
 - name: Copy the traefik.yml
   ansible.builtin.template:
     src: traefik.yml
