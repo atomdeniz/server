@@ -92,9 +92,10 @@ log:
   level: INFO
 
 experimental:
-  localPlugins:
+  plugins:
     bouncer:
       moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      version: v1.5.1
 
 certificatesResolvers:
   cloudflare:

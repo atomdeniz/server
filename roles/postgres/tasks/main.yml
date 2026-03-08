@@ -28,6 +28,8 @@
     command:
       - "postgres"
       - "-c"
+      - "shared_preload_libraries=vchord.so"
+      - "-c"
       - "wal_level=logical"
       - "-c"
       - "max_replication_slots=5"
