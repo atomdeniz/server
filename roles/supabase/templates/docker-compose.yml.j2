@@ -172,6 +172,7 @@ services:
       ERL_AFLAGS: "-proto_dist inet_tcp"
       ENABLE_TAILSCALE: "false"
       DNS_NODES: "''"
+      RLIMIT_NOFILE: "10000"
     networks:
       - supabase_internal
       - postgres_data_network

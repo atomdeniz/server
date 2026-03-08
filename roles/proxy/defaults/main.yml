@@ -1,4 +1,4 @@
 ---
-caddy_version: "2.11.1"
+caddy_version: "2.11.2"
 trojan_version: "1.16.0"
 v2fly_version: "v5.41.0"

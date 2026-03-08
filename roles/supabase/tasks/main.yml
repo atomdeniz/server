@@ -46,6 +46,27 @@
   changed_when: "'CREATE DATABASE' in pg_db_result.stdout"
   failed_when: pg_db_result.rc != 0 and 'already exists' not in pg_db_result.stderr
 
+- name: Create required supabase schemas
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - "{{ postgres_container_name }}"
+      - psql
+      - -U
+      - "{{ postgres_bootstrap_user }}"
+      - -d
+      - "{{ supabase_db_name }}"
+      - -c
+      - "{{ item }}"
+  loop:
+    - "CREATE SCHEMA IF NOT EXISTS auth AUTHORIZATION {{ supabase_db_user }}"
+    - "CREATE SCHEMA IF NOT EXISTS storage AUTHORIZATION {{ supabase_db_user }}"
+    - "CREATE SCHEMA IF NOT EXISTS _realtime AUTHORIZATION {{ supabase_db_user }}"
+  register: pg_schema_result
+  changed_when: false
+  failed_when: pg_schema_result.rc != 0
+
 - name: Create PostgREST roles in supabase database
   ansible.builtin.command:
     argv:
@@ -91,7 +112,7 @@
     dest: "{{ supabase_data_dir }}/kong.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: "0640"
+    mode: "0644"
 
 - name: Render docker-compose
   ansible.builtin.template:
