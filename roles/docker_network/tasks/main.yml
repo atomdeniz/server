@@ -51,7 +51,6 @@
   community.general.docker_network:
     name: app_network
     driver: bridge
-    internal: true
     ipam_config:
       - subnet: 10.8.6.0/24
         gateway: 10.8.6.1

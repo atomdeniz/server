@@ -22,6 +22,19 @@
     - traefik/data/configs
     - traefik/data/certificates
     - traefik/data/logs
+    - traefik/data/plugins-local/src/github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+
+- name: Download crowdsec-bouncer-traefik-plugin source
+  become: true
+  ansible.builtin.unarchive:
+    src: "https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin/archive/refs/tags/{{ crowdsec_bouncer_plugin_version }}.tar.gz"
+    dest: "{{ docker_dir }}/traefik/data/plugins-local/src/github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    creates: "{{ docker_dir }}/traefik/data/plugins-local/src/github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin/go.mod"
 
 - name: Read crowdsecLapiKey from server
   ansible.builtin.slurp:
@@ -102,6 +115,7 @@
       - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
       - "{{ docker_dir }}/traefik/data/configs:/configs"
       - "{{ docker_dir }}/traefik/data/logs:/logs"
+      - "{{ docker_dir }}/traefik/data/plugins-local:/plugins-local"
     env:
       CF_API_EMAIL: "{{ cloudflare_email }}"
       CF_API_KEY: "{{ cloudflare_api_key }}"
