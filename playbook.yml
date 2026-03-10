@@ -125,6 +125,14 @@
     #   tags:
     #     - openclaw
 
+    - role: it_tools
+      tags:
+        - it_tools
+
+    - role: seafile
+      tags:
+        - seafile
+
     - role: supabase
       tags:
         - supabase

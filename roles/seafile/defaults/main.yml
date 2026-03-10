@@ -1,0 +1,9 @@
+---
+seafile_version: "12.0-latest"
+mariadb_version: "10.11"
+memcached_version: "1.6"
+
+# Storage Box mount
+seafile_storage_box_mount_enabled: true
+seafile_storage_box_mount_path: "{{ docker_dir }}/seafile/seafile-data"
+seafile_storage_box_remote_path: "seafile"

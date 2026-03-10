@@ -19,83 +19,72 @@
     - "{{ immich_upload_location }}"
     - "{{ immich_storage_box_mount_path }}"
 
-- name: Install rclone and fuse (for Storage Box mount)
+- name: Install cifs-utils (for Storage Box mount)
   ansible.builtin.package:
     name:
-      - rclone
-      - fuse3
+      - cifs-utils
     state: present
   when: immich_storage_box_mount_enabled | default(false)
 
-- name: Allow FUSE allow_other for rclone mount
-  ansible.builtin.lineinfile:
-    path: /etc/fuse.conf
-    regexp: "^#?user_allow_other"
-    line: "user_allow_other"
-    state: present
-  when: immich_storage_box_mount_enabled | default(false)
-
-- name: Create mount point
+- name: Create storagebox mount point
   ansible.builtin.file:
-    path: "{{ immich_storage_box_mount_path }}"
+    path: "{{ storagebox_mount_path }}"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0775"
   when: immich_storage_box_mount_enabled | default(false)
 
-- name: Create rclone config directory
-  ansible.builtin.file:
-    path: "{{ docker_dir }}/immich/rclone"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0700"
-  when: immich_storage_box_mount_enabled | default(false)
-
-- name: Create rclone cache directory
-  ansible.builtin.file:
-    path: "{{ docker_dir }}/immich/rclone-cache"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0750"
-  when: immich_storage_box_mount_enabled | default(false)
-
-- name: Write rclone config
-  ansible.builtin.template:
-    src: "rclone.conf.j2"
-    dest: "{{ docker_dir }}/immich/rclone/rclone.conf"
-    owner: "{{ username }}"
-    group: "{{ username }}"
+- name: Write CIFS credentials file
+  ansible.builtin.copy:
+    content: |
+      username={{ immich_storage_box_user }}
+      password={{ immich_storage_box_smb_pass }}
+    dest: "/etc/storagebox-credentials"
+    owner: root
+    group: root
     mode: "0600"
-
   when: immich_storage_box_mount_enabled | default(false)
 
-- name: Install systemd service for rclone mount
-  ansible.builtin.template:
-    src: "immich-storagebox.service.j2"
-    dest: "/etc/systemd/system/immich-storagebox.service"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  when: immich_storage_box_mount_enabled | default(false)
-
-- name: Enable and start Storage Box mount
-  become: true
-  ansible.builtin.systemd:
-    name: "immich-storagebox.service"
-    enabled: true
-    state: started
-    daemon_reload: true
-  when: immich_storage_box_mount_enabled | default(false)
-
-- name: Ensure Storage Box path exists
-  ansible.builtin.command:
-    cmd: >-
-      rclone mkdir storagebox:{{ immich_storage_box_remote_path }}
-      --config {{ docker_dir }}/immich/rclone/rclone.conf
+- name: Check if storagebox is already mounted
+  ansible.builtin.shell: mount | grep -q '{{ storagebox_mount_path }}'
+  register: storagebox_mounted
+  failed_when: false
   changed_when: false
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Mount Storage Box root via CIFS
+  ansible.builtin.shell: >
+    mount.cifs //{{ immich_storage_box_host }}/backup {{ storagebox_mount_path }}
+    -o credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0775,dir_mode=0775,iocharset=utf8
+  when:
+    - immich_storage_box_mount_enabled | default(false)
+    - storagebox_mounted.rc != 0
+
+- name: Add storagebox to fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "//{{ immich_storage_box_host }}/backup {{ storagebox_mount_path }} cifs credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0775,dir_mode=0775,iocharset=utf8,_netdev,nofail 0 0"
+    regexp: ".*{{ storagebox_mount_path }}.*"
+    state: present
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Ensure immich directory exists on Storage Box
+  ansible.builtin.file:
+    path: "{{ storagebox_mount_path }}/immich"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Bind mount immich data
+  ansible.posix.mount:
+    src: "{{ storagebox_mount_path }}/immich"
+    path: "{{ immich_storage_box_mount_path }}"
+    opts: bind
+    fstype: none
+    state: mounted
   when: immich_storage_box_mount_enabled | default(false)
 
 - name: Copy docker-compose.yml

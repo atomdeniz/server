@@ -7,7 +7,8 @@ email_smtp_host: "smtp.gmail.com" #smtp server
 email_smtp_port: "587" #smtp port
 email_login: "sender@gmail.com" #email to send notifications
 force_recreate: true
-immich_storage_box_type: "sftp"
-immich_storage_box_host: ""
-immich_storage_box_port: 22
-immich_storage_box_user: ""
+immich_storage_box_host: "" #uXXXXXX.your-storagebox.de
+immich_storage_box_user: "" #uXXXXXX
+seafile_storage_box_host: "" #same as immich if using the same storagebox
+seafile_storage_box_user: "" #same as immich if using the same storagebox
+seafile_admin_email: "" #seafile admin email

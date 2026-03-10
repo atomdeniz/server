@@ -1,0 +1,59 @@
+---
+- name: Create Seafile directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ docker_dir }}/seafile"
+    - "{{ docker_dir }}/seafile/shared"
+    - "{{ docker_dir }}/seafile/db"
+
+- name: Install cifs-utils (for Storage Box mount)
+  ansible.builtin.package:
+    name:
+      - cifs-utils
+    state: present
+  when: seafile_storage_box_mount_enabled | default(false)
+
+- name: Create mount point
+  ansible.builtin.file:
+    path: "{{ seafile_storage_box_mount_path }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  when: seafile_storage_box_mount_enabled | default(false)
+
+- name: Ensure seafile directory exists on Storage Box
+  ansible.builtin.file:
+    path: "{{ storagebox_mount_path }}/seafile"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  when: seafile_storage_box_mount_enabled | default(false)
+
+- name: Bind mount seafile data
+  ansible.posix.mount:
+    src: "{{ storagebox_mount_path }}/seafile"
+    path: "{{ seafile_storage_box_mount_path }}"
+    opts: bind
+    fstype: none
+    state: mounted
+  when: seafile_storage_box_mount_enabled | default(false)
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_dir }}/seafile/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Docker Compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_dir }}/seafile"
+    state: present
