@@ -6,7 +6,7 @@ immich_storage_box_mount_enabled: true
 immich_storage_box_mount_path: "{{ docker_dir }}/immich/external"
 immich_storage_box_remote_path: "immich"
 
-# Storage location (used in .env)
+# Storage location — points to Storage Box (where photos/videos live)
 immich_upload_location: "{{ immich_storage_box_mount_path }}"
 
 # Database hostname for Immich API

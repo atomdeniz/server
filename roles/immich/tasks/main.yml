@@ -46,7 +46,29 @@
     mode: "0600"
   when: immich_storage_box_mount_enabled | default(false)
 
-- name: Check if storagebox is already mounted
+- name: Check current storagebox mount uid
+  ansible.builtin.shell: >
+    mount | grep '{{ storagebox_mount_path }}' | grep -q 'uid={{ username }}'
+  register: storagebox_uid_ok
+  failed_when: false
+  changed_when: false
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Unmount immich bind mount if uid is wrong
+  ansible.builtin.shell: umount -l {{ immich_storage_box_mount_path }}
+  when:
+    - immich_storage_box_mount_enabled | default(false)
+    - storagebox_uid_ok.rc != 0
+  failed_when: false
+
+- name: Unmount storagebox CIFS if uid is wrong
+  ansible.builtin.shell: umount -l {{ storagebox_mount_path }}
+  when:
+    - immich_storage_box_mount_enabled | default(false)
+    - storagebox_uid_ok.rc != 0
+  failed_when: false
+
+- name: Check if storagebox is mounted
   ansible.builtin.shell: mount | grep -q '{{ storagebox_mount_path }}'
   register: storagebox_mounted
   failed_when: false
@@ -61,11 +83,17 @@
     - immich_storage_box_mount_enabled | default(false)
     - storagebox_mounted.rc != 0
 
+- name: Remove all storagebox CIFS lines from fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: "^//.*storagebox.*cifs"
+    state: absent
+  when: immich_storage_box_mount_enabled | default(false)
+
 - name: Add storagebox to fstab
   ansible.builtin.lineinfile:
     path: /etc/fstab
     line: "//{{ immich_storage_box_host }}/backup {{ storagebox_mount_path }} cifs credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0775,dir_mode=0775,iocharset=utf8,_netdev,nofail 0 0"
-    regexp: ".*{{ storagebox_mount_path }}.*"
     state: present
   when: immich_storage_box_mount_enabled | default(false)
 
@@ -82,9 +110,15 @@
   ansible.posix.mount:
     src: "{{ storagebox_mount_path }}/immich"
     path: "{{ immich_storage_box_mount_path }}"
-    opts: bind
+    opts: bind,_netdev,nofail
     fstype: none
     state: mounted
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Mark immich external mount as shared
+  become: true
+  ansible.builtin.command: mount --make-shared {{ immich_storage_box_mount_path }}
+  changed_when: false
   when: immich_storage_box_mount_enabled | default(false)
 
 - name: Copy docker-compose.yml
@@ -107,3 +141,4 @@
   community.docker.docker_compose_v2:
     project_src: "{{ docker_dir }}/immich"
     state: present
+    recreate: "{{ force_recreate | default('never') }}"
