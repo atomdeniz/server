@@ -1,128 +1,49 @@
 ---
-- name: Create supabase directories
+- name: Clone official supabase repo (shallow)
+  ansible.builtin.git:
+    repo: "https://github.com/supabase/supabase.git"
+    dest: "{{ supabase_data_dir }}/_repo"
+    depth: 1
+    force: true
+
+- name: Copy official docker files to project directory
+  become: true
+  ansible.builtin.copy:
+    src: "{{ supabase_data_dir }}/_repo/docker/"
+    dest: "{{ supabase_data_dir }}/"
+    remote_src: true
+    owner: "{{ username }}"
+    group: "{{ username }}"
+
+- name: Create db data directory (root-owned for postgres init)
   become: true
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ supabase_data_dir }}/volumes/db/data"
     state: directory
+
+- name: Render .env
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ supabase_data_dir }}/.env"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: "0775"
-  loop:
-    - "{{ supabase_data_dir }}"
-    - "{{ supabase_data_dir }}/storage"
-    - "{{ supabase_data_dir }}/functions"
+    mode: "0600"
 
-- name: Create supabase postgres user
-  ansible.builtin.command:
-    argv:
-      - docker
-      - exec
-      - "{{ postgres_container_name }}"
-      - psql
-      - -U
-      - "{{ postgres_bootstrap_user }}"
-      - -c
-      - >-
-        DO $$ BEGIN
-          IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '{{ supabase_db_user }}') THEN
-            CREATE USER {{ supabase_db_user }} WITH PASSWORD '{{ supabase_db_password }}' SUPERUSER;
-          END IF;
-        END $$;
-  register: pg_user_result
-  changed_when: false
-
-- name: Create supabase database
-  ansible.builtin.command:
-    argv:
-      - docker
-      - exec
-      - "{{ postgres_container_name }}"
-      - psql
-      - -U
-      - "{{ postgres_bootstrap_user }}"
-      - -c
-      - "CREATE DATABASE {{ supabase_db_name }} OWNER {{ supabase_db_user }}"
-  register: pg_db_result
-  changed_when: "'CREATE DATABASE' in pg_db_result.stdout"
-  failed_when: pg_db_result.rc != 0 and 'already exists' not in pg_db_result.stderr
-
-- name: Create required supabase schemas
-  ansible.builtin.command:
-    argv:
-      - docker
-      - exec
-      - "{{ postgres_container_name }}"
-      - psql
-      - -U
-      - "{{ postgres_bootstrap_user }}"
-      - -d
-      - "{{ supabase_db_name }}"
-      - -c
-      - "{{ item }}"
-  loop:
-    - "CREATE SCHEMA IF NOT EXISTS auth AUTHORIZATION {{ supabase_db_user }}"
-    - "CREATE SCHEMA IF NOT EXISTS storage AUTHORIZATION {{ supabase_db_user }}"
-    - "CREATE SCHEMA IF NOT EXISTS _realtime AUTHORIZATION {{ supabase_db_user }}"
-  register: pg_schema_result
-  changed_when: false
-  failed_when: pg_schema_result.rc != 0
-
-- name: Create PostgREST roles in supabase database
-  ansible.builtin.command:
-    argv:
-      - docker
-      - exec
-      - "{{ postgres_container_name }}"
-      - psql
-      - -U
-      - "{{ postgres_bootstrap_user }}"
-      - -d
-      - "{{ supabase_db_name }}"
-      - -c
-      - "{{ item }}"
-  loop:
-    - >-
-      DO $$ BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'anon') THEN
-          CREATE ROLE anon NOLOGIN NOINHERIT;
-        END IF;
-      END $$;
-    - >-
-      DO $$ BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'authenticated') THEN
-          CREATE ROLE authenticated NOLOGIN NOINHERIT;
-        END IF;
-      END $$;
-    - >-
-      DO $$ BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'service_role') THEN
-          CREATE ROLE service_role NOLOGIN NOINHERIT BYPASSRLS;
-        END IF;
-      END $$;
-    - "GRANT anon TO {{ supabase_db_user }}"
-    - "GRANT authenticated TO {{ supabase_db_user }}"
-    - "GRANT service_role TO {{ supabase_db_user }}"
-  register: pg_roles_result
-  changed_when: false
-  failed_when: pg_roles_result.rc != 0 and 'already exists' not in pg_roles_result.stderr
-
-- name: Render kong config
+- name: Render docker-compose.override.yml (Traefik labels)
   ansible.builtin.template:
-    src: kong.yml.j2
-    dest: "{{ supabase_data_dir }}/kong.yml"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0644"
-
-- name: Render docker-compose
-  ansible.builtin.template:
-    src: docker-compose.yml.j2
-    dest: "{{ supabase_data_dir }}/docker-compose.yml"
+    src: docker-compose.override.yml.j2
+    dest: "{{ supabase_data_dir }}/docker-compose.override.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0640"
+
+- name: Remove repo clone (no longer needed after copy)
+  ansible.builtin.file:
+    path: "{{ supabase_data_dir }}/_repo"
+    state: absent
 
 - name: Docker Compose up
   community.docker.docker_compose_v2:
     project_src: "{{ supabase_data_dir }}"
     state: present
+    pull: always

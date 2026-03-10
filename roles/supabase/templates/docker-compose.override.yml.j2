@@ -1,0 +1,36 @@
+# Traefik integration overlay for the official Supabase compose
+# Adds studio and kong to app_network and configures Traefik routing.
+
+services:
+
+  studio:
+    networks:
+      - app_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.supabase.entrypoints: "https"
+      traefik.http.routers.supabase.rule: "Host(`{{ supabase_host }}`)"
+      traefik.http.routers.supabase.tls: "true"
+      traefik.http.routers.supabase.service: "supabase"
+      traefik.http.routers.supabase.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.supabase.loadbalancer.server.port: "3000"
+      wud.watch: "false"
+
+  kong:
+    networks:
+      - app_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.supabase-api.entrypoints: "https"
+      traefik.http.routers.supabase-api.rule: "Host(`{{ supabase_api_host }}`)"
+      traefik.http.routers.supabase-api.tls: "true"
+      traefik.http.routers.supabase-api.service: "supabase-api"
+      traefik.http.routers.supabase-api.middlewares: "secure-vpn@file"
+      traefik.http.services.supabase-api.loadbalancer.server.port: "8000"
+      wud.watch: "false"
+
+networks:
+  app_network:
+    external: true

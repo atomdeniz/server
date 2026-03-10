@@ -1,48 +1,28 @@
 ---
-# Image versions
-supabase_studio_version: "latest"
-supabase_kong_version: "2.8.1"
-supabase_auth_version: "v2.167.0"
-supabase_rest_version: "v12.2.8"
-supabase_realtime_version: "v2.33.67"
-supabase_storage_version: "v1.13.0"
-supabase_imgproxy_version: "v3.8.0"
-supabase_meta_version: "v0.86.0"
-
-# Database (uses existing shared postgres)
-supabase_db_name: "supabase"
-supabase_db_user: "supabase"
-supabase_db_password: "{{ supabase_db_password }}"   # secret.yml
-
-# JWT — generate once, store in secret.yml
-# jwt_secret: openssl rand -base64 32
-# anon_key / service_role_key: sign with jwt_secret at https://supabase.com/docs/guides/self-hosting/docker#api-keys
-supabase_jwt_secret: "{{ supabase_jwt_secret }}"             # secret.yml
-supabase_anon_key: "{{ supabase_anon_key }}"                 # secret.yml
-supabase_service_role_key: "{{ supabase_service_role_key }}" # secret.yml
-
-# imgproxy HMAC keys
-# imgproxy_key:  openssl rand -hex 16
-# imgproxy_salt: openssl rand -hex 16
-supabase_imgproxy_key: "{{ supabase_imgproxy_key }}"   # secret.yml
-supabase_imgproxy_salt: "{{ supabase_imgproxy_salt }}" # secret.yml
-
-# Realtime internal secrets
-# secret_key_base: openssl rand -hex 64
-# enc_key:         openssl rand -hex 16
-supabase_realtime_secret_key_base: "{{ supabase_realtime_secret_key_base }}" # secret.yml
-supabase_realtime_enc_key: "{{ supabase_realtime_enc_key }}"                 # secret.yml
-
 # Data directory
 supabase_data_dir: "{{ docker_dir }}/supabase"
 
-# Storage backend: "file" or "s3"
-supabase_storage_backend: "file"
-supabase_file_size_limit: 52428800   # 50 MB
+# JWT
+supabase_jwt_expiry: 3600
 
 # Studio
 supabase_org_name: "Personal"
 supabase_project_name: "Server"
 
-# JWT expiry (seconds)
-supabase_jwt_expiry: 3600
+# Kong dashboard username (password in secret.yml)
+supabase_dashboard_username: "supabase"
+
+# Secrets — must be defined in secret.yml:
+#
+#   supabase_postgres_password:             openssl rand -base64 32
+#   supabase_jwt_secret:                    openssl rand -base64 32   (min 32 chars)
+#   supabase_anon_key:                      JWT signed with jwt_secret, role=anon
+#   supabase_service_role_key:              JWT signed with jwt_secret, role=service_role
+#   supabase_secret_key_base:               openssl rand -hex 64
+#   supabase_vault_enc_key:                 exactly 32 chars  (openssl rand -base64 24 | head -c 32)
+#   supabase_pg_meta_crypto_key:            min 32 chars      (openssl rand -base64 32)
+#   supabase_logflare_public_access_token:  openssl rand -hex 32
+#   supabase_logflare_private_access_token: openssl rand -hex 32
+#   supabase_dashboard_password:            strong password
+#   supabase_s3_access_key_id:              openssl rand -hex 16
+#   supabase_s3_access_key_secret:          openssl rand -hex 32

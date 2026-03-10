@@ -109,9 +109,9 @@
       tags:
         - web_check
 
-    # - role: convertx
-    #   tags:
-    #     - convertx
+    - role: convertx
+      tags:
+        - convertx
 
     - role: postgres
       tags:
@@ -121,9 +121,9 @@
       tags:
         - immich
 
-    - role: openclaw
-      tags:
-        - openclaw
+    # - role: openclaw
+    #   tags:
+    #     - openclaw
 
     - role: supabase
       tags:
