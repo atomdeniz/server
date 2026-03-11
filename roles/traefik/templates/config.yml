@@ -27,6 +27,17 @@ http:
             - "{{ traefik_app_network_gateway }}"
           clientTrustedIPs:
             - "{{ traefik_app_network_gateway }}"
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 200
+        period: 1s
+    api-external:
+      chain:
+        middlewares:
+          - base
+          - crowdsec
+          - rate-limit
     https-only:
       redirectscheme:
         scheme: https

@@ -37,6 +37,7 @@ services:
       SEAFILE_ADMIN_PASSWORD: "{{ seafile_admin_password }}"
       SEAFILE_SERVER_HOSTNAME: "{{ seafile_host }}"
       SEAFILE_SERVER_LETSENCRYPT: "false"
+      JWT_PRIVATE_KEY: "{{ seafile_jwt_private_key }}"
       TIME_ZONE: "Europe/Istanbul"
     depends_on:
       - seafile-db

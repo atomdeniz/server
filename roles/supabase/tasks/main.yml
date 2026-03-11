@@ -1,25 +1,12 @@
 ---
-- name: Clone official supabase repo (shallow)
-  ansible.builtin.git:
-    repo: "https://github.com/supabase/supabase.git"
-    dest: "{{ supabase_data_dir }}/_repo"
-    depth: 1
-    force: true
-
-- name: Copy official docker files to project directory
-  become: true
-  ansible.builtin.copy:
-    src: "{{ supabase_data_dir }}/_repo/docker/"
-    dest: "{{ supabase_data_dir }}/"
-    remote_src: true
-    owner: "{{ username }}"
-    group: "{{ username }}"
-
-- name: Create db data directory (root-owned for postgres init)
+- name: Create db data directory
   become: true
   ansible.builtin.file:
     path: "{{ supabase_data_dir }}/volumes/db/data"
     state: directory
+    owner: "105"
+    group: "106"
+    mode: "0700"
 
 - name: Render .env
   ansible.builtin.template:
@@ -36,11 +23,6 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0640"
-
-- name: Remove repo clone (no longer needed after copy)
-  ansible.builtin.file:
-    path: "{{ supabase_data_dir }}/_repo"
-    state: absent
 
 - name: Docker Compose up
   community.docker.docker_compose_v2:

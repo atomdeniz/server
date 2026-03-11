@@ -50,12 +50,12 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: false
 
-  - name: "supabase"
+  - name: "supabase-api"
     type: A
     content: "{{ ansible_host }}"
     proxied: false
 
-  - name: "supabase-api"
+  - name: "drive"
     type: A
     content: "{{ ansible_host }}"
     proxied: false

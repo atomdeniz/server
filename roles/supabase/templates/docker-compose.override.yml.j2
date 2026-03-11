@@ -5,6 +5,7 @@ services:
 
   studio:
     networks:
+      - default
       - app_network
     labels:
       traefik.enable: "true"
@@ -13,12 +14,13 @@ services:
       traefik.http.routers.supabase.rule: "Host(`{{ supabase_host }}`)"
       traefik.http.routers.supabase.tls: "true"
       traefik.http.routers.supabase.service: "supabase"
-      traefik.http.routers.supabase.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.routers.supabase.middlewares: "secure-vpn@file"
       traefik.http.services.supabase.loadbalancer.server.port: "3000"
       wud.watch: "false"
 
   kong:
     networks:
+      - default
       - app_network
     labels:
       traefik.enable: "true"
@@ -27,7 +29,7 @@ services:
       traefik.http.routers.supabase-api.rule: "Host(`{{ supabase_api_host }}`)"
       traefik.http.routers.supabase-api.tls: "true"
       traefik.http.routers.supabase-api.service: "supabase-api"
-      traefik.http.routers.supabase-api.middlewares: "secure-vpn@file"
+      traefik.http.routers.supabase-api.middlewares: "api-external@file"
       traefik.http.services.supabase-api.loadbalancer.server.port: "8000"
       wud.watch: "false"
 

@@ -11,6 +11,57 @@
     - "{{ docker_dir }}/seafile/shared"
     - "{{ docker_dir }}/seafile/db"
 
+- name: Check if Seafile initial setup is done
+  ansible.builtin.stat:
+    path: "{{ docker_dir }}/seafile/shared/seafile/conf/seafile.conf"
+  register: seafile_setup_check
+
+- name: Initial setup (without storage box mount)
+  when: not seafile_setup_check.stat.exists
+  block:
+    - name: Copy docker-compose.yml (without storage box)
+      ansible.builtin.template:
+        src: docker-compose.yml.j2
+        dest: "{{ docker_dir }}/seafile/docker-compose.yml"
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: "0640"
+      vars:
+        seafile_storage_box_mount_enabled: false
+
+    - name: Docker Compose up for initial setup
+      community.docker.docker_compose_v2:
+        project_src: "{{ docker_dir }}/seafile"
+        state: present
+
+    - name: Wait for initial setup to complete
+      ansible.builtin.wait_for:
+        path: "{{ docker_dir }}/seafile/shared/seafile/conf/seafile.conf"
+        timeout: 120
+
+    - name: Stop Seafile after initial setup
+      community.docker.docker_compose_v2:
+        project_src: "{{ docker_dir }}/seafile"
+        state: absent
+
+- name: Fix seahub_settings.py memcached host
+  ansible.builtin.replace:
+    path: "{{ docker_dir }}/seafile/shared/seafile/conf/seahub_settings.py"
+    regexp: "'LOCATION': 'memcached:11211'"
+    replace: "'LOCATION': 'seafile-memcached:11211'"
+
+- name: Fix seahub_settings.py SERVICE_URL to HTTPS
+  ansible.builtin.lineinfile:
+    path: "{{ docker_dir }}/seafile/shared/seafile/conf/seahub_settings.py"
+    regexp: '^SERVICE_URL\s*='
+    line: 'SERVICE_URL = "https://{{ seafile_host }}"'
+
+- name: Fix seahub_settings.py FILE_SERVER_ROOT to HTTPS
+  ansible.builtin.lineinfile:
+    path: "{{ docker_dir }}/seafile/shared/seafile/conf/seahub_settings.py"
+    regexp: '^FILE_SERVER_ROOT\s*='
+    line: "FILE_SERVER_ROOT = 'https://{{ seafile_host }}/seafhttp'"
+
 - name: Install cifs-utils (for Storage Box mount)
   ansible.builtin.package:
     name:
