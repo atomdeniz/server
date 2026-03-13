@@ -43,10 +43,12 @@ ansible-playbook playbook.yml -i inventory.yml --check --tags "<tag>"
 
 Before running, two files must exist (both gitignored):
 
-- **`custom.yml`** — copy from `.custom.yml`, fill in `ansible_host`, `root_host`, `username`, SSH key path, email settings, `force_recreate`, and Immich storage config.
-- **`secret.yml`** — holds secrets like `crowdsecLapiKey`, `crowdsecMachineApiKey`, email password. Must be `chmod 600`.
+- **`custom.yml`** — copy from `.custom.yml`, fill in `ansible_host`, `root_host`, `username`, SSH key path, email settings, `force_recreate`, Immich and Seafile storage config.
+- **`secret.yml`** — copy from `.secret.yml`, fill in all secrets. Must be `chmod 600`. Includes credentials for: email, Cloudflare, Traefik, CrowdSec, Authelia, AdGuard, Grafana, Amnezia WG, Trojan/V2Ray, Telegram, Freqtrade, Immich, Seafile, and Supabase.
 
-`inventory.yml` derives all service subdomains from `root_host` (e.g., `auth.{{ root_host }}`, `password.{{ root_host }}`). Docker data lives under `docker_dir` (default `/opt/docker`).
+`ansible.cfg` sets `roles_path = .ansible/roles`, `collections_path = .ansible/collections`, enables `profile_tasks` callback, and configures SSH connection multiplexing.
+
+`inventory.yml` derives all service subdomains from `root_host` (e.g., `auth.{{ root_host }}`, `password.{{ root_host }}`). Docker data lives under `docker_dir` (default `/opt/docker`). Storage box mounts go under `storagebox_mount_path` (default `/mnt/storagebox`).
 
 ## Architecture
 
@@ -59,6 +61,35 @@ Roles in `playbook.yml` run in this sequence and must be thought of as layers:
 3. **Applications**: all remaining roles (each has its own tag matching its folder name)
 
 External roles: `geerlingguy.docker`, `geerlingguy.pip`, `chriswayg.msmtp-mailer` (installed to `.ansible/roles/`).
+
+External collections: `community.docker` (>=5.0.0), `community.general`, `community.crypto`, `ansible.posix` (installed to `.ansible/collections/`).
+
+### Application Roles
+
+All enabled application roles in execution order:
+
+| Role | Tag | Subdomain | Description |
+|---|---|---|---|
+| `whoami` | whoami | `whoami.{{ root_host }}` | HTTP request debug service |
+| `unbound` | unbound | — | Recursive DNS resolver (10.8.4.3) |
+| `adguardhome` | adguardhome | `adguard.{{ root_host }}` | DNS ad blocker (10.8.4.2) |
+| `amnezia_wg` | amnezia_wg | `vpn.{{ root_host }}` | AmneziaWG VPN |
+| `mywebsite` | mywebsite | `www.{{ root_host }}` | Personal website |
+| `vaultwarden` | vaultwarden | `password.{{ root_host }}` | Password manager |
+| `homepage` | homepage | `home.{{ root_host }}` | Dashboard |
+| `grafana` | grafana | `grafana.{{ root_host }}` | Monitoring (Grafana + Prometheus + cAdvisor + Node Exporter) |
+| `uptime_kuma` | uptime_kuma | `uptime.{{ root_host }}` | Uptime monitoring |
+| `proxy` | proxy | `tgo.{{ root_host }}`, `v2ray.{{ root_host }}` | Caddy + Trojan + V2Fly proxy |
+| `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation |
+| `whatsupdocker` | whatsupdocker | `whatsupdocker.{{ root_host }}` | Docker image update notifier |
+| `web_check` | web_check | `web.{{ root_host }}` | Website analysis tool |
+| `convertx` | convertx | `convertx.{{ root_host }}` | File converter |
+| `postgres` | postgres | — | PostgreSQL with pgvecto.rs (for Immich) |
+| `immich` | immich | `photos.{{ root_host }}` | Photo management |
+| `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
+| `seafile` | seafile | `drive.{{ root_host }}` | File sync & share |
+| `supabase` | supabase | `supabase.{{ root_host }}`, `supabase-api.{{ root_host }}` | Backend-as-a-Service |
+| `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
 ### Docker Networking
 
@@ -95,7 +126,11 @@ Global handlers (notify targets used across roles) are in `handlers/main.yml`.
 
 ### Disabled Roles
 
-`ollama`, `freqtrade`, and `convertx` are commented out in `playbook.yml`. Their role folders still exist and can be re-enabled.
+`ollama`, `freqtrade`, and `openclaw` are commented out in `playbook.yml`. Their role folders still exist and can be re-enabled.
+
+### Supabase Version Management
+
+Supabase component versions (db, auth, rest, storage, edge-functions, meta, pooler, analytics, realtime, vector) are **not** pinned in Ansible defaults. They are managed by the official Supabase `docker-compose.yml` in `{{ supabase_data_dir }}` with `pull: always`. The override compose file (`docker-compose.override.yml.j2`) only adds Traefik labels and network configuration.
 
 ## Adding a New Role
 
@@ -122,3 +157,7 @@ sudo service crowdsec-firewall-bouncer restart
 ```
 
 Firewall rules: allow 80/tcp, 443/tcp, 51820/udp from any; restrict 22/tcp to your IP.
+
+## Other Playbooks
+
+- **`migrate-docker-dir.yml`** — Utility playbook for migrating the Docker data directory to a new location.

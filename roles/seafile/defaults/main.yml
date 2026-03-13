@@ -1,5 +1,5 @@
 ---
-seafile_version: "12.0-latest"
+seafile_version: "13.0-latest"
 mariadb_version: "10.11"
 memcached_version: "1.6"
 

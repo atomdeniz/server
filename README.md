@@ -18,25 +18,29 @@ I am currently running the whole process only on Ubuntu ARM64.
 
 **Docker Socket Proxy:** Secure Docker socket management.
 
-**Freqtrade:** Open source crypto trading bot with NostalgiaForInfinity strategy.
-
-**WhatsUpDocker:** Tool to get notified when Docker images are updated.
-
-**ConvertX:** Converter
-
-**WhatuspDocker:** Docker image updates notifier
-
-**Web Check:** Web check
-
-**N8N**: MCP
-
-**Grafana, Prometheus, cAdvisor, node_exporter:** Comprehensive monitoring and visualization of infrastructure metrics.
+**Grafana, Prometheus, cAdvisor, Node Exporter:** Comprehensive monitoring and visualization of infrastructure metrics.
 
 **Homepage & Uptime Kuma:** Easy-to-navigate dashboard and uptime monitoring for hosted services.
 
-**V2ray (vmess/vless on WS), Trojan, AmneziaWG:** Secure VPN and proxy solutions ensuring privacy.
+**V2Ray (vmess/vless on WS), Trojan, AmneziaWG:** Secure VPN and proxy solutions ensuring privacy.
 
 **Vaultwarden:** Self-hosted password management.
+
+**N8N:** Workflow automation platform.
+
+**WhatsUpDocker:** Docker image update notifier.
+
+**ConvertX:** Self-hosted file converter.
+
+**Web Check:** Website analysis and diagnostics tool.
+
+**Immich:** Self-hosted photo and video management.
+
+**Seafile:** File sync and share platform with Storage Box support.
+
+**Supabase:** Self-hosted Backend-as-a-Service (PostgreSQL, Auth, Storage, Edge Functions, Realtime).
+
+**IT Tools:** Collection of developer utilities.
 
 **Whoami:** Simple service for testing and debugging HTTP requests.
 

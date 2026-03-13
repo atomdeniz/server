@@ -32,6 +32,10 @@ http:
         average: 100
         burst: 200
         period: 1s
+    vpn-ipallowlist:
+      ipAllowList:
+        sourceRange:
+          - "{{ vpn_subnet_cidr }}"
     api-external:
       chain:
         middlewares:
@@ -55,6 +59,7 @@ http:
       chain:
         middlewares:
           - base
+          - vpn-ipallowlist
     secure-external:
       chain:
         middlewares:
