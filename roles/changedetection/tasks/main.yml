@@ -1,0 +1,58 @@
+---
+- name: Create the changedetection directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/changedetection"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Create the changedetection browser container
+  community.docker.docker_container:
+    name: changedetection-browser
+    image: "dgtlmoon/sockpuppetbrowser:{{ sockpuppetbrowser_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+    shm_size: "2g"
+    networks:
+      - name: app_network
+    env:
+      SCREEN_WIDTH: "1920"
+      SCREEN_HEIGHT: "1080"
+      MAX_CONCURRENT_CHROME_PROCESSES: "5"
+
+- name: Create the changedetection container
+  community.docker.docker_container:
+    name: changedetection
+    image: "ghcr.io/dgtlmoon/changedetection.io:{{ changedetection_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+    volumes:
+      - "{{ docker_dir }}/changedetection:/datastore"
+    env:
+      BASE_URL: "https://{{ changedetection_host }}"
+      PLAYWRIGHT_DRIVER_URL: "ws://changedetection-browser:3000?stealth=1&--disable-web-security=true"
+      NOTIFICATION_URLS: "mailtos://{{ email_login }}:{{ email_password }}@{{ email_smtp_host }}:{{ email_smtp_port }}?from={{ email_login }}&to={{ email_login }}"
+      HIDE_REFERER: "true"
+      FETCH_WORKERS: "5"
+      TZ: "Europe/Istanbul"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.changedetection.entrypoints: "https"
+      traefik.http.routers.changedetection.rule: "Host(`{{ changedetection_host }}`)"
+      traefik.http.routers.changedetection.tls: "true"
+      traefik.http.routers.changedetection.service: "changedetection"
+      traefik.http.routers.changedetection.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.changedetection.loadbalancer.server.port: "5000"

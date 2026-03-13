@@ -80,6 +80,11 @@
           url: http://immich_server:2283
           key: "{% raw %}{{HOMEPAGE_VAR_IMMICH_API_KEY}}{% endraw %}"
           version: 2
+    - ChangeDetection:
+        server: my-docker
+        icon: changedetection-io.png
+        href: "https://{{ changedetection_host }}"
+        description: Website change monitoring
     - GitHub:
         icon: github.svg
         href: https://github.com

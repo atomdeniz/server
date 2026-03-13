@@ -137,6 +137,10 @@
       tags:
         - supabase
 
+    - role: changedetection
+      tags:
+        - changedetection
+
     - role: chriswayg.msmtp-mailer
       tags:
         - msmtp
