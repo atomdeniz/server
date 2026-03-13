@@ -1,0 +1,124 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: email-alerts
+    receivers:
+      - uid: email-alerts
+        type: email
+        disableResolveMessage: false
+        settings:
+          addresses: "{{ email_recipient }}"
+          singleEmail: true
+          subject: "{{ '{{' }} .Status | toUpper {{ '}}' }}: {{ '{{' }} range .Alerts {{ '}}' }}{{ '{{' }} if .Labels.name {{ '}}' }}{{ '{{' }} .Labels.name {{ '}}' }}{{ '{{' }} else {{ '}}' }}{{ '{{' }} .Labels.job {{ '}}' }}{{ '{{' }} end {{ '}}' }} {{ '{{' }} end {{ '}}' }}"
+
+policies:
+  - orgId: 1
+    receiver: email-alerts
+    group_by:
+      - alertname
+      - name
+      - instance
+    group_wait: 30s
+    group_interval: 1m
+    repeat_interval: 4h
+
+groups:
+  - orgId: 1
+    name: Container Health
+    folder: Infrastructure
+    interval: 1m
+    rules:
+      - uid: container-down-alert
+        title: Container Down
+        condition: C
+        noDataState: OK
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: "time() - container_last_seen{name=~\".+\"}"
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 120
+              refId: C
+        for: 2m
+        annotations:
+          summary: "{{ '{{' }} $labels.name {{ '}}' }} down"
+          description: "{{ '{{' }} $labels.name {{ '}}' }} has been unreachable for 2+ minutes."
+        labels:
+          severity: critical
+
+      - uid: scrape-target-down
+        title: Monitoring Target Down
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: "up"
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+              refId: C
+        for: 2m
+        annotations:
+          summary: "{{ '{{' }} $labels.job {{ '}}' }} unreachable"
+          description: "Prometheus cannot reach {{ '{{' }} $labels.instance {{ '}}' }}."
+        labels:
+          severity: critical

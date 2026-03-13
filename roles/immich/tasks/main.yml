@@ -141,4 +141,4 @@
   community.docker.docker_compose_v2:
     project_src: "{{ docker_dir }}/immich"
     state: present
-    recreate: "{{ force_recreate | default('never') }}"
+    recreate: "{{ 'always' if (force_recreate | default(false)) else 'never' }}"

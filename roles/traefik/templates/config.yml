@@ -36,6 +36,7 @@ http:
       ipAllowList:
         sourceRange:
           - "{{ vpn_subnet_cidr }}"
+          - "10.8.0.0/16"
     api-external:
       chain:
         middlewares:
