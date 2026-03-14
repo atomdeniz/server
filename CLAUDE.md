@@ -166,6 +166,20 @@ Supabase component versions are **not** pinned in Ansible defaults. They are man
 5. Join the container to the appropriate Docker network(s) via Compose labels.
 6. If the service needs secrets, add them to `.secret.yml` (template) and `secret.yml` (actual, vault-encrypted).
 
+### Mandatory Integration Checklist
+
+Every new role with a subdomain **must** also be added to the following:
+
+1. **DNS Registration:**
+   - **VPN-only services** (`secure-vpn@file` or `secure-vpn-with-auth@file` middleware) → Add a rewrite entry in `roles/adguardhome/templates/AdGuardHome.yaml` under `rewrites:`.
+   - **Public services** (`open-external@file` middleware) → Add a DNS record in `roles/dns/defaults/main.yml` under `dns_records:`.
+
+2. **Gatus Monitoring** → Add an endpoint in `roles/gatus/templates/config.yml.j2` under `endpoints:`. Use internal Docker URL (e.g., `http://<container>:<port>`) when possible.
+
+3. **Homepage Dashboard** → Add a service entry in `roles/homepage/templates/services.yaml` under the appropriate category.
+
+4. **CLAUDE.md Application Table** → Add the role to the Application Roles table above.
+
 ## Post-Install Steps
 
 After first CrowdSec deploy, enroll the agent on the server:

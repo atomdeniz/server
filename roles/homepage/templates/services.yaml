@@ -136,6 +136,11 @@
         icon: mdi-robot-outline
         href: "https://{{ openclaw_host }}"
         description: AI gateway
+    - Ntfy:
+        server: my-docker
+        icon: ntfy.svg
+        href: "https://{{ ntfy_host }}"
+        description: Push notifications
 
 - Tools:
     - IT Tools:
