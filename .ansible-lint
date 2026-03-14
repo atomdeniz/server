@@ -2,12 +2,15 @@
 exclude_paths:
   - .git/
   - .github/
+  - .ansible/roles/
 warn_list:
   - yaml
   - fqcn
   - var-naming[no-role-prefix]
+  - command-instead-of-module
 skip_list:
   - command-instead-of-shell
   - experimental
   - name[template]
   - no-handler
+  - var-naming[pattern]

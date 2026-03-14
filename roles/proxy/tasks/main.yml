@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0775
+    mode: "0775"
   loop:
     - v2ray
     - trojan
@@ -19,7 +19,7 @@
     dest: "{{ docker_dir }}/v2ray/config.json"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0664
+    mode: "0664"
 
 - name: Template the trojan
   ansible.builtin.template:
@@ -27,7 +27,7 @@
     dest: "{{ docker_dir }}/trojan/trojan.json"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0664
+    mode: "0664"
 
 - name: Template the caddy
   ansible.builtin.template:
@@ -35,7 +35,7 @@
     dest: "{{ docker_dir }}/caddy/index.html"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0664
+    mode: "0664"
 
 - name: Install caddy
   community.general.docker_container:
@@ -81,7 +81,7 @@
       - apparmor:docker-default
     volumes:
       - "{{ docker_dir }}/trojan/trojan.json:/etc/trojan/config.json"
-      - "{{ docker_dir }}/traefik/data/certificates/{{root_host}}:/etc/data"
+      - "{{ docker_dir }}/traefik/data/certificates/{{ root_host }}:/etc/data"
     networks:
       - name: edge_network
       - name: app_network

@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
 
 # - name: Copy Unbound configuration file
 #   ansible.builtin.template:
@@ -22,7 +22,7 @@
     dest: "{{ docker_dir }}/unbound/forward-records.conf"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
   notify: Restart unbound
 
 - name: Run Unbound DNS (privacy-hardened)

@@ -7,6 +7,7 @@ Type=simple
 User={{ username }}
 Environment=HOME=/home/{{ username }}
 Environment=PORT=3456
+Environment=HOST=0.0.0.0
 ExecStart=/usr/bin/npx claude-max-api-proxy
 Restart=on-failure
 RestartSec=5

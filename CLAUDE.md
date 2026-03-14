@@ -6,6 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Ansible playbook for a self-hosted infrastructure on Ubuntu ARM64 VPS.
 
+## Security Rules
+
+- **NEVER** read `secret.yml` or `~/.vault_pass` — these contain sensitive credentials and must not be sent to the cloud.
+- If playbook output contains secret values, do not display them.
+- The vault password must never appear in conversation.
+
 ## Running the Playbook
 
 Install dependencies first (once, or when `requirements.yml` changes):
@@ -43,10 +49,10 @@ ansible-playbook playbook.yml -i inventory.yml -e @custom.yml -e @secret.yml --v
 
 Before running, two files must exist (both gitignored):
 
-- **`custom.yml`** — copy from `.custom.yml`, fill in `ansible_host`, `root_host`, `username`, SSH key path, email settings, `force_recreate`, Immich and Seafile storage config.
-- **`secret.yml`** — copy from `.secret.yml`, fill in all secrets. Must be `chmod 600`. Includes credentials for: email, Cloudflare, Traefik, CrowdSec, Authelia, AdGuard, Grafana, Amnezia WG, Trojan/V2Ray, Telegram, Freqtrade, Immich, Seafile, and Supabase.
+- **`custom.yml`** — copy from `.custom.yml`, fill in `ansible_host`, `root_host`, `username`, SSH key path, email settings, `force_recreate`, and storage config.
+- **`secret.yml`** — copy from `.secret.yml`, fill in all secrets. Must be `chmod 600` and encrypted with `ansible-vault`.
 
-`ansible.cfg` sets `roles_path = .ansible/roles`, `collections_path = .ansible/collections`, enables `profile_tasks` callback, and configures SSH connection multiplexing.
+`ansible.cfg` sets `roles_path = .ansible/roles`, `collections_path = .ansible/collections`, enables `profile_tasks` callback, YAML output format, SSH connection multiplexing, and disables retry files.
 
 `inventory.yml` derives all service subdomains from `root_host` (e.g., `auth.{{ root_host }}`, `password.{{ root_host }}`). Docker data lives under `docker_dir` (default `/opt/docker`). Storage box mounts go under `storagebox_mount_path` (default `/mnt/storagebox`).
 
@@ -57,12 +63,21 @@ Before running, two files must exist (both gitignored):
 Roles in `playbook.yml` run in this sequence and must be thought of as layers:
 
 1. **Infrastructure base**: `system` → `security` → `dns` → `geerlingguy.docker` → `docker_network` → `docker_proxy`
-2. **Security/proxy layer**: `crowdsec` → `traefik` → `authelia`
+2. **Security/proxy layer**: `crowdsec` → `traefik` → `redis` → `authelia`
 3. **Applications**: all remaining roles (each has its own tag matching its folder name)
 
-External roles: `geerlingguy.docker`, `geerlingguy.pip`, `chriswayg.msmtp-mailer` (installed to `.ansible/roles/`).
+External roles (installed to `.ansible/roles/`):
 
-External collections: `community.docker` (>=5.0.0), `community.general`, `community.crypto`, `ansible.posix` (installed to `.ansible/collections/`).
+- `geerlingguy.docker`
+- `geerlingguy.pip`
+- `chriswayg.msmtp-mailer`
+
+External collections (installed to `.ansible/collections/`):
+
+- `community.docker` (>=5.0.0)
+- `community.general`
+- `community.crypto`
+- `ansible.posix`
 
 ### Application Roles
 
@@ -85,28 +100,33 @@ All enabled application roles in execution order:
 | `web_check` | web_check | `web.{{ root_host }}` | Website analysis tool |
 | `convertx` | convertx | `convertx.{{ root_host }}` | File converter |
 | `storagebox` | storagebox | — | Hetzner Storage Box CIFS mount |
-| `postgres` | postgres | — | PostgreSQL with pgvecto.rs (for Immich) |
 | `immich` | immich | `photos.{{ root_host }}` | Photo management |
+| `openclaw` | openclaw | `openclaw.{{ root_host }}` | Telegram bot service |
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
 | `seafile` | seafile | `drive.{{ root_host }}` | File sync & share |
 | `supabase` | supabase | `supabase.{{ root_host }}`, `supabase-api.{{ root_host }}` | Backend-as-a-Service |
 | `changedetection` | changedetection | `changes.{{ root_host }}` | Website change monitoring |
 | `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer |
+| `postgres` | postgres | — | PostgreSQL with pgvecto.rs (for Immich) |
+| `spliit` | spliit | `spliit.{{ root_host }}` | Expense splitting |
+| `umami` | umami | `analytics.{{ root_host }}` | Web analytics |
+| `pingvin` | pingvin | `share.{{ root_host }}` | File sharing |
+| `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
+| `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
 ### Docker Networking
 
-Six isolated bridge networks are created by `docker_network` role:
+Five isolated bridge networks are created by the `docker_network` role:
 
-| Network | Subnet | Purpose |
-|---|---|---|
-| `edge_network` | 10.8.1.0/24 | Traefik external entry point |
-| `redis_data_network` | 10.8.2.0/24 | Internal Redis |
-| `ops_network` | 10.8.3.0/24 | Monitoring (Grafana, Prometheus, cAdvisor) |
-| `dns_network` | 10.8.4.0/24 | AdGuard (10.8.4.2) + Unbound (10.8.4.3) |
-| `app_network` | 10.8.6.0/24 | Application services |
-| `postgres_data_network` | 10.8.7.0/24 | PostgreSQL (used by Immich) |
+| Network | Subnet | Internal | Purpose |
+|---|---|---|---|
+| `edge_network` | 10.8.1.0/24 | no | Traefik external entry point |
+| `redis_data_network` | 10.8.2.0/24 | yes | Internal Redis |
+| `ops_network` | 10.8.3.0/24 | yes | Monitoring (Grafana, Prometheus, cAdvisor) |
+| `dns_network` | 10.8.4.0/24 | no | AdGuard (10.8.4.2) + Unbound (10.8.4.3) |
+| `app_network` | 10.8.6.0/24 | no | Application services |
 
 Traefik sits on `edge_network` and `app_network`. Most app containers join `app_network`. Security/proxy containers join `edge_network`.
 
@@ -130,11 +150,11 @@ Global handlers (notify targets used across roles) are in `handlers/main.yml`.
 
 ### Disabled Roles
 
-`ollama`, `freqtrade`, and `openclaw` are commented out in `playbook.yml`. Their role folders still exist and can be re-enabled.
+`freqtrade` is commented out in `playbook.yml`. Its role folder still exists and can be re-enabled.
 
 ### Supabase Version Management
 
-Supabase component versions (db, auth, rest, storage, edge-functions, meta, pooler, analytics, realtime, vector) are **not** pinned in Ansible defaults. They are managed by the official Supabase `docker-compose.yml` in `{{ supabase_data_dir }}` with `pull: always`. The override compose file (`docker-compose.override.yml.j2`) only adds Traefik labels and network configuration.
+Supabase component versions are **not** pinned in Ansible defaults. They are managed by the official Supabase `docker-compose.yml` in `{{ supabase_data_dir }}` with `pull: always`. The override compose file (`docker-compose.override.yml.j2`) only adds Traefik labels and network configuration.
 
 ## Adding a New Role
 
@@ -143,6 +163,7 @@ Supabase component versions (db, auth, rest, storage, edge-functions, meta, pool
 3. Add the role to `playbook.yml` with a matching tag.
 4. If the service needs a subdomain, add `<name>_host: "<sub>.{{ root_host }}"` to `inventory.yml`.
 5. Join the container to the appropriate Docker network(s) via Compose labels.
+6. If the service needs secrets, add them to `.secret.yml` (template) and `secret.yml` (actual, vault-encrypted).
 
 ## Post-Install Steps
 

@@ -12,7 +12,7 @@
     dest: "{{ freqtrade_repo_dest_dir }}/user_data/config.json"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
 
 - name: Copy the dockercompose
   ansible.builtin.template:
@@ -20,7 +20,7 @@
     dest: "{{ freqtrade_repo_dest_dir }}/docker-compose.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
 
 - name: change ownership
   file:

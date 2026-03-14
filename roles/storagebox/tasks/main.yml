@@ -26,43 +26,50 @@
   when: storagebox_mount_enabled | default(false)
 
 - name: Check current storagebox mount uid
-  ansible.builtin.shell: >
-    mount | grep '{{ storagebox_mount_path }}' | grep -q 'uid={{ username }}'
+  ansible.builtin.shell:
+    cmd: set -o pipefail && mount | grep '{{ storagebox_mount_path }}' | grep -q 'uid={{ username }}'
+    executable: /bin/bash
   register: storagebox_uid_ok
   failed_when: false
   changed_when: false
   when: storagebox_mount_enabled | default(false)
 
 - name: Unmount all bind mounts from storagebox if uid is wrong
-  ansible.builtin.shell: >
-    mount | grep '{{ storagebox_mount_path }}' | grep 'bind' | awk '{print $3}' | xargs -r umount -l
+  ansible.builtin.shell:
+    cmd: set -o pipefail && mount | grep '{{ storagebox_mount_path }}' | grep 'bind' | awk '{print $3}' | xargs -r umount -l
+    executable: /bin/bash
   when:
     - storagebox_mount_enabled | default(false)
     - storagebox_uid_ok.rc != 0
   failed_when: false
-  changed_when: false
+  changed_when: true
 
 - name: Unmount storagebox CIFS if uid is wrong
-  ansible.builtin.shell: umount -l {{ storagebox_mount_path }}
+  ansible.builtin.command: umount -l {{ storagebox_mount_path }}
   when:
     - storagebox_mount_enabled | default(false)
     - storagebox_uid_ok.rc != 0
   failed_when: false
+  changed_when: true
 
 - name: Check if storagebox is mounted
-  ansible.builtin.shell: mount | grep -q '{{ storagebox_mount_path }}'
+  ansible.builtin.shell:
+    cmd: set -o pipefail && mount | grep -q '{{ storagebox_mount_path }}'
+    executable: /bin/bash
   register: storagebox_mounted
   failed_when: false
   changed_when: false
   when: storagebox_mount_enabled | default(false)
 
 - name: Mount Storage Box via CIFS
-  ansible.builtin.shell: >
-    mount.cifs //{{ storagebox_host }}/backup {{ storagebox_mount_path }}
-    -o credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0775,dir_mode=0775,iocharset=utf8
+  ansible.builtin.command:
+    cmd: >-
+      mount.cifs //{{ storagebox_host }}/backup {{ storagebox_mount_path }}
+      -o credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0775,dir_mode=0775,iocharset=utf8
   when:
     - storagebox_mount_enabled | default(false)
     - storagebox_mounted.rc != 0
+  changed_when: true
 
 - name: Remove all storagebox CIFS lines from fstab
   ansible.builtin.lineinfile:

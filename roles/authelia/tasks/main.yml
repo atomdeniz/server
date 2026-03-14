@@ -6,7 +6,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Copy the main config
   become: true
@@ -15,7 +15,7 @@
     dest: "{{ docker_dir }}/authelia/configuration.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
   notify: Restart authelia
 
 - name: Copy the users database
@@ -25,7 +25,7 @@
     dest: "{{ docker_dir }}/authelia/users_database.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
   notify: Restart authelia
 
 - name: Make sure the Authelia container is created and running

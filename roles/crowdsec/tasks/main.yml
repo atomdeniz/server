@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
     access_time: preserve
     modification_time: preserve
 
@@ -15,7 +15,7 @@
     dest: "{{ docker_dir }}/crowdsec/etc/acquis.yaml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
   notify: Restart crowdsec
 
 - name: Copy the profiles.yml
@@ -24,7 +24,7 @@
     dest: "{{ docker_dir }}/crowdsec/etc/profiles.yaml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
   notify: Restart crowdsec
 
 - name: Copy the http.yml
@@ -33,7 +33,7 @@
     dest: "{{ docker_dir }}/crowdsec/etc/notifications/http.yaml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
   notify: Restart crowdsec
 
 - name: Copy the email.yml
@@ -42,7 +42,7 @@
     dest: "{{ docker_dir }}/crowdsec/etc/notifications/email.yaml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
 
   notify: Restart crowdsec
 
@@ -170,8 +170,8 @@
 
 - name: Add CrowdSec repository
   ansible.builtin.shell:
-    cmd: curl -s https://install.crowdsec.net | bash
-  args:
+    cmd: set -o pipefail && curl -s https://install.crowdsec.net | bash
+    executable: /bin/bash
     creates: /etc/apt/sources.list.d/crowdsec_crowdsec.list
   become: true
 

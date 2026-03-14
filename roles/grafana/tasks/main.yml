@@ -1,10 +1,11 @@
+---
 - name: Create prometheus directory
   ansible.builtin.file:
     path: "/etc/prometheus/"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Copy the prometheus.yml
   ansible.builtin.template:
@@ -12,7 +13,7 @@
     dest: "/etc/prometheus/prometheus.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Create volumes for monitoring containers
   community.docker.docker_volume:
@@ -29,7 +30,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Create grafana provisioning directories
   ansible.builtin.file:
@@ -37,7 +38,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
   loop:
     - datasources
     - alerting
@@ -49,7 +50,7 @@
     dest: /etc/grafana-provisioning/datasources/datasource.yml
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Copy grafana alerting provisioning
   ansible.builtin.template:
@@ -57,7 +58,7 @@
     dest: /etc/grafana-provisioning/alerting/alerting.yml
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Copy grafana dashboard provisioning config
   ansible.builtin.template:
@@ -65,7 +66,7 @@
     dest: /etc/grafana-provisioning/dashboards/dashboards.yml
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Create grafana dashboards directory
   ansible.builtin.file:
@@ -73,7 +74,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Copy grafana dashboard JSON files
   ansible.builtin.copy:
@@ -81,7 +82,7 @@
     dest: "{{ docker_dir }}/grafana-data/dashboards/"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0644
+    mode: "0644"
   with_fileglob:
     - dashboards/*.json
 

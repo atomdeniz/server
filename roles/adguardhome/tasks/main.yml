@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0750
+    mode: "0750"
   loop:
     - adguardhome
     - adguardhome/work
@@ -17,7 +17,7 @@
     dest: "{{ docker_dir }}/adguardhome/conf/AdGuardHome.yaml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0640
+    mode: "0640"
 
   notify: Restart adguardhome
 

@@ -37,6 +37,7 @@
   when:
     - restic_backup_enabled | bool
     - restic_repo_check.rc != 0
+  changed_when: true
 
 - name: Install backup script
   ansible.builtin.template:

@@ -79,4 +79,3 @@ dns_records:
     type: A
     content: "{{ ansible_host }}"
     proxied: true
-

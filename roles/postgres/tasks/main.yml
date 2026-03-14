@@ -73,5 +73,11 @@
 
 - name: Create umami database
   ansible.builtin.shell:
-    cmd: "docker exec {{ postgres_container_name }} psql -U spliit -tc \"SELECT 1 FROM pg_database WHERE datname = 'umami'\" | grep -q 1 || docker exec {{ postgres_container_name }} psql -U spliit -c 'CREATE DATABASE umami OWNER umami'"
+    cmd: >-
+      set -o pipefail &&
+      docker exec {{ postgres_container_name }} psql -U spliit -tc
+      "SELECT 1 FROM pg_database WHERE datname = 'umami'" | grep -q 1 ||
+      docker exec {{ postgres_container_name }} psql -U spliit -c
+      'CREATE DATABASE umami OWNER umami'
+    executable: /bin/bash
   changed_when: false

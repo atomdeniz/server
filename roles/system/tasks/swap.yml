@@ -12,6 +12,7 @@
 - name: Create swap file
   ansible.builtin.command: "fallocate -l {{ system_swap_size }} {{ system_swap_file }}"
   when: not system_swap_file_stat.stat.exists
+  changed_when: true
 
 - name: Set swap file permissions
   ansible.builtin.file:
@@ -23,9 +24,10 @@
 - name: Initialize swap area
   ansible.builtin.command: "mkswap {{ system_swap_file }}"
   when: not system_swap_file_stat.stat.exists
+  changed_when: true
 
 - name: Persist swap in fstab
-  ansible.builtin.mount:
+  ansible.posix.mount:
     path: none
     src: "{{ system_swap_file }}"
     fstype: swap
@@ -35,6 +37,7 @@
 - name: Enable swap file
   ansible.builtin.command: "swapon {{ system_swap_file }}"
   when: system_swap_file not in system_swap_active.stdout_lines
+  changed_when: true
 
 - name: Ensure sysctl drop-in directory exists
   become: true
@@ -59,3 +62,4 @@
   become: true
   ansible.builtin.command: sysctl -p /etc/sysctl.d/99-swappiness.conf
   when: system_swappiness_file.changed
+  changed_when: true

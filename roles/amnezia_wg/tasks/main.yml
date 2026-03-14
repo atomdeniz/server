@@ -14,7 +14,7 @@
     dest: "{{ docker_dir }}/amnezia-wg/Dockerfile"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0644
+    mode: "0644"
 
 - name: Build amnezia-wg image locally (on the target host)
   community.docker.docker_image:
@@ -30,7 +30,7 @@
   community.general.docker_container:
     name: "amnezia-wg"
     image: "amnezia-wg-easy-local:{{ amnezia_wg_version }}"
-    pull: False
+    pull: false
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
