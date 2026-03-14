@@ -27,12 +27,10 @@
     state: present
     filename: nodesource
 
-- name: Install Node.js 22 and git
+- name: Install Node.js 22
   become: true
   ansible.builtin.apt:
-    name:
-      - nodejs
-      - git
+    name: nodejs
     state: present
     update_cache: true
 
@@ -61,6 +59,14 @@
     replace: 'await startServer({ port, host: "0.0.0.0" })'
   notify: Restart claude-max-api-proxy
 
+- name: Patch claude-max-api-proxy to handle multimodal array content
+  become: true
+  ansible.builtin.lineinfile:
+    path: /usr/local/lib/node_modules/claude-max-api-proxy/dist/adapter/openai-to-cli.js
+    regexp: '^\s+parts\.push\(msg\.content\);'
+    line: "                parts.push(typeof msg.content === 'string' ? msg.content : Array.isArray(msg.content) ? msg.content.filter(p => p.type === 'text').map(p => p.text).join('\\n') : String(msg.content));"
+  notify: Restart claude-max-api-proxy
+
 - name: Deploy claude-max-api-proxy systemd service
   become: true
   ansible.builtin.template:
@@ -79,7 +85,7 @@
     state: started
     daemon_reload: true
 
-# --- OpenClaw Gateway (Docker) ---
+# --- OpenClaw Gateway (Docker, coollabsio pre-built image) ---
 
 - name: Create OpenClaw directories
   become: true
@@ -91,13 +97,13 @@
     mode: "0750"
   loop:
     - ""
-    - config
-    - workspace
+    - data
+    - data/.openclaw
 
 - name: Deploy OpenClaw config
   ansible.builtin.template:
     src: openclaw.json.j2
-    dest: "{{ docker_dir }}/openclaw/config/openclaw.json"
+    dest: "{{ docker_dir }}/openclaw/data/.openclaw/openclaw.json"
     owner: "1000"
     group: "1000"
     mode: "0640"
@@ -105,44 +111,39 @@
 - name: Run OpenClaw gateway
   community.docker.docker_container:
     name: openclaw
-    image: "ghcr.io/openclaw/openclaw:{{ openclaw_version }}"
+    image: "coollabsio/openclaw:{{ openclaw_version }}"
     state: started
     restart_policy: unless-stopped
     pull: true
     recreate: "{{ force_recreate | default(false) }}"
     init: true
-    memory: "2G"
-    memory_swap: "2G"
+    memory: "4G"
+    memory_swap: "4G"
     security_opts:
       - no-new-privileges:true
-    env:
-      HOME: "/home/node"
-      NODE_ENV: "production"
-      NODE_OPTIONS: "--max-old-space-size=1536"
-      TERM: "xterm-256color"
-      OPENCLAW_GATEWAY_BIND: "lan"
-      OPENCLAW_GATEWAY_PORT: "18789"
-      OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
-      GOG_KEYRING_PASSWORD: "{{ openclaw_gateway_token }}"
-      XDG_CONFIG_HOME: "/home/node/.openclaw"
-      TELEGRAM_BOT_TOKEN: "{{ openclaw_telegram_bot_token }}"
-    volumes:
-      - "{{ docker_dir }}/openclaw/config:/home/node/.openclaw:rw"
-      - "{{ docker_dir }}/openclaw/workspace:/home/node/.openclaw/workspace:rw"
+    entrypoint: []
     command:
       - "node"
-      - "dist/index.js"
+      - "/opt/openclaw/app/dist/index.js"
       - "gateway"
       - "--bind"
       - "lan"
       - "--port"
       - "18789"
+    env:
+      HOME: "/data"
+      NODE_ENV: "production"
+      NODE_OPTIONS: "--max-old-space-size=3072"
+      OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
+      TELEGRAM_BOT_TOKEN: "{{ openclaw_telegram_bot_token }}"
+    volumes:
+      - "{{ docker_dir }}/openclaw/data:/data"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1:18789/healthz || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 30s
     networks:
       - name: app_network
     labels:
