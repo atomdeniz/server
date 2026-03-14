@@ -1,0 +1,221 @@
+---
+storage:
+  type: sqlite
+  path: /data/data.db
+
+alerting:
+  email:
+    from: "{{ email_login }}"
+    host: "{{ email_smtp_host }}"
+    port: {{ email_smtp_port }}
+    username: "{{ email_login }}"
+    password: "{{ email_password }}"
+    default-alert:
+      enabled: true
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+      description: "health check failed"
+
+ui:
+  title: Status
+  header: Status
+
+endpoints:
+  - name: Traefik
+    group: Infrastructure
+    url: "https://{{ traefik_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Authelia
+    group: Infrastructure
+    url: "https://{{ authelia_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: AdGuard Home
+    group: Infrastructure
+    url: "https://{{ adguard_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Homepage
+    group: Applications
+    url: "https://{{ homepage_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: email
+
+  - name: Vaultwarden
+    group: Applications
+    url: "https://{{ vaultwarden_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: email
+
+  - name: Grafana
+    group: Monitoring
+    url: "https://{{ grafana_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: email
+
+  - name: Website
+    group: Applications
+    url: "https://{{ www_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: email
+
+  - name: N8N
+    group: Applications
+    url: "https://{{ n8n_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Immich
+    group: Applications
+    url: "https://{{ immich_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Seafile
+    group: Applications
+    url: "https://{{ seafile_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Supabase
+    group: Applications
+    url: "https://{{ supabase_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Dozzle
+    group: Monitoring
+    url: "https://{{ dozzle_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: IT Tools
+    group: Applications
+    url: "https://{{ it_tools_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: email
+
+  - name: Pingvin Share
+    group: Applications
+    url: "https://{{ pingvin_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Wallos
+    group: Applications
+    url: "https://{{ wallos_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: File Browser
+    group: Applications
+    url: "https://{{ filebrowser_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Umami
+    group: Monitoring
+    url: "https://{{ umami_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Change Detection
+    group: Monitoring
+    url: "https://{{ changedetection_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: ConvertX
+    group: Applications
+    url: "https://{{ convertx_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Spliit
+    group: Applications
+    url: "https://{{ spliit_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: WhatSUpDocker
+    group: Monitoring
+    url: "https://{{ whatsupdocker_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: Web Check
+    group: Applications
+    url: "https://{{ web_check_host }}"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: email

@@ -81,7 +81,7 @@ dns:
       answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ grafana_host }}"
       answer: "{{ traefik_app_network_local_ip }}"
-    - domain: "{{ uptime_kuma_host }}"
+    - domain: "{{ gatus_host }}"
       answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ n8n_host }}"
       answer: "{{ traefik_app_network_local_ip }}"

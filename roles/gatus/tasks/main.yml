@@ -1,0 +1,45 @@
+---
+- name: Create the gatus directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/gatus"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Create gatus config
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ docker_dir }}/gatus/config.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart gatus
+
+- name: Create gatus container
+  community.docker.docker_container:
+    name: gatus
+    image: twinproduction/gatus:v{{ gatus_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/gatus/config.yml:/config/config.yaml:ro"
+      - "{{ docker_dir }}/gatus/data:/data"
+    networks:
+      - name: app_network
+      - name: ops_network
+      - name: edge_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.gatus.entrypoints: "https"
+      traefik.http.routers.gatus.rule: "Host(`{{ gatus_host }}`)"
+      traefik.http.routers.gatus.tls: "true"
+      traefik.http.routers.gatus.service: "gatus"
+      traefik.http.routers.gatus.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.gatus.loadbalancer.server.port: "8080"

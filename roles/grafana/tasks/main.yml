@@ -41,21 +41,12 @@
     mode: "0755"
   loop:
     - datasources
-    - alerting
     - dashboards
 
 - name: Copy grafana datasource provisioning
   ansible.builtin.template:
     src: provisioning/datasources/datasource.yml
     dest: /etc/grafana-provisioning/datasources/datasource.yml
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Copy grafana alerting provisioning
-  ansible.builtin.template:
-    src: provisioning/alerting/alerting.yml.j2
-    dest: /etc/grafana-provisioning/alerting/alerting.yml
     owner: root
     group: root
     mode: "0644"
@@ -169,13 +160,6 @@
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
-    env:
-      GF_SMTP_ENABLED: "true"
-      GF_SMTP_HOST: "{{ email_smtp_host }}:{{ email_smtp_port }}"
-      GF_SMTP_USER: "{{ email_login }}"
-      GF_SMTP_PASSWORD: "{{ email_password }}"
-      GF_SMTP_FROM_ADDRESS: "{{ email_login }}"
-      GF_SMTP_FROM_NAME: "Grafana Alerts"
     volumes:
       - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
       - /etc/grafana-provisioning:/etc/grafana/provisioning:ro

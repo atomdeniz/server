@@ -93,7 +93,7 @@ All enabled application roles in execution order:
 | `vaultwarden` | vaultwarden | `password.{{ root_host }}` | Password manager |
 | `homepage` | homepage | `home.{{ root_host }}` | Dashboard |
 | `grafana` | grafana | `grafana.{{ root_host }}` | Monitoring (Grafana + Prometheus + cAdvisor + Node Exporter) |
-| `uptime_kuma` | uptime_kuma | `uptime.{{ root_host }}` | Uptime monitoring |
+| `gatus` | gatus | `uptime.{{ root_host }}` | Uptime monitoring (lightweight) |
 | `proxy` | proxy | `tgo.{{ root_host }}`, `v2ray.{{ root_host }}` | Caddy + Trojan + V2Fly proxy |
 | `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation |
 | `whatsupdocker` | whatsupdocker | `whatsupdocker.{{ root_host }}` | Docker image update notifier |

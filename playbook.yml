@@ -85,9 +85,9 @@
       tags:
         - grafana
 
-    - role: uptime_kuma
+    - role: gatus
       tags:
-        - uptime_kuma
+        - gatus
 
     - role: proxy
       tags:
