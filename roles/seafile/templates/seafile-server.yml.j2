@@ -49,7 +49,7 @@ services:
       - SEAFILE_SERVER_HOSTNAME=${SEAFILE_SERVER_HOSTNAME:?Variable is not set or empty}
       - SEAFILE_SERVER_PROTOCOL=${SEAFILE_SERVER_PROTOCOL:-http}
       - SITE_ROOT=${SITE_ROOT:-/}
-      - NON_ROOT=${NON_ROOT:-false}
+      - NON_ROOT=${NON_ROOT:-true}
       - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY:?Variable is not set or empty}
       - SEAFILE_LOG_TO_STDOUT=${SEAFILE_LOG_TO_STDOUT:-false}
       - ENABLE_GO_FILESERVER=${ENABLE_GO_FILESERVER:-true}
