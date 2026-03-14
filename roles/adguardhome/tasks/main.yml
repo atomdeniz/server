@@ -35,6 +35,12 @@
     volumes:
       - "{{ docker_dir }}/adguardhome/work:/opt/adguardhome/work"
       - "{{ docker_dir }}/adguardhome/conf:/opt/adguardhome/conf"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - name: dns_network
         ipv4_address: "{{ adguard_local_ip }}"

@@ -55,6 +55,10 @@ STATUS="SUCCESS"
     --keep-monthly {{ restic_keep_monthly }} \
     --prune
 
+  # Verify repository integrity
+  echo "Verifying backup integrity..."
+  restic check
+
   # Snapshot summary
   restic snapshots --latest 1
 

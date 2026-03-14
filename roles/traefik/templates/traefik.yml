@@ -8,6 +8,8 @@ api:
   insecure: true
   dashboard: true
 
+ping: {}
+
 entryPoints:
   metrics:
     address: ":8899"

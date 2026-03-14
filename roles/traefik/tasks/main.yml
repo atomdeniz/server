@@ -105,6 +105,12 @@
     env:
       CF_API_EMAIL: "{{ cloudflare_email }}"
       CF_API_KEY: "{{ cloudflare_api_key }}"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       traefik.enable: "true"
       traefik.http.middlewares.traefik-auth.basicauth.users: "{{ traefik_basic_auth_hash }}"

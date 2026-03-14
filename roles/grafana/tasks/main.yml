@@ -102,6 +102,12 @@
       - no-new-privileges:true
       - apparmor:docker-default
     command: "--config.file=/etc/prometheus/prometheus.yml"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - name: ops_network
 
@@ -172,6 +178,12 @@
     volumes:
       - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
       - /etc/grafana-provisioning:/etc/grafana/provisioning:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks:
       - name: app_network
       - name: ops_network

@@ -30,5 +30,11 @@
       traefik.http.routers.vault.service: "vault"
       traefik.http.routers.vault.middlewares: "secure-vpn@file"
       traefik.http.services.vault.loadbalancer.server.port: "80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/alive"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     volumes:
       - "{{ docker_dir }}/vw-data:/data"

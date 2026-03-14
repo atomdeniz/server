@@ -69,6 +69,12 @@
       - "{{ docker_dir }}/traefik/logs:/var/log/traefik:ro"
       - "/var/log/auth.log:/var/log/auth.log:ro"
       - "/var/log/syslog:/var/log/syslog:ro"
+    healthcheck:
+      test: ["CMD", "cscli", "version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     dns_servers:
       - "1.1.1.1"
       - "1.0.0.1"
@@ -84,6 +90,47 @@
   delay: 5
   until: bouncers_result.rc == 0
   changed_when: false
+
+- name: Check if machine password file exists
+  ansible.builtin.stat:
+    path: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+  register: machine_password_stat
+  become: true
+
+- name: Generate machine password
+  ansible.builtin.command:
+    cmd: openssl rand -hex 32
+  register: generated_machine_password
+  when: not machine_password_stat.stat.exists
+  changed_when: true
+
+- name: Persist machine password to server
+  ansible.builtin.copy:
+    content: "{{ generated_machine_password.stdout | trim }}"
+    dest: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  when: not machine_password_stat.stat.exists
+
+- name: Read machine password from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+  register: machine_password_file
+  become: true
+
+- name: Set crowdsecMachineApiKey fact
+  ansible.builtin.set_fact:
+    crowdsecMachineApiKey: "{{ machine_password_file.content | b64decode | trim }}"
+
+- name: Ensure Homepage machine is registered with correct password
+  ansible.builtin.command:
+    cmd: >-
+      docker exec crowdsec cscli machines add testMachine
+      --password "{{ crowdsecMachineApiKey }}" --force
+  changed_when: true
+  no_log: true
 
 - name: Check if traefik-bouncer already exists
   ansible.builtin.set_fact:
@@ -142,11 +189,23 @@
          | selectattr('name', 'equalto', 'firewall-bouncer')
          | list | length > 0 }}
 
+- name: Check if firewall bouncer key file exists
+  ansible.builtin.stat:
+    path: "{{ docker_dir }}/crowdsec/.firewall-bouncer-key"
+  register: firewall_key_stat
+  become: true
+
+- name: Remove stale firewall-bouncer (exists but key file missing)
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers delete firewall-bouncer
+  when: firewall_bouncer_exists and not firewall_key_stat.stat.exists
+  changed_when: true
+
 - name: Add firewall-bouncer and capture key
   ansible.builtin.command:
     cmd: docker exec crowdsec cscli bouncers add firewall-bouncer -o raw
   register: new_firewall_bouncer_key
-  when: not firewall_bouncer_exists
+  when: not firewall_bouncer_exists or not firewall_key_stat.stat.exists
   changed_when: true
 
 - name: Persist firewall bouncer key to server
@@ -157,7 +216,7 @@
     group: root
     mode: "0600"
   become: true
-  when: not firewall_bouncer_exists
+  when: new_firewall_bouncer_key is changed
 
 - name: Read firewall bouncer key from server
   ansible.builtin.slurp:

@@ -40,6 +40,12 @@
       POSTGRES_USER: "{{ postgres_bootstrap_user }}"
       POSTGRES_DB: "{{ postgres_bootstrap_db }}"
       POSTGRES_INITDB_ARGS: "--data-checksums"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ postgres_bootstrap_user }}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - "{{ postgres_data_dir }}:/var/lib/postgresql/data"
     labels:
