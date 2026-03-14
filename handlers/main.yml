@@ -20,6 +20,12 @@
     name: crowdsec
     restart: yes
 
+- name: Restart crowdsec-firewall-bouncer
+  become: true
+  ansible.builtin.service:
+    name: crowdsec-firewall-bouncer
+    state: restarted
+
 - name: Restart adguardhome
   community.docker.docker_container:
     name: adguardhome

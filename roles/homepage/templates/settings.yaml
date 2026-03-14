@@ -1,21 +1,25 @@
 ---
-title: Homepage
+title: Dashboard
 startUrl: https://{{ root_host }}
 theme: dark
 headerStyle: clean
 cardBlur: md
 color: zinc
-fiveColumns: false
+statusStyle: dot
+hideVersion: true
 layout:
   Monitoring:
     style: row
-    columns: 2
+    columns: 3
   Network & Security:
     style: row
     columns: 2
   Apps:
     style: row
     columns: 3
+  Tools:
+    style: row
+    columns: 2
 quicklaunch:
   searchDescriptions: true
   hideInternetSearch: true

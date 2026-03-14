@@ -142,19 +142,13 @@ Supabase component versions (db, auth, rest, storage, edge-functions, meta, pool
 
 ## Post-Install Steps
 
-After first CrowdSec deploy, run these on the server:
+After first CrowdSec deploy, enroll the agent on the server:
 
 ```bash
-# Enroll agent
 docker exec crowdsec cscli console enroll -e context <key>
-
-# Add Traefik bouncer (save output key to secret.yml as crowdsecLapiKey)
-docker exec crowdsec cscli bouncers add traefik-bouncer
-
-# Add firewall bouncer (save key to /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml)
-docker exec crowdsec cscli bouncers add firewall-bouncer
-sudo service crowdsec-firewall-bouncer restart
 ```
+
+Traefik bouncer and firewall bouncer are automatically registered and configured by the `crowdsec` Ansible role.
 
 Firewall rules: allow 80/tcp, 443/tcp, 51820/udp from any; restrict 22/tcp to your IP.
 

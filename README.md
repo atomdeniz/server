@@ -92,62 +92,18 @@ After CrowdSec installation, enroll the agent (replace `key` according to crowse
 docker exec crowdsec cscli console enroll -e context key
 ```
 
-### Add Traefik Bouncer
+### Traefik Bouncer
 
-To add the Traefik bouncer:
+The Traefik bouncer is **automatically** registered by the `crowdsec` Ansible role. The API key is generated, persisted to the server, and passed to the `traefik` role — no manual steps needed.
 
-```bash
-docker exec crowdsec cscli bouncers add traefik-bouncer
-```
+## 3.2 CrowdSec Firewall Bouncer
 
-Add the generated API key (`crowdsecLapiKey`) into your previously created `secret.yml`:
-
-```yaml
-crowdsecLapiKey: "your_generated_api_key_here"
-```
-
-## 3.2 CrowdSec Firewall Bouncer Installation
-
-### Install CrowdSec Firewall Bouncer:
-
-Execute the CrowdSec firewall installation script:
-
-```bash
-curl -s https://install.crowdsec.net | sudo sh
-```
-
-Install the firewall bouncer package:
-
-```bash
-sudo apt install crowdsec-firewall-bouncer-nftables
-```
-
-Add firewall bouncer via CrowdSec:
-
-```bash
-docker exec crowdsec cscli bouncers add firewall-bouncer
-```
-
-### Configure Firewall Bouncer:
-
-Edit the firewall bouncer configuration:
-
-```bash
-sudo nano /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml
-```
-
-Lines to update:
-
-```yaml
-api_key: "your_generated_firewall_bouncer_api_key_here"
-api_url: "http://127.0.0.1:9876/"
-```
-
-Restart the CrowdSec firewall bouncer:
-
-```bash
-sudo service crowdsec-firewall-bouncer restart
-```
+The firewall bouncer is **automatically** installed and configured by the `crowdsec` Ansible role. It handles:
+- Adding the CrowdSec APT repository
+- Installing `crowdsec-firewall-bouncer-nftables`
+- Registering the bouncer and generating an API key
+- Configuring `/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml` with the key and LAPI URL
+- Restarting the service
 
 ## 3.3 Adding a New CrowdSec Machine
 

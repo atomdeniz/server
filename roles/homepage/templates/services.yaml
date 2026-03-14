@@ -8,6 +8,7 @@
         server: my-docker
         icon: grafana.svg
         href: "https://{{ grafana_host }}"
+        description: Metrics & dashboards
         widget:
           type: grafana
           url: "http://grafana:3000"
@@ -17,6 +18,7 @@
         server: my-docker
         icon: uptime-kuma.png
         href: "https://{{ uptime_kuma_host }}"
+        description: Service health
         widget:
           type: uptimekuma
           url: http://uptime_kuma:3001
@@ -24,21 +26,30 @@
     - Prometheus:
         server: my-docker
         icon: prometheus.svg
+        description: Time-series database
         widget:
           type: prometheus
           url: http://prometheus:9090
     - WhatsUpDocker:
         server: my-docker
-        icon: docker.svg
+        icon: whats-up-docker.png
         href: "https://{{ whatsupdocker_host }}"
+        description: Image update tracker
         widget:
           type: whatsupdocker
           url: http://whatsupdocker:3000
+    - Dozzle:
+        server: my-docker
+        icon: dozzle.png
+        href: "https://{{ dozzle_host }}"
+        description: Container logs
+
 - Network & Security:
     - Traefik:
         server: my-docker
         icon: traefik.svg
         href: "https://{{ traefik_host }}"
+        description: Reverse proxy
         widget:
           type: traefik
           url: http://traefik:8080
@@ -48,6 +59,7 @@
         server: my-docker
         icon: crowdsec.svg
         href: https://app.crowdsec.net/alerts
+        description: Intrusion prevention
         widget:
           type: crowdsec
           url: http://crowdsec:8080
@@ -57,6 +69,7 @@
         server: my-docker
         icon: adguard-home.svg
         href: "https://{{ adguard_host }}"
+        description: DNS ad blocker
         widget:
           type: adguard
           url: http://adguardhome:3000
@@ -66,34 +79,72 @@
         server: my-docker
         icon: wireguard.svg
         href: "https://{{ vpn_host }}"
+        description: VPN gateway
         widget:
           type: wgeasy
           url: http://amnezia-wg:51821
           password: "{% raw %}{{HOMEPAGE_VAR_AMNEZIA_PASSWORD}}{% endraw %}"
+
 - Apps:
     - Immich:
         server: my-docker
         icon: immich.svg
         href: "https://{{ immich_host }}"
+        description: Photo management
         widget:
           type: immich
           url: http://immich_server:2283
           key: "{% raw %}{{HOMEPAGE_VAR_IMMICH_API_KEY}}{% endraw %}"
           version: 2
+    - Seafile:
+        server: my-docker
+        icon: seafile.svg
+        href: "https://{{ seafile_host }}"
+        description: File sync & share
+    - Vaultwarden:
+        server: my-docker
+        icon: vaultwarden.svg
+        href: "https://{{ vaultwarden_host }}"
+        description: Password manager
+    - N8N:
+        server: my-docker
+        icon: n8n.svg
+        href: "https://{{ n8n_host }}"
+        description: Workflow automation
     - ChangeDetection:
         server: my-docker
-        icon: changedetection-io.png
+        icon: changedetection.png
         href: "https://{{ changedetection_host }}"
         description: Website change monitoring
-    - GitHub:
-        icon: github.svg
-        href: https://github.com
+    - Supabase:
+        server: my-docker
+        icon: supabase.svg
+        href: "https://{{ supabase_host }}"
+        description: Backend-as-a-Service
+
+- Tools:
+    - IT Tools:
+        server: my-docker
+        icon: it-tools.svg
+        href: "https://{{ it_tools_host }}"
+        description: Developer utilities
+    - ConvertX:
+        server: my-docker
+        icon: convertx.png
+        href: "https://{{ convertx_host }}"
+        description: File converter
+    - Web Check:
+        server: my-docker
+        icon: web-check.svg
+        href: "https://{{ web_check_host }}"
+        description: Website analysis
     - WAN IP:
         widget:
           type: customapi
           url: https://api.ipify.org?format=json
-          refreshInterval: 10000
+          refreshInterval: 30000
           method: GET
           mappings:
             - field: "ip"
+              label: Public IP
               format: text

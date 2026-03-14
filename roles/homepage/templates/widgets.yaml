@@ -1,9 +1,23 @@
+- search:
+    provider: custom
+    url: https://www.google.com/search?q=
+    target: _blank
+    focus: false
+
+- greeting:
+    text_size: xl
+    text: "Server Dashboard"
+
 - resources:
     cpu: true
     memory: true
     disk: /
+    expanded: true
+    label: System
 
 - datetime:
-    text_size: xl
+    text_size: l
     format:
+      dateStyle: long
       timeStyle: short
+      hour12: false

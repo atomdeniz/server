@@ -2,3 +2,13 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/bookmarks
 
+- Links:
+    - GitHub:
+        - icon: github.svg
+          href: https://github.com
+    - Hetzner:
+        - icon: hetzner.svg
+          href: https://console.hetzner.cloud
+    - Cloudflare:
+        - icon: cloudflare.svg
+          href: https://dash.cloudflare.com

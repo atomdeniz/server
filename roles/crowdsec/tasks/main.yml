@@ -118,3 +118,62 @@
 - name: Set crowdsecLapiKey fact for this run
   ansible.builtin.set_fact:
     crowdsecLapiKey: "{{ lapi_key_file.content | b64decode | trim }}"
+
+# --- Firewall Bouncer ---
+
+- name: Add CrowdSec repository
+  ansible.builtin.shell:
+    cmd: curl -s https://install.crowdsec.net | bash
+  args:
+    creates: /etc/apt/sources.list.d/crowdsec_crowdsec.list
+  become: true
+
+- name: Install crowdsec-firewall-bouncer-nftables
+  ansible.builtin.apt:
+    name: crowdsec-firewall-bouncer-nftables
+    state: present
+    update_cache: true
+  become: true
+
+- name: Check if firewall-bouncer already exists
+  ansible.builtin.set_fact:
+    firewall_bouncer_exists: >-
+      {{ (bouncers_result.stdout | from_json)
+         | selectattr('name', 'equalto', 'firewall-bouncer')
+         | list | length > 0 }}
+
+- name: Add firewall-bouncer and capture key
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers add firewall-bouncer -o raw
+  register: new_firewall_bouncer_key
+  when: not firewall_bouncer_exists
+  changed_when: true
+
+- name: Persist firewall bouncer key to server
+  ansible.builtin.copy:
+    content: "{{ new_firewall_bouncer_key.stdout | trim }}"
+    dest: "{{ docker_dir }}/crowdsec/.firewall-bouncer-key"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  when: not firewall_bouncer_exists
+
+- name: Read firewall bouncer key from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.firewall-bouncer-key"
+  register: firewall_bouncer_key_file
+  become: true
+
+- name: Configure firewall bouncer
+  ansible.builtin.lineinfile:
+    path: /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - regexp: '^api_key:'
+      line: "api_key: {{ firewall_bouncer_key_file.content | b64decode | trim }}"
+    - regexp: '^api_url:'
+      line: "api_url: http://127.0.0.1:9876/"
+  become: true
+  notify: Restart crowdsec-firewall-bouncer
