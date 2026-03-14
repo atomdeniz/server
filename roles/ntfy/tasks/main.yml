@@ -1,0 +1,54 @@
+---
+- name: Create ntfy data directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/ntfy"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Create ntfy cache directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/ntfy/cache"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy ntfy server config
+  ansible.builtin.template:
+    src: server.yml.j2
+    dest: "{{ docker_dir }}/ntfy/server.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Make sure the ntfy container is created and running
+  community.docker.docker_container:
+    name: "ntfy"
+    image: "binwiederhier/ntfy:{{ ntfy_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    command: serve
+    memory: "128M"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+    volumes:
+      - "{{ docker_dir }}/ntfy/cache:/var/cache/ntfy"
+      - "{{ docker_dir }}/ntfy/server.yml:/etc/ntfy/server.yml:ro"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.ntfy.entrypoints: "https"
+      traefik.http.routers.ntfy.rule: "Host(`{{ ntfy_host }}`)"
+      traefik.http.routers.ntfy.tls: "true"
+      traefik.http.routers.ntfy.service: "ntfy"
+      traefik.http.routers.ntfy.middlewares: "open-external@file"
+      traefik.http.services.ntfy.loadbalancer.server.port: "80"
