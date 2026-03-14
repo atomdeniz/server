@@ -10,6 +10,7 @@ alerting:
     port: {{ email_smtp_port }}
     username: "{{ email_login }}"
     password: "{{ email_password }}"
+    to: "{{ email_to }}"
     default-alert:
       enabled: true
       failure-threshold: 3
