@@ -1,0 +1,26 @@
+---
+- name: Run umami container
+  community.docker.docker_container:
+    name: umami
+    image: "ghcr.io/umami-software/umami:{{ umami_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+      - name: edge_network
+    env:
+      DATABASE_URL: "postgresql://umami:{{ umami_postgres_password }}@{{ postgres_container_name }}/umami"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.umami.entrypoints: "https"
+      traefik.http.routers.umami.rule: "Host(`{{ umami_host }}`)"
+      traefik.http.routers.umami.tls: "true"
+      traefik.http.routers.umami.service: "umami"
+      traefik.http.routers.umami.middlewares: "open-external@file"
+      traefik.http.services.umami.loadbalancer.server.port: "3000"

@@ -65,3 +65,18 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: true
 
+  - name: "spliit"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "share"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "analytics"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+

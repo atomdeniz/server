@@ -103,6 +103,12 @@ dns:
       answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ dozzle_host }}"
       answer: "{{ traefik_app_network_local_ip }}"
+    - domain: "{{ filebrowser_host }}"
+      answer: "{{ traefik_app_network_local_ip }}"
+    - domain: "{{ pingvin_host }}"
+      answer: "{{ traefik_app_network_local_ip }}"
+    - domain: "{{ wallos_host }}"
+      answer: "{{ traefik_app_network_local_ip }}"
   blocked_services: []
   upstream_timeout: 10s
   private_networks: []

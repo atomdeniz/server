@@ -24,7 +24,6 @@
       - name: app_network
       - name: ops_network
       - name: edge_network
-      - name: postgres_data_network
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"

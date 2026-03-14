@@ -18,16 +18,6 @@
         gateway: 10.8.2.1
         iprange: 10.8.2.128/25
 
-- name: Create the postgres_data_network
-  community.general.docker_network:
-    name: postgres_data_network
-    driver: bridge
-    internal: true
-    ipam_config:
-      - subnet: 10.8.7.0/24
-        gateway: 10.8.7.1
-        iprange: 10.8.7.128/25
-
 - name: Create the ops_network
   community.general.docker_network:
     name: ops_network

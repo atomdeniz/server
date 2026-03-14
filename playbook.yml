@@ -44,6 +44,10 @@
       tags:
         - traefik
 
+    - role: redis
+      tags:
+        - redis
+
     - role: authelia
       tags:
         - authelia
@@ -117,17 +121,13 @@
       tags:
         - storagebox
 
-    - role: postgres
-      tags:
-        - postgres
-
     - role: immich
       tags:
         - immich
 
-    # - role: openclaw
-    #   tags:
-    #     - openclaw
+    - role: openclaw
+      tags:
+        - openclaw
 
     - role: it_tools
       tags:
@@ -148,6 +148,30 @@
     - role: dozzle
       tags:
         - dozzle
+
+    - role: postgres
+      tags:
+        - postgres
+
+    - role: spliit
+      tags:
+        - spliit
+
+    - role: umami
+      tags:
+        - umami
+
+    - role: pingvin
+      tags:
+        - pingvin
+
+    - role: wallos
+      tags:
+        - wallos
+
+    - role: filebrowser
+      tags:
+        - filebrowser
 
     - role: backup
       tags:

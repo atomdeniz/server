@@ -116,11 +116,22 @@
         icon: changedetection.png
         href: "https://{{ changedetection_host }}"
         description: Website change monitoring
+    - Wallos:
+        server: my-docker
+        icon: wallos.png
+        href: "https://{{ wallos_host }}"
+        description: Subscription tracker
     - Supabase:
         server: my-docker
         icon: supabase.svg
         href: "https://{{ supabase_host }}"
         description: Backend-as-a-Service
+
+    - Umami:
+        server: my-docker
+        icon: umami.svg
+        href: "https://{{ umami_host }}"
+        description: Web analytics
 
 - Tools:
     - IT Tools:
@@ -133,6 +144,11 @@
         icon: convertx.png
         href: "https://{{ convertx_host }}"
         description: File converter
+    - Pingvin Share:
+        server: my-docker
+        icon: pingvin-share.svg
+        href: "https://{{ pingvin_host }}"
+        description: File sharing
     - Web Check:
         server: my-docker
         icon: web-check.svg

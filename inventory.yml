@@ -59,6 +59,16 @@ all:
 
     dozzle_host: "dozzle.{{ root_host }}"
 
+    spliit_host: "spliit.{{ root_host }}"
+
+    umami_host: "analytics.{{ root_host }}"
+
+    pingvin_host: "share.{{ root_host }}"
+
+    wallos_host: "wallos.{{ root_host }}"
+
+    filebrowser_host: "files.{{ root_host }}"
+
     traefik_app_network_gateway: 10.8.6.1
 
     traefik_app_network_local_ip: 10.8.6.2

@@ -1,15 +1,3 @@
 ---
+postgres_version: "16-alpine"
 postgres_container_name: "postgres"
-postgres_image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
-postgres_data_dir: "{{ docker_dir }}/immich/postgres"
-postgres_shm_size: "128M"
-
-# bootstrap DB (kept as Immich defaults to preserve existing setup)
-postgres_bootstrap_db: "immich"
-postgres_bootstrap_user: "postgres"
-postgres_bootstrap_password: "{{ immich_db_password }}"
-
-# App DBs/users on the shared instance
-postgres_immich_db_name: "immich"
-postgres_immich_db_user: "postgres"
-postgres_immich_db_password: "{{ immich_db_password }}"

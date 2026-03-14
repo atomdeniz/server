@@ -1,0 +1,54 @@
+---
+- name: Create the filebrowser directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/filebrowser"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Create filebrowser database file
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/filebrowser/filebrowser.db"
+    state: touch
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Copy filebrowser settings
+  ansible.builtin.template:
+    src: settings.json.j2
+    dest: "{{ docker_dir }}/filebrowser/settings.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Make sure the filebrowser container is created and running
+  community.general.docker_container:
+    name: "filebrowser"
+    image: "filebrowser/filebrowser:{{ filebrowser_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+      - name: edge_network
+    volumes:
+      - "{{ storagebox_mount_path }}:/srv:ro"
+      - "{{ docker_dir }}/filebrowser/filebrowser.db:/database/filebrowser.db"
+      - "{{ docker_dir }}/filebrowser/settings.json:/.filebrowser.json:ro"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.filebrowser.entrypoints: "https"
+      traefik.http.routers.filebrowser.rule: "Host(`{{ filebrowser_host }}`)"
+      traefik.http.routers.filebrowser.tls: "true"
+      traefik.http.routers.filebrowser.service: "filebrowser"
+      traefik.http.routers.filebrowser.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.filebrowser.loadbalancer.server.port: "80"

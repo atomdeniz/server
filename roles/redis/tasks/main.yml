@@ -1,0 +1,17 @@
+---
+- name: Make sure the Redis container is created and running
+  community.general.docker_container:
+    name: "redis"
+    image: "redis:{{ redis_version }}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 5s
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: redis_data_network
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: "started"
+    restart_policy: unless-stopped

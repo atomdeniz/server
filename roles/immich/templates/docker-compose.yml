@@ -24,11 +24,13 @@ services:
     env_file:
       - .env
     restart: always
+    depends_on:
+      database:
+        condition: service_healthy
     healthcheck:
       disable: false
     networks:
       - app_network
-      - postgres_data_network
       - redis_data_network
     labels:
       traefik.enable: "true"
@@ -59,6 +61,39 @@ services:
       - edge_network
       - redis_data_network
 
+  database:
+    container_name: immich_postgres
+    image: {{ immich_postgres_image }}
+    pull_policy: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE_NAME} -U ${DB_USERNAME}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command:
+      [
+        "postgres",
+        "-c", "shared_preload_libraries=vchord.so",
+        "-c", "search_path=\"$$user\", public, vectors",
+        "-c", "logging_collector=on",
+        "-c", "max_wal_size=2GB",
+        "-c", "shared_buffers=512MB",
+        "-c", "wal_compression=on",
+      ]
+    restart: always
+    networks:
+      - app_network
+    labels:
+      wud.watch: "false"
+
 volumes:
   model-cache:
 
@@ -66,8 +101,6 @@ networks:
   app_network:
     external: true
   redis_data_network:
-    external: true
-  postgres_data_network:
     external: true
   edge_network:
     external: true

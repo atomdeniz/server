@@ -1,0 +1,40 @@
+---
+- name: Create the pingvin directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ docker_dir }}/pingvin/data"
+    - "{{ docker_dir }}/pingvin/images"
+
+- name: Create pingvin share container
+  community.docker.docker_container:
+    name: pingvin
+    image: "stonith404/pingvin-share:{{ pingvin_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/pingvin/data:/opt/app/backend/data"
+      - "{{ docker_dir }}/pingvin/images:/opt/app/frontend/public/img"
+    networks:
+      - name: app_network
+    env:
+      TRUST_PROXY: "true"
+      ALLOW_REGISTRATION: "false"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.pingvin.entrypoints: "https"
+      traefik.http.routers.pingvin.rule: "Host(`{{ pingvin_host }}`)"
+      traefik.http.routers.pingvin.tls: "true"
+      traefik.http.routers.pingvin.service: "pingvin"
+      traefik.http.routers.pingvin.middlewares: "open-external@file"
+      traefik.http.services.pingvin.loadbalancer.server.port: "3000"
