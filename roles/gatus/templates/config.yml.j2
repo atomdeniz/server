@@ -42,7 +42,7 @@ endpoints:
 
   - name: AdGuard Home
     group: Infrastructure
-    url: "https://{{ adguard_host }}"
+    url: "http://adguardhome:3000"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -51,7 +51,7 @@ endpoints:
 
   - name: Homepage
     group: Applications
-    url: "https://{{ homepage_host }}"
+    url: "http://homepage:3000"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -60,7 +60,7 @@ endpoints:
 
   - name: Vaultwarden
     group: Applications
-    url: "https://{{ vaultwarden_host }}"
+    url: "http://vaultwarden:80"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -69,7 +69,7 @@ endpoints:
 
   - name: Grafana
     group: Monitoring
-    url: "https://{{ grafana_host }}"
+    url: "http://grafana:3000"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
@@ -87,7 +87,7 @@ endpoints:
 
   - name: N8N
     group: Applications
-    url: "https://{{ n8n_host }}"
+    url: "http://n8n:5678"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -123,7 +123,7 @@ endpoints:
 
   - name: Dozzle
     group: Monitoring
-    url: "https://{{ dozzle_host }}"
+    url: "http://dozzle:8080"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -150,7 +150,7 @@ endpoints:
 
   - name: Wallos
     group: Applications
-    url: "https://{{ wallos_host }}"
+    url: "http://wallos:80"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -159,7 +159,7 @@ endpoints:
 
   - name: File Browser
     group: Applications
-    url: "https://{{ filebrowser_host }}"
+    url: "http://filebrowser:80"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -177,7 +177,7 @@ endpoints:
 
   - name: Change Detection
     group: Monitoring
-    url: "https://{{ changedetection_host }}"
+    url: "http://changedetection:5000"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -186,7 +186,7 @@ endpoints:
 
   - name: ConvertX
     group: Applications
-    url: "https://{{ convertx_host }}"
+    url: "http://convertx:3000"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
@@ -204,7 +204,7 @@ endpoints:
 
   - name: WhatSUpDocker
     group: Monitoring
-    url: "https://{{ whatsupdocker_host }}"
+    url: "http://whatsupdocker:3000"
     interval: 5m
     conditions:
       - "[STATUS] < 500"

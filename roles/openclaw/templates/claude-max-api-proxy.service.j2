@@ -6,7 +6,8 @@ After=network.target
 Type=simple
 User={{ username }}
 Environment=HOME=/home/{{ username }}
-ExecStart=/usr/bin/npx claude-max-api-proxy
+Environment=CLAUDE_CODE_OAUTH_TOKEN={{ claude_oauth_token }}
+ExecStart=/usr/local/bin/claude-max-api
 Restart=on-failure
 RestartSec=5
 

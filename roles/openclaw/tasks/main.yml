@@ -22,8 +22,29 @@
     group: "{{ username }}"
     mode: "0750"
   loop:
+    - ""
     - downloads
     - bin
+
+- name: Add NodeSource GPG key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    state: present
+
+- name: Add NodeSource Node.js 20 repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb https://deb.nodesource.com/node_20.x nodistro main"
+    state: present
+    filename: nodesource
+
+- name: Install Node.js 20
+  become: true
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: true
 
 - name: Install Claude Code CLI
   become: true
@@ -34,15 +55,6 @@
     creates: /home/{{ username }}/.claude/bin/claude
   environment:
     HOME: /home/{{ username }}
-
-- name: Install Node.js and npm
-  become: true
-  ansible.builtin.apt:
-    name:
-      - nodejs
-      - npm
-    state: present
-    update_cache: true
 
 - name: Install claude-max-api-proxy globally
   become: true
@@ -92,6 +104,9 @@
     state: started
     restart_policy: unless-stopped
     recreate: "{{ force_recreate | default(false) }}"
+    memory: "1G"
+    memory_swap: "1G"
+    stop_timeout: 15
     capabilities:
       - SYS_ADMIN
     security_opts:
@@ -116,6 +131,9 @@
     image: "coollabsio/openclaw:{{ openclaw_version | default('latest') }}"
     state: started
     restart_policy: unless-stopped
+    memory: "1536M"
+    memory_swap: "1536M"
+    init: true
     security_opts:
       - no-new-privileges:true
     recreate: "{{ force_recreate | default(false) }}"
@@ -129,7 +147,6 @@
       AUTH_PASSWORD: "{{ openclaw_auth_password }}"
       OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
       OPENCLAW_GATEWAY_BIND: "lan"
-      OPENCLAW_CUSTOM_CONFIG: "/data/config/openclaw.json"
       BROWSER_CDP_URL: "http://browser:9223"
       BROWSER_EVALUATE_ENABLED: "true"
     volumes:

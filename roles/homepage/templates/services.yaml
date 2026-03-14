@@ -14,15 +14,11 @@
           url: "http://grafana:3000"
           username: admin
           password: "{% raw %}{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}{% endraw %}"
-    - UptimeKuma:
+    - Gatus:
         server: my-docker
-        icon: uptime-kuma.png
-        href: "https://{{ uptime_kuma_host }}"
+        icon: gatus.svg
+        href: "https://{{ gatus_host }}"
         description: Service health
-        widget:
-          type: uptimekuma
-          url: http://uptime_kuma:3001
-          slug: server
     - Prometheus:
         server: my-docker
         icon: prometheus.svg

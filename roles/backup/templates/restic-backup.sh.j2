@@ -23,7 +23,7 @@ STATUS="SUCCESS"
 {
   echo "[$(date)] Starting backup..."
 
-  # Pre-backup: dump PostgreSQL (Immich)
+  # Pre-backup: dump PostgreSQL
   if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^{{ postgres_container_name }}$'; then
     echo "Dumping PostgreSQL..."
     docker exec {{ postgres_container_name }} pg_dumpall -U {{ postgres_bootstrap_user }} > "$DUMP_DIR/postgres.sql"
