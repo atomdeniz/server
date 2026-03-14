@@ -19,6 +19,9 @@
         icon: gatus.svg
         href: "https://{{ gatus_host }}"
         description: Service health
+        widget:
+          type: gatus
+          url: http://gatus:8080
     - Prometheus:
         server: my-docker
         icon: prometheus.svg
@@ -26,14 +29,10 @@
         widget:
           type: prometheus
           url: http://prometheus:9090
-    - WhatsUpDocker:
+    - Diun:
         server: my-docker
-        icon: whats-up-docker.png
-        href: "https://{{ whatsupdocker_host }}"
+        icon: diun.png
         description: Image update tracker
-        widget:
-          type: whatsupdocker
-          url: http://whatsupdocker:3000
     - Dozzle:
         server: my-docker
         icon: dozzle.png
@@ -112,6 +111,10 @@
         icon: changedetection.png
         href: "https://{{ changedetection_host }}"
         description: Website change monitoring
+        widget:
+          type: changedetectionio
+          url: http://changedetection:5000
+          key: "{% raw %}{{HOMEPAGE_VAR_CHANGEDETECTION_API_KEY}}{% endraw %}"
     - Wallos:
         server: my-docker
         icon: wallos.png
@@ -128,6 +131,11 @@
         icon: umami.svg
         href: "https://{{ umami_host }}"
         description: Web analytics
+    - OpenClaw:
+        server: my-docker
+        icon: mdi-robot-outline
+        href: "https://{{ openclaw_host }}"
+        description: AI gateway
 
 - Tools:
     - IT Tools:

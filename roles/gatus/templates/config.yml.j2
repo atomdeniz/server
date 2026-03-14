@@ -10,7 +10,7 @@ alerting:
     port: {{ email_smtp_port }}
     username: "{{ email_login }}"
     password: "{{ email_password }}"
-    to: "{{ email_to }}"
+    to: "{{ email_recipient }}"
     default-alert:
       enabled: true
       failure-threshold: 3
@@ -203,20 +203,20 @@ endpoints:
     alerts:
       - type: email
 
-  - name: WhatSUpDocker
-    group: Monitoring
-    url: "http://whatsupdocker:3000"
-    interval: 5m
-    conditions:
-      - "[STATUS] < 500"
-    alerts:
-      - type: email
-
   - name: Web Check
     group: Applications
     url: "https://{{ web_check_host }}"
     interval: 5m
     conditions:
       - "[STATUS] < 500"
+    alerts:
+      - type: email
+
+  - name: OpenClaw
+    group: Applications
+    url: "http://openclaw:18789/healthz"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
     alerts:
       - type: email

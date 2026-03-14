@@ -15,6 +15,14 @@
     expanded: true
     label: System
 
+- openmeteo:
+    label: Istanbul
+    latitude: 41.0082
+    longitude: 28.9784
+    timezone: Europe/Istanbul
+    units: metric
+    cache: 5
+
 - datetime:
     text_size: l
     format:

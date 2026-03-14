@@ -1,12 +1,40 @@
 {
-  "env": {
-    "OPENAI_API_KEY": "not-needed",
-    "OPENAI_BASE_URL": "http://10.8.6.1:3456/v1"
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "claude-max": {
+        "baseUrl": "http://10.8.6.1:3456/v1",
+        "apiKey": "not-needed",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "claude-opus-4",
+            "name": "Claude Opus 4",
+            "reasoning": false,
+            "input": ["text"],
+            "contextWindow": 200000,
+            "maxTokens": 32000
+          },
+          {
+            "id": "claude-sonnet-4",
+            "name": "Claude Sonnet 4",
+            "reasoning": false,
+            "input": ["text"],
+            "contextWindow": 200000,
+            "maxTokens": 32000
+          }
+        ]
+      }
+    }
   },
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openai/claude-sonnet-4"
+        "primary": "claude-max/claude-opus-4"
+      },
+      "models": {
+        "claude-max/claude-opus-4": { "alias": "Opus" },
+        "claude-max/claude-sonnet-4": { "alias": "Sonnet" }
       }
     }
   },

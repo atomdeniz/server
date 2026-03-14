@@ -36,7 +36,6 @@ all:
 
     freqtrade_host: "freqtrade.{{ root_host }}"
 
-    whatsupdocker_host: "whatsupdocker.{{ root_host }}"
 
     web_check_host: "web.{{ root_host }}"
 

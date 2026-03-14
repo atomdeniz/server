@@ -1,0 +1,20 @@
+watch:
+  workers: 10
+  schedule: "0 */6 * * *"
+
+providers:
+  docker:
+    endpoint: "tcp://docker_proxy:2375"
+    watchByDefault: true
+    watchStopped: false
+
+notif:
+  mail:
+    host: "{{ email_smtp_host }}"
+    port: {{ email_smtp_port }}
+    ssl: false
+    localName: "diun"
+    from: "{{ email_login }}"
+    to: "{{ email_recipient }}"
+    username: "{{ email_login }}"
+    password: "{{ email_password }}"

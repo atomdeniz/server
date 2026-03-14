@@ -102,9 +102,9 @@
     #   tags:
     #     - freqtrade
 
-    - role: whatsupdocker
+    - role: diun
       tags:
-        - whatsupdocker
+        - diun
 
     - role: web_check
       tags:

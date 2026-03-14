@@ -1,17 +1,5 @@
 ---
-- name: Create openclaw config directories
-  become: true
-  ansible.builtin.file:
-    path: "{{ docker_dir }}/{{ item }}"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0750"
-  loop:
-    - openclaw
-    - openclaw/data
-    - openclaw/config
-    - openclaw/browser
+# --- Claude Max API Proxy (host-level systemd service) ---
 
 - name: Create Claude Code CLI directories
   become: true
@@ -32,17 +20,19 @@
     url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
     state: present
 
-- name: Add NodeSource Node.js 20 repository
+- name: Add NodeSource Node.js 22 repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb https://deb.nodesource.com/node_20.x nodistro main"
+    repo: "deb https://deb.nodesource.com/node_22.x nodistro main"
     state: present
     filename: nodesource
 
-- name: Install Node.js 20
+- name: Install Node.js 22 and git
   become: true
   ansible.builtin.apt:
-    name: nodejs
+    name:
+      - nodejs
+      - git
     state: present
     update_cache: true
 
@@ -89,71 +79,71 @@
     state: started
     daemon_reload: true
 
-- name: Deploy OpenClaw custom config
+# --- OpenClaw Gateway (Docker) ---
+
+- name: Create OpenClaw directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/openclaw/{{ item }}"
+    state: directory
+    owner: "1000"
+    group: "1000"
+    mode: "0750"
+  loop:
+    - ""
+    - config
+    - workspace
+
+- name: Deploy OpenClaw config
   ansible.builtin.template:
     src: openclaw.json.j2
     dest: "{{ docker_dir }}/openclaw/config/openclaw.json"
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    owner: "1000"
+    group: "1000"
     mode: "0640"
 
-- name: Deploy OpenClaw browser sidecar
-  community.docker.docker_container:
-    name: openclaw-browser
-    image: "ghcr.io/coollabsio/openclaw-browser:latest"
-    state: started
-    restart_policy: unless-stopped
-    recreate: "{{ force_recreate | default(false) }}"
-    memory: "1G"
-    memory_swap: "1G"
-    stop_timeout: 15
-    capabilities:
-      - SYS_ADMIN
-    security_opts:
-      - seccomp:unconfined
-    shm_size: "2g"
-    volumes:
-      - "{{ docker_dir }}/openclaw/browser:/config"
-    env:
-      PUID: "1000"
-      PGID: "1000"
-      CHROME_CLI: "--remote-debugging-port=9222"
-    networks:
-      - name: app_network
-        aliases:
-          - browser
-    labels:
-      traefik.enable: "false"
-
-- name: Run OpenClaw
+- name: Run OpenClaw gateway
   community.docker.docker_container:
     name: openclaw
-    image: "coollabsio/openclaw:{{ openclaw_version | default('latest') }}"
+    image: "ghcr.io/openclaw/openclaw:{{ openclaw_version }}"
     state: started
     restart_policy: unless-stopped
-    memory: "1536M"
-    memory_swap: "1536M"
+    pull: true
+    recreate: "{{ force_recreate | default(false) }}"
     init: true
+    memory: "2G"
+    memory_swap: "2G"
     security_opts:
       - no-new-privileges:true
-    recreate: "{{ force_recreate | default(false) }}"
-    pull: always
     env:
-      TELEGRAM_BOT_TOKEN: "{{ openclaw_telegram_bot_token }}"
+      HOME: "/home/node"
       NODE_ENV: "production"
-      OPENAI_API_KEY: "not-needed"
-      OPENAI_BASE_URL: "http://10.8.6.1:3456/v1"
-      AUTH_USERNAME: "{{ openclaw_auth_username | default('admin') }}"
-      AUTH_PASSWORD: "{{ openclaw_auth_password }}"
-      OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
+      NODE_OPTIONS: "--max-old-space-size=1536"
+      TERM: "xterm-256color"
       OPENCLAW_GATEWAY_BIND: "lan"
-      BROWSER_CDP_URL: "http://browser:9223"
-      BROWSER_EVALUATE_ENABLED: "true"
+      OPENCLAW_GATEWAY_PORT: "18789"
+      OPENCLAW_GATEWAY_TOKEN: "{{ openclaw_gateway_token }}"
+      GOG_KEYRING_PASSWORD: "{{ openclaw_gateway_token }}"
+      XDG_CONFIG_HOME: "/home/node/.openclaw"
+      TELEGRAM_BOT_TOKEN: "{{ openclaw_telegram_bot_token }}"
     volumes:
-      - "{{ docker_dir }}/openclaw/data:/data"
-      - "{{ docker_dir }}/openclaw/config:/data/config:ro"
+      - "{{ docker_dir }}/openclaw/config:/home/node/.openclaw:rw"
+      - "{{ docker_dir }}/openclaw/workspace:/home/node/.openclaw/workspace:rw"
+    command:
+      - "node"
+      - "dist/index.js"
+      - "gateway"
+      - "--bind"
+      - "lan"
+      - "--port"
+      - "18789"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:18789/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks:
-      - name: edge_network
       - name: app_network
     labels:
       traefik.enable: "true"
@@ -163,4 +153,4 @@
       traefik.http.routers.openclaw.tls: "true"
       traefik.http.routers.openclaw.service: "openclaw"
       traefik.http.routers.openclaw.middlewares: "secure-vpn@file"
-      traefik.http.services.openclaw.loadbalancer.server.port: "8080"
+      traefik.http.services.openclaw.loadbalancer.server.port: "18789"

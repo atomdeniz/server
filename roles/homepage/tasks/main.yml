@@ -86,6 +86,7 @@
       HOMEPAGE_VAR_ADGUARD_PASSWORD: "{{ adguard_password | default('') }}"
       HOMEPAGE_VAR_AMNEZIA_PASSWORD: "{{ amnezia_password | default('') }}"
       HOMEPAGE_VAR_IMMICH_API_KEY: "{{ immich_api_key | default('') }}"
+      HOMEPAGE_VAR_CHANGEDETECTION_API_KEY: "{{ changedetection_api_key | default('') }}"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"
