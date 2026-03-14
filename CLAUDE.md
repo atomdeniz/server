@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-Ansible playbook for a self-hosted infrastructure on Ubuntu ARM64 VPS. Execution is primarily done via **Semaphore UI**, not the CLI directly.
+Ansible playbook for a self-hosted infrastructure on Ubuntu ARM64 VPS.
 
 ## Running the Playbook
 
@@ -17,13 +17,13 @@ ansible-galaxy install -r requirements.yml
 Full deploy:
 
 ```bash
-ansible-playbook playbook.yml -i inventory.yml
+ansible-playbook playbook.yml -i inventory.yml -e @custom.yml -e @secret.yml --vault-password-file ~/.vault_pass
 ```
 
 Deploy specific role(s) by tag:
 
 ```bash
-ansible-playbook playbook.yml -i inventory.yml --tags "traefik,authelia"
+ansible-playbook playbook.yml -i inventory.yml -e @custom.yml -e @secret.yml --vault-password-file ~/.vault_pass --tags "traefik,authelia"
 ```
 
 Lint the project:
@@ -36,7 +36,7 @@ yamllint .
 Dry-run (check mode):
 
 ```bash
-ansible-playbook playbook.yml -i inventory.yml --check --tags "<tag>"
+ansible-playbook playbook.yml -i inventory.yml -e @custom.yml -e @secret.yml --vault-password-file ~/.vault_pass --check --tags "<tag>"
 ```
 
 ## Configuration
@@ -84,11 +84,15 @@ All enabled application roles in execution order:
 | `whatsupdocker` | whatsupdocker | `whatsupdocker.{{ root_host }}` | Docker image update notifier |
 | `web_check` | web_check | `web.{{ root_host }}` | Website analysis tool |
 | `convertx` | convertx | `convertx.{{ root_host }}` | File converter |
+| `storagebox` | storagebox | — | Hetzner Storage Box CIFS mount |
 | `postgres` | postgres | — | PostgreSQL with pgvecto.rs (for Immich) |
 | `immich` | immich | `photos.{{ root_host }}` | Photo management |
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
 | `seafile` | seafile | `drive.{{ root_host }}` | File sync & share |
 | `supabase` | supabase | `supabase.{{ root_host }}`, `supabase-api.{{ root_host }}` | Backend-as-a-Service |
+| `changedetection` | changedetection | `changes.{{ root_host }}` | Website change monitoring |
+| `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer |
+| `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
 ### Docker Networking
@@ -147,10 +151,6 @@ After first CrowdSec deploy, enroll the agent on the server:
 ```bash
 docker exec crowdsec cscli console enroll -e context <key>
 ```
-
-Traefik bouncer and firewall bouncer are automatically registered and configured by the `crowdsec` Ansible role.
-
-Firewall rules: allow 80/tcp, 443/tcp, 51820/udp from any; restrict 22/tcp to your IP.
 
 ## Other Playbooks
 
