@@ -57,6 +57,8 @@ all:
 
     changedetection_host: "changes.{{ root_host }}"
 
+    dozzle_host: "dozzle.{{ root_host }}"
+
     traefik_app_network_gateway: 10.8.6.1
 
     traefik_app_network_local_ip: 10.8.6.2

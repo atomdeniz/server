@@ -1,0 +1,16 @@
+---
+restic_backup_enabled: true
+restic_repo_path: "{{ storagebox_mount_path }}/backup"
+restic_backup_path: "{{ docker_dir }}"
+restic_db_dump_dir: "{{ docker_dir }}/backup/db-dumps"
+restic_on_calendar: "*-*-* 03:00:00"
+
+# Exclude paths already on storagebox
+restic_exclude_paths:
+  - "{{ docker_dir }}/immich/external"
+  - "{{ docker_dir }}/seafile/seafile-data"
+
+# Retention policy
+restic_keep_daily: 7
+restic_keep_weekly: 4
+restic_keep_monthly: 6

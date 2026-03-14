@@ -17,11 +17,9 @@ email_login: "sender@gmail.com" #email to send notifications
 # --- Deploy ---
 force_recreate: true
 
-# --- Immich Storage ---
-immich_storage_box_host: "" #uXXXXXX.your-storagebox.de
-immich_storage_box_user: "" #uXXXXXX
+# --- Hetzner Storage Box ---
+storagebox_host: "" #uXXXXXX.your-storagebox.de
+storagebox_user: "" #uXXXXXX
 
-# --- Seafile Storage ---
-seafile_storage_box_host: "" #same as immich if shared
-seafile_storage_box_user: "" #same as immich if shared
+# --- Seafile ---
 seafile_admin_email: "" #seafile admin email

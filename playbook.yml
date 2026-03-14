@@ -113,6 +113,10 @@
       tags:
         - convertx
 
+    - role: storagebox
+      tags:
+        - storagebox
+
     - role: postgres
       tags:
         - postgres
@@ -140,6 +144,14 @@
     - role: changedetection
       tags:
         - changedetection
+
+    - role: dozzle
+      tags:
+        - dozzle
+
+    - role: backup
+      tags:
+        - backup
 
     - role: chriswayg.msmtp-mailer
       tags:

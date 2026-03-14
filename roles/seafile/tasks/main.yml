@@ -11,25 +11,9 @@
     - "{{ docker_dir }}/seafile/shared"
     - "{{ docker_dir }}/seafile/db"
 
-- name: Install cifs-utils (for Storage Box mount)
-  ansible.builtin.package:
-    name:
-      - cifs-utils
-    state: present
-  when: seafile_storage_box_mount_enabled | default(false)
-
 - name: Create mount point
   ansible.builtin.file:
     path: "{{ seafile_storage_box_mount_path }}"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0775"
-  when: seafile_storage_box_mount_enabled | default(false)
-
-- name: Ensure seafile directory exists on Storage Box
-  ansible.builtin.file:
-    path: "{{ storagebox_mount_path }}/seafile"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"

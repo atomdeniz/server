@@ -19,6 +19,7 @@
       EVENTS: "1"
       PING: "1"
       VERSION: "1"
+      INFO: "1"
       IMAGES_DELETE: "1"
     networks:
       - name: ops_network
