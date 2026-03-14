@@ -29,10 +29,6 @@
         widget:
           type: prometheus
           url: http://prometheus:9090
-    - Diun:
-        server: my-docker
-        icon: diun.png
-        description: Image update tracker
     - Dozzle:
         server: my-docker
         icon: dozzle.png
