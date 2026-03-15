@@ -113,6 +113,7 @@ All enabled application roles in execution order:
 | `pingvin` | pingvin | `share.{{ root_host }}` | File sharing |
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
+| `ntfy` | ntfy | `ntfy.{{ root_host }}` | Self-hosted push notifications |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
@@ -164,6 +165,20 @@ Supabase component versions are **not** pinned in Ansible defaults. They are man
 4. If the service needs a subdomain, add `<name>_host: "<sub>.{{ root_host }}"` to `inventory.yml`.
 5. Join the container to the appropriate Docker network(s) via Compose labels.
 6. If the service needs secrets, add them to `.secret.yml` (template) and `secret.yml` (actual, vault-encrypted).
+
+### Mandatory Integration Checklist
+
+Every new role with a subdomain **must** also be added to the following:
+
+1. **DNS Registration:**
+   - **VPN-only services** (`secure-vpn@file` or `secure-vpn-with-auth@file` middleware) → Add a rewrite entry in `roles/adguardhome/templates/AdGuardHome.yaml` under `rewrites:`.
+   - **Public services** (`open-external@file` middleware) → Add a DNS record in `roles/dns/defaults/main.yml` under `dns_records:`.
+
+2. **Gatus Monitoring** → Add an endpoint in `roles/gatus/templates/config.yml.j2` under `endpoints:`. Use internal Docker URL (e.g., `http://<container>:<port>`) when possible.
+
+3. **Homepage Dashboard** → Add a service entry in `roles/homepage/templates/services.yaml` under the appropriate category.
+
+4. **CLAUDE.md Application Table** → Add the role to the Application Roles table above.
 
 ## Post-Install Steps
 

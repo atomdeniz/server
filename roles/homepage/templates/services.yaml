@@ -29,10 +29,6 @@
         widget:
           type: prometheus
           url: http://prometheus:9090
-    - Diun:
-        server: my-docker
-        icon: diun.png
-        description: Image update tracker
     - Dozzle:
         server: my-docker
         icon: dozzle.png
@@ -136,6 +132,11 @@
         icon: mdi-robot-outline
         href: "https://{{ openclaw_host }}"
         description: AI gateway
+    - Ntfy:
+        server: my-docker
+        icon: ntfy.svg
+        href: "https://{{ ntfy_host }}"
+        description: Push notifications
 
 - Tools:
     - IT Tools:

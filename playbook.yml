@@ -170,6 +170,10 @@
       tags:
         - filebrowser
 
+    - role: ntfy
+      tags:
+        - ntfy
+
     - role: backup
       tags:
         - backup
