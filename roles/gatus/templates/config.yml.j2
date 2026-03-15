@@ -102,24 +102,6 @@ endpoints:
     alerts:
       - type: ntfy
 
-  - name: Seafile
-    group: Applications
-    url: "https://{{ seafile_host }}"
-    interval: 5m
-    conditions:
-      - "[STATUS] < 500"
-    alerts:
-      - type: ntfy
-
-  - name: Supabase
-    group: Applications
-    url: "https://{{ supabase_host }}"
-    interval: 5m
-    conditions:
-      - "[STATUS] < 500"
-    alerts:
-      - type: ntfy
-
   - name: Dozzle
     group: Monitoring
     url: "http://dozzle:8080"

@@ -21,5 +21,3 @@ force_recreate: true
 storagebox_host: "" # uXXXXXX.your-storagebox.de
 storagebox_user: "" # uXXXXXX
 
-# --- Seafile ---
-seafile_admin_email: "" # seafile admin email

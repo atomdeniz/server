@@ -87,11 +87,6 @@
           url: http://immich_server:2283
           key: "{% raw %}{{HOMEPAGE_VAR_IMMICH_API_KEY}}{% endraw %}"
           version: 2
-    - Seafile:
-        server: my-docker
-        icon: seafile.svg
-        href: "https://{{ seafile_host }}"
-        description: File sync & share
     - Vaultwarden:
         server: my-docker
         icon: vaultwarden.svg
@@ -116,12 +111,6 @@
         icon: wallos.png
         href: "https://{{ wallos_host }}"
         description: Subscription tracker
-    - Supabase:
-        server: my-docker
-        icon: supabase.svg
-        href: "https://{{ supabase_host }}"
-        description: Backend-as-a-Service
-
     - Umami:
         server: my-docker
         icon: umami.svg

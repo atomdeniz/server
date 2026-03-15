@@ -37,12 +37,6 @@ STATUS="SUCCESS"
     docker exec {{ postgres_container_name }} pg_dumpall -U {{ postgres_bootstrap_user }} > "$DUMP_DIR/postgres.sql"
   fi
 
-  # Pre-backup: dump MariaDB (Seafile)
-  if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^seafile-mysql$'; then
-    echo "Dumping Seafile MariaDB..."
-    docker exec seafile-mysql mariadb-dump -u root -p"{{ seafile_db_root_password }}" --all-databases > "$DUMP_DIR/seafile-mariadb.sql"
-  fi
-
   # Pre-backup: dump PostgreSQL (Supabase)
   if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^supabase-db$'; then
     echo "Dumping Supabase PostgreSQL..."

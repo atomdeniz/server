@@ -103,7 +103,6 @@ All enabled application roles in execution order:
 | `immich` | immich | `photos.{{ root_host }}` | Photo management |
 | `openclaw` | openclaw | `openclaw.{{ root_host }}` | Telegram bot service |
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
-| `seafile` | seafile | `drive.{{ root_host }}` | File sync & share |
 | `supabase` | supabase | `supabase.{{ root_host }}`, `supabase-api.{{ root_host }}` | Backend-as-a-Service |
 | `changedetection` | changedetection | `changes.{{ root_host }}` | Website change monitoring |
 | `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer |

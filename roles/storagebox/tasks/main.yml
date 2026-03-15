@@ -94,6 +94,5 @@
     mode: "0775"
   loop:
     - immich
-    - seafile
     - backup
   when: storagebox_mount_enabled | default(false)

@@ -47,8 +47,6 @@ all:
 
     it_tools_host: "dev.{{ root_host }}"
 
-    seafile_host: "drive.{{ root_host }}"
-
     supabase_host: "supabase.{{ root_host }}"
 
     supabase_api_host: "supabase-api.{{ root_host }}"

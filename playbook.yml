@@ -130,10 +130,6 @@
       tags:
         - it_tools
 
-    - role: seafile
-      tags:
-        - seafile
-
     - role: supabase
       tags:
         - supabase
