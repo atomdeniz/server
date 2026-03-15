@@ -7,7 +7,6 @@ Type=simple
 User={{ username }}
 Environment=HOME=/home/{{ username }}
 Environment=PATH=/home/{{ username }}/.claude/bin:/usr/local/bin:/usr/bin:/bin
-Environment=CLAUDE_CODE_OAUTH_TOKEN={{ claude_oauth_token }}
 ExecStart=/usr/local/bin/claude-max-api
 Restart=on-failure
 RestartSec=5

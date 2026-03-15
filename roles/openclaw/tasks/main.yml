@@ -14,6 +14,29 @@
     - downloads
     - bin
 
+- name: Deploy Claude Code settings (tool permissions)
+  become: true
+  ansible.builtin.copy:
+    dest: "/home/{{ username }}/.claude/settings.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+    content: |
+      {
+        "permissions": {
+          "allow": [
+            "Read",
+            "Write",
+            "Edit",
+            "Glob",
+            "Grep",
+            "Bash(*)",
+            "WebFetch",
+            "WebSearch"
+          ]
+        }
+      }
+
 - name: Add NodeSource GPG key
   become: true
   ansible.builtin.apt_key:
@@ -107,6 +130,60 @@
     owner: "1000"
     group: "1000"
     mode: "0640"
+
+- name: Deploy OpenClaw exec-approvals config
+  ansible.builtin.copy:
+    dest: "{{ docker_dir }}/openclaw/data/.openclaw/exec-approvals.json"
+    owner: "1000"
+    group: "1000"
+    mode: "0640"
+    content: |
+      {
+        "version": 1,
+        "defaults": {
+          "security": "allowlist",
+          "ask": "on-miss",
+          "askFallback": "allowlist"
+        },
+        "agents": {
+          "main": {
+            "security": "allowlist",
+            "ask": "on-miss",
+            "askFallback": "allowlist",
+            "autoAllowSkills": true,
+            "allowlist": [
+              { "pattern": "/usr/bin/tee" },
+              { "pattern": "/bin/cat" },
+              { "pattern": "/usr/bin/cat" },
+              { "pattern": "/bin/cp" },
+              { "pattern": "/usr/bin/cp" },
+              { "pattern": "/bin/mv" },
+              { "pattern": "/usr/bin/mv" },
+              { "pattern": "/bin/mkdir" },
+              { "pattern": "/usr/bin/mkdir" },
+              { "pattern": "/usr/bin/touch" },
+              { "pattern": "/bin/chmod" },
+              { "pattern": "/usr/bin/chmod" },
+              { "pattern": "/bin/rm" },
+              { "pattern": "/usr/bin/rm" },
+              { "pattern": "/bin/ls" },
+              { "pattern": "/usr/bin/ls" },
+              { "pattern": "/usr/bin/find" },
+              { "pattern": "/usr/bin/grep" },
+              { "pattern": "/bin/grep" },
+              { "pattern": "/usr/bin/sed" },
+              { "pattern": "/bin/sed" },
+              { "pattern": "/usr/bin/awk" },
+              { "pattern": "/usr/bin/head" },
+              { "pattern": "/usr/bin/tail" },
+              { "pattern": "/usr/bin/wc" },
+              { "pattern": "/usr/bin/sort" },
+              { "pattern": "/usr/bin/curl" },
+              { "pattern": "/usr/bin/wget" }
+            ]
+          }
+        }
+      }
 
 - name: Run OpenClaw gateway
   community.docker.docker_container:
