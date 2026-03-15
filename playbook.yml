@@ -177,7 +177,3 @@
     - role: backup
       tags:
         - backup
-
-    - role: chriswayg.msmtp-mailer
-      tags:
-        - msmtp

@@ -36,3 +36,10 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0755"
+
+- name: Remove sudo PAM notification
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/sudo
+    line: "session    optional     pam_exec.so /opt/sudo-notification.sh"
+    state: absent

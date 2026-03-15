@@ -31,6 +31,7 @@
       - apparmor:docker-default
     networks:
       - name: ops_network
+      - name: app_network
     volumes:
       - "{{ docker_dir }}/diun/diun.yml:/diun.yml:ro"
       - "{{ docker_dir }}/diun/data:/data"

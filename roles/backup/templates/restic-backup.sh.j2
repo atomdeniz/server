@@ -4,17 +4,25 @@ set -euo pipefail
 REPO="{{ restic_repo_path }}"
 PASSWORD_FILE="/etc/restic-password"
 DUMP_DIR="{{ restic_db_dump_dir }}"
-MAILTO="{{ email_recipient }}"
+NTFY_URL="https://{{ ntfy_host }}/backup"
 HOSTNAME=$(hostname)
 
 export RESTIC_REPOSITORY="$REPO"
 export RESTIC_PASSWORD_FILE="$PASSWORD_FILE"
 export RESTIC_COMPRESSION="auto"
 
-send_mail() {
-  local subject="$1"
+send_ntfy() {
+  local title="$1"
   local body="$2"
-  echo -e "Subject: $subject\n\n$body" | msmtp "$MAILTO"
+  local priority="${3:-default}"
+  local tags="${4:-}"
+  curl -s \
+    -H "Title: $title" \
+    -H "Priority: $priority" \
+    -H "Tags: $tags" \
+    -H "Authorization: Bearer {{ ntfy_token }}" \
+    -d "$body" \
+    "$NTFY_URL"
 }
 
 LOG=$(mktemp)
@@ -65,7 +73,11 @@ STATUS="SUCCESS"
   echo "[$(date)] Backup complete."
 } > "$LOG" 2>&1 || STATUS="FAILED"
 
-send_mail "[$STATUS] Backup - $HOSTNAME - $(date +%Y-%m-%d)" "$(cat "$LOG")"
+if [ "$STATUS" = "SUCCESS" ]; then
+  send_ntfy "Backup OK - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -5 "$LOG")" "default" "white_check_mark"
+else
+  send_ntfy "Backup FAILED - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -20 "$LOG")" "urgent" "x"
+fi
 rm -f "$LOG"
 
 [ "$STATUS" = "SUCCESS" ] || exit 1

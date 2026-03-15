@@ -43,7 +43,7 @@
     env:
       BASE_URL: "https://{{ changedetection_host }}"
       PLAYWRIGHT_DRIVER_URL: "ws://changedetection-browser:3000?stealth=1&--disable-web-security=true"
-      NOTIFICATION_URLS: "mailtos://{{ email_login }}:{{ email_password }}@{{ email_smtp_host }}:{{ email_smtp_port }}?from={{ email_login }}&to={{ email_login }}"
+      NOTIFICATION_URLS: "ntfy://{{ ntfy_token }}@ntfy:80/changedetection/?priority=high"
       HIDE_REFERER: "true"
       FETCH_WORKERS: "5"
       TZ: "Europe/Istanbul"

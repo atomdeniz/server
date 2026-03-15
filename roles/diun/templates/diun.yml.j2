@@ -9,12 +9,8 @@ providers:
     watchStopped: false
 
 notif:
-  mail:
-    host: "{{ email_smtp_host }}"
-    port: {{ email_smtp_port }}
-    ssl: false
-    localName: "diun"
-    from: "{{ email_login }}"
-    to: "{{ email_recipient }}"
-    username: "{{ email_login }}"
-    password: "{{ email_password }}"
+  ntfy:
+    endpoint: "http://ntfy:80"
+    topic: "diun"
+    priority: 3
+    token: "{{ ntfy_token }}"

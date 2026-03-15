@@ -93,19 +93,6 @@ all:
 
     ssh_port: 22
 
-    # MSMTP
-    msmtp_accounts:
-      - account: mailbox
-        host: "{{ email_smtp_host }}"
-        port: "{{ email_smtp_port }}"
-        auth: "on"
-        from: "{{ email_login }}"
-        user: "{{ email_login }}"
-        password: "{{ email_password }}"
-
-    msmtp_default_account: "mailbox"
-
-    msmtp_alias_default: "{{ email_login }}"
 
     ssh_allow_cidr: 0.0.0.0/0
 

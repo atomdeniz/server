@@ -4,13 +4,11 @@ storage:
   path: /data/data.db
 
 alerting:
-  email:
-    from: "{{ email_login }}"
-    host: "{{ email_smtp_host }}"
-    port: {{ email_smtp_port }}
-    username: "{{ email_login }}"
-    password: "{{ email_password }}"
-    to: "{{ email_recipient }}"
+  ntfy:
+    url: "http://ntfy:80"
+    topic: "gatus"
+    priority: 4
+    token: "{{ ntfy_token }}"
     default-alert:
       enabled: true
       failure-threshold: 3
@@ -30,7 +28,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Authelia
     group: Infrastructure
@@ -39,7 +37,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: AdGuard Home
     group: Infrastructure
@@ -48,7 +46,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Homepage
     group: Applications
@@ -57,7 +55,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Vaultwarden
     group: Applications
@@ -66,7 +64,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Grafana
     group: Monitoring
@@ -75,7 +73,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Website
     group: Applications
@@ -84,7 +82,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: N8N
     group: Applications
@@ -93,7 +91,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Immich
     group: Applications
@@ -102,7 +100,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Seafile
     group: Applications
@@ -111,7 +109,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Supabase
     group: Applications
@@ -120,7 +118,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Dozzle
     group: Monitoring
@@ -129,7 +127,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: IT Tools
     group: Applications
@@ -138,7 +136,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Pingvin Share
     group: Applications
@@ -147,7 +145,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Wallos
     group: Applications
@@ -156,7 +154,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: File Browser
     group: Applications
@@ -165,7 +163,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Umami
     group: Monitoring
@@ -174,7 +172,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Change Detection
     group: Monitoring
@@ -183,7 +181,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: ConvertX
     group: Applications
@@ -192,7 +190,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Spliit
     group: Applications
@@ -201,7 +199,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Web Check
     group: Applications
@@ -210,7 +208,7 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: OpenClaw
     group: Applications
@@ -219,7 +217,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts:
-      - type: email
+      - type: ntfy
 
   - name: Ntfy
     group: Applications
@@ -228,4 +226,4 @@ endpoints:
     conditions:
       - "[STATUS] < 500"
     alerts:
-      - type: email
+      - type: ntfy

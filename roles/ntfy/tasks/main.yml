@@ -15,6 +15,14 @@
     group: "{{ username }}"
     mode: "0755"
 
+- name: Create ntfy auth directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/ntfy/auth"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
 - name: Copy ntfy server config
   ansible.builtin.template:
     src: server.yml.j2
@@ -43,6 +51,7 @@
       - name: app_network
     volumes:
       - "{{ docker_dir }}/ntfy/cache:/var/cache/ntfy"
+      - "{{ docker_dir }}/ntfy/auth:/var/lib/ntfy"
       - "{{ docker_dir }}/ntfy/server.yml:/etc/ntfy/server.yml:ro"
     labels:
       traefik.enable: "true"
@@ -53,3 +62,34 @@
       traefik.http.routers.ntfy.service: "ntfy"
       traefik.http.routers.ntfy.middlewares: "open-external@file"
       traefik.http.services.ntfy.loadbalancer.server.port: "80"
+
+- name: Check if ntfy admin user exists
+  ansible.builtin.shell: >
+    docker exec ntfy ntfy user list 2>&1 | grep -q 'admin'
+  register: ntfy_admin_check
+  changed_when: false
+  failed_when: false
+
+- name: Create ntfy admin user
+  ansible.builtin.shell: >
+    echo '{{ ntfy_admin_password }}' | docker exec -i ntfy ntfy user add --role=admin admin
+  when: ntfy_admin_check.rc != 0
+  no_log: true
+
+- name: Check if ntfy admin token exists
+  ansible.builtin.shell: >
+    docker exec ntfy ntfy token list 2>&1 | grep -q 'tk_'
+  register: ntfy_token_check
+  changed_when: false
+  failed_when: false
+
+- name: Create ntfy admin token
+  ansible.builtin.shell: >
+    docker exec ntfy ntfy token add admin
+  register: ntfy_token_result
+  when: ntfy_token_check.rc != 0
+
+- name: Display generated token
+  ansible.builtin.debug:
+    msg: "{{ ntfy_token_result.stdout | default('Token already exists') }}"
+  when: ntfy_token_check.rc != 0
