@@ -1,4 +1,18 @@
 ---
+- name: Read CrowdSec machine password from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+  register: homepage_crowdsec_password_file
+  become: true
+  failed_when: false
+
+- name: Set crowdsecMachineApiKey fact if not already set
+  ansible.builtin.set_fact:
+    crowdsecMachineApiKey: "{{ homepage_crowdsec_password_file.content | b64decode | trim }}"
+  when:
+    - crowdsecMachineApiKey is not defined
+    - homepage_crowdsec_password_file is succeeded
+
 - name: Create the Homepage directory
   ansible.builtin.file:
     path: "{{ docker_dir }}/homepage"
