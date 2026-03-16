@@ -1,0 +1,8 @@
+[Unit]
+Description=Jellyfin watched media cleanup
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/media-cleanup

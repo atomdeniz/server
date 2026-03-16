@@ -1,0 +1,9 @@
+[Unit]
+Description=Run media cleanup on schedule
+
+[Timer]
+OnCalendar={{ media_cleanup_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

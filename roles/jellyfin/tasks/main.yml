@@ -27,6 +27,36 @@
   changed_when: false
   when: jellyfin_storage_box_mount_enabled | default(false)
 
+- name: Create Jellyfin plugin directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ jellyfin_data_dir }}/config/plugins"
+    - "{{ jellyfin_data_dir }}/config/plugins/configurations"
+    - "{{ jellyfin_data_dir }}/config/plugins/Webhook_{{ jellyfin_webhook_plugin_version }}"
+
+- name: Download Jellyfin Webhook plugin
+  ansible.builtin.unarchive:
+    src: "{{ jellyfin_webhook_plugin_url }}"
+    dest: "{{ jellyfin_data_dir }}/config/plugins/Webhook_{{ jellyfin_webhook_plugin_version }}"
+    remote_src: true
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    creates: "{{ jellyfin_data_dir }}/config/plugins/Webhook_{{ jellyfin_webhook_plugin_version }}/Jellyfin.Plugin.Webhook.dll"
+
+- name: Configure Webhook plugin for ntfy
+  ansible.builtin.template:
+    src: webhook-config.xml.j2
+    dest: "{{ jellyfin_data_dir }}/config/plugins/configurations/Jellyfin.Plugin.Webhook.xml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart jellyfin
+
 - name: Make sure the Jellyfin container is created and running
   community.general.docker_container:
     name: "jellyfin"
@@ -42,6 +72,8 @@
     networks:
       - name: app_network
       - name: edge_network
+    tmpfs:
+      - "/config/transcodes:size=4G"
     volumes:
       - "{{ jellyfin_data_dir }}/config:/config"
       - "{{ jellyfin_data_dir }}/cache:/cache"

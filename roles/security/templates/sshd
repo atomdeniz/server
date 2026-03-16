@@ -42,6 +42,3 @@ session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_
 
 # Standard Un*x password updating.
 @include common-password
-
-# ntfy notification on login
-session    optional     pam_exec.so /opt/pam-notification.sh

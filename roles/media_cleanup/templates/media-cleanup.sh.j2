@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- Config ---
+JELLYFIN_URL="{{ media_cleanup_jellyfin_url }}"
+JELLYFIN_API_KEY="{{ jellyfin_api_key }}"
+MOVIE_DELAY_DAYS={{ media_cleanup_movie_delay_days }}
+LOCAL_MOVIE_PATH="{{ media_cleanup_movie_path }}"
+LOCAL_TV_PATH="{{ media_cleanup_tv_path }}"
+JELLYFIN_PREFIX="{{ media_cleanup_jellyfin_prefix }}"
+SEEDBOX_HOST="{{ media_cleanup_seedbox_host }}"
+SEEDBOX_USER="{{ media_cleanup_seedbox_user }}"
+SEEDBOX_KEY="{{ media_cleanup_seedbox_ssh_key }}"
+SEEDBOX_MOVIE_PATH="{{ media_cleanup_seedbox_movie_path }}"
+SEEDBOX_TV_PATH="{{ media_cleanup_seedbox_tv_path }}"
+NTFY_URL="https://{{ ntfy_host }}/media"
+NTFY_TOKEN="{{ ntfy_token }}"
+
+LOG=$(mktemp)
+DELETED_LIST=$(mktemp)
+DELETED_COUNT=0
+
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"; }
+
+send_ntfy() {
+  local title="$1" body="$2" priority="${3:-default}" tags="${4:-}"
+  curl -sf \
+    -H "Title: $title" \
+    -H "Priority: $priority" \
+    -H "Tags: $tags" \
+    -H "Authorization: Bearer $NTFY_TOKEN" \
+    -d "$body" \
+    "$NTFY_URL" >/dev/null 2>&1 || true
+}
+
+api() {
+  curl -sf -H "X-Emby-Token: $JELLYFIN_API_KEY" "$JELLYFIN_URL$1"
+}
+
+seedbox_rm() {
+  local remote_path="$1"
+  ssh -i "$SEEDBOX_KEY" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 \
+    "${SEEDBOX_USER}@${SEEDBOX_HOST}" "rm -rf \"$remote_path\"" 2>/dev/null && \
+    log "  Seedbox deleted: $remote_path" || \
+    log "  Seedbox delete failed: $remote_path"
+}
+
+record_delete() {
+  echo "$1" >> "$DELETED_LIST"
+  DELETED_COUNT=$((DELETED_COUNT + 1))
+}
+
+# --- Get primary user ID ---
+USER_ID=$(api "/Users" | jq -r '.[0].Id')
+if [ -z "$USER_ID" ] || [ "$USER_ID" = "null" ]; then
+  log "ERROR: Could not get Jellyfin user ID"
+  send_ntfy "Media Cleanup Failed" "Could not get Jellyfin user ID" "high" "x"
+  rm -f "$LOG" "$DELETED_LIST"
+  exit 1
+fi
+
+log "Starting media cleanup (user: $USER_ID)"
+
+# --- Cleanup watched movies ---
+CUTOFF=$(date -u -d "-${MOVIE_DELAY_DAYS} days" '+%Y-%m-%dT%H:%M:%S')
+
+log "Checking movies watched before $CUTOFF..."
+
+MOVIES_JSON=$(api "/Users/$USER_ID/Items?IncludeItemTypes=Movie&Recursive=true&IsPlayed=true&Fields=Path,UserData&EnableUserData=true")
+
+echo "$MOVIES_JSON" | jq -r --arg cutoff "$CUTOFF" '.Items[] |
+  select(.UserData.LastPlayedDate != null) |
+  select(.UserData.LastPlayedDate < $cutoff) |
+  [.Id, .Name, .Path] | @tsv' | \
+while IFS=$'\t' read -r item_id name filepath; do
+  [ -z "$filepath" ] && continue
+
+  # Jellyfin sees: /media/movies/MovieName/file.mkv
+  # Local path:    /mnt/storagebox/media/movies/MovieName/
+  rel_path="${filepath#$JELLYFIN_PREFIX/movies/}"
+  movie_folder="${rel_path%%/*}"
+  local_dir="$LOCAL_MOVIE_PATH/$movie_folder"
+
+  if [ -d "$local_dir" ]; then
+    log "Deleting movie: $name ($local_dir)"
+    rm -rf "$local_dir"
+    record_delete "Movie: $name"
+
+    seedbox_rm "$SEEDBOX_MOVIE_PATH/$movie_folder"
+  else
+    log "Movie dir not found, skipping: $local_dir"
+  fi
+done
+
+# --- Cleanup watched TV seasons ---
+log "Checking TV seasons..."
+
+SERIES_JSON=$(api "/Users/$USER_ID/Items?IncludeItemTypes=Series&Recursive=true&Fields=Path")
+
+echo "$SERIES_JSON" | jq -r '.Items[] | [.Id, .Name, .Path] | @tsv' | \
+while IFS=$'\t' read -r series_id series_name series_path; do
+  [ -z "$series_id" ] && continue
+
+  SEASONS_JSON=$(api "/Shows/$series_id/Seasons?UserId=$USER_ID&Fields=Path")
+
+  echo "$SEASONS_JSON" | jq -r '.Items[] | [.Id, .Name, (.IndexNumber // 0), .Path] | @tsv' | \
+  while IFS=$'\t' read -r season_id season_name season_number season_path; do
+    [ -z "$season_id" ] && continue
+    [ "$season_number" = "0" ] && continue  # Skip specials
+
+    EPISODES_JSON=$(api "/Shows/$series_id/Episodes?SeasonId=$season_id&UserId=$USER_ID&Fields=UserData&EnableUserData=true")
+
+    total_episodes=$(echo "$EPISODES_JSON" | jq '.Items | length')
+    watched_episodes=$(echo "$EPISODES_JSON" | jq '[.Items[] | select(.UserData.Played == true)] | length')
+
+    if [ "$total_episodes" -gt 0 ] && [ "$total_episodes" = "$watched_episodes" ]; then
+      # All episodes watched — determine local path
+      if [ -n "$season_path" ] && [ "$season_path" != "null" ]; then
+        # Season path: /media/tv/ShowName/Season 1
+        rel_path="${season_path#$JELLYFIN_PREFIX/tv/}"
+        local_season_dir="$LOCAL_TV_PATH/$rel_path"
+      else
+        # Fallback: construct from series path
+        show_rel="${series_path#$JELLYFIN_PREFIX/tv/}"
+        show_folder="${show_rel%%/*}"
+        local_season_dir="$LOCAL_TV_PATH/$show_folder/$season_name"
+      fi
+
+      if [ -d "$local_season_dir" ]; then
+        log "Deleting season: $series_name - $season_name ($local_season_dir)"
+        rm -rf "$local_season_dir"
+        record_delete "TV: $series_name - $season_name"
+
+        show_basename=$(basename "$(dirname "$local_season_dir")")
+        season_basename=$(basename "$local_season_dir")
+        seedbox_rm "$SEEDBOX_TV_PATH/$show_basename/$season_basename"
+
+        # If no seasons left, remove the show folder
+        show_dir=$(dirname "$local_season_dir")
+        if [ -d "$show_dir" ] && [ -z "$(ls -A "$show_dir" 2>/dev/null)" ]; then
+          log "Show folder empty, removing: $show_dir"
+          rm -rf "$show_dir"
+          seedbox_rm "$SEEDBOX_TV_PATH/$show_basename"
+        fi
+      else
+        log "Season dir not found, skipping: $local_season_dir"
+      fi
+    fi
+  done
+done
+
+# --- Summary ---
+if [ -s "$DELETED_LIST" ]; then
+  DELETED_COUNT=$(wc -l < "$DELETED_LIST" | tr -d ' ')
+  SUMMARY=$(cat "$DELETED_LIST")
+  log "Cleanup complete: $DELETED_COUNT items deleted"
+  send_ntfy "Media Cleanup: $DELETED_COUNT deleted" "$SUMMARY" "default" "broom"
+else
+  log "No watched media to clean up"
+fi
+
+log "Done."
+rm -f "$LOG" "$DELETED_LIST"

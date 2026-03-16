@@ -19,14 +19,11 @@
     state: present
     update_cache: true
 
-- name: Template the pam-notification.sh
+- name: Remove pam-notification.sh if present
   become: true
-  ansible.builtin.template:
-    src: pam-notification.sh
-    dest: /opt/pam-notification.sh
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0755"
+  ansible.builtin.file:
+    path: /opt/pam-notification.sh
+    state: absent
 
 - name: Template the sshd
   become: true
