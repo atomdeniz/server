@@ -101,6 +101,12 @@
       HOMEPAGE_VAR_AMNEZIA_PASSWORD: "{{ amnezia_password | default('') }}"
       HOMEPAGE_VAR_IMMICH_API_KEY: "{{ immich_api_key | default('') }}"
       HOMEPAGE_VAR_CHANGEDETECTION_API_KEY: "{{ changedetection_api_key | default('') }}"
+      HOMEPAGE_VAR_JELLYFIN_API_KEY: "{{ jellyfin_api_key | default('') }}"
+      HOMEPAGE_VAR_RADARR_API_KEY: "{{ radarr_api_key | default('') }}"
+      HOMEPAGE_VAR_SONARR_API_KEY: "{{ sonarr_api_key | default('') }}"
+      HOMEPAGE_VAR_QBITTORRENT_PASSWORD: "{{ qbittorrent_password | default('') }}"
+      HOMEPAGE_VAR_PROWLARR_API_KEY: "{{ prowlarr_api_key | default('') }}"
+      HOMEPAGE_VAR_BAZARR_API_KEY: "{{ bazarr_api_key | default('') }}"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"

@@ -209,3 +209,12 @@ endpoints:
       - "[STATUS] < 500"
     alerts:
       - type: ntfy
+
+  - name: Jellyfin
+    group: Applications
+    url: "http://jellyfin:8096"
+    interval: 5m
+    conditions:
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy

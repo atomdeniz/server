@@ -121,11 +121,63 @@
         icon: mdi-robot-outline
         href: "https://{{ openclaw_host }}"
         description: AI gateway
+    - Jellyfin:
+        server: my-docker
+        icon: jellyfin.svg
+        href: "https://{{ jellyfin_host }}"
+        description: Media server
+        widget:
+          type: jellyfin
+          url: http://jellyfin:8096
+          key: "{% raw %}{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}{% endraw %}"
     - Ntfy:
         server: my-docker
         icon: ntfy.svg
         href: "https://{{ ntfy_host }}"
         description: Push notifications
+
+- Seedbox:
+    - Radarr:
+        icon: radarr.svg
+        href: "https://atomdeniz.lw902.usbx.me/radarr"
+        description: Movie automation
+        widget:
+          type: radarr
+          url: "https://atomdeniz.lw902.usbx.me/radarr"
+          key: "{% raw %}{{HOMEPAGE_VAR_RADARR_API_KEY}}{% endraw %}"
+    - Sonarr:
+        icon: sonarr.svg
+        href: "https://atomdeniz.lw902.usbx.me/sonarr"
+        description: TV automation
+        widget:
+          type: sonarr
+          url: "https://atomdeniz.lw902.usbx.me/sonarr"
+          key: "{% raw %}{{HOMEPAGE_VAR_SONARR_API_KEY}}{% endraw %}"
+    - qBittorrent:
+        icon: qbittorrent.svg
+        href: "https://atomdeniz.lw902.usbx.me/qbittorrent"
+        description: Torrent client
+        widget:
+          type: qbittorrent
+          url: "https://atomdeniz.lw902.usbx.me/qbittorrent"
+          username: atomdeniz
+          password: "{% raw %}{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}{% endraw %}"
+    - Prowlarr:
+        icon: prowlarr.svg
+        href: "https://atomdeniz.lw902.usbx.me/prowlarr"
+        description: Indexer manager
+        widget:
+          type: prowlarr
+          url: "https://atomdeniz.lw902.usbx.me/prowlarr"
+          key: "{% raw %}{{HOMEPAGE_VAR_PROWLARR_API_KEY}}{% endraw %}"
+    - Bazarr:
+        icon: bazarr.svg
+        href: "https://atomdeniz.lw902.usbx.me/bazarr"
+        description: Subtitle manager
+        widget:
+          type: bazarr
+          url: "https://atomdeniz.lw902.usbx.me/bazarr"
+          key: "{% raw %}{{HOMEPAGE_VAR_BAZARR_API_KEY}}{% endraw %}"
 
 - Tools:
     - IT Tools:

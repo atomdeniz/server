@@ -95,4 +95,5 @@
   loop:
     - immich
     - backup
+    - media
   when: storagebox_mount_enabled | default(false)

@@ -170,6 +170,10 @@
       tags:
         - ntfy
 
+    - role: jellyfin
+      tags:
+        - jellyfin
+
     - role: backup
       tags:
         - backup

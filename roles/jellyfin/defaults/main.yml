@@ -1,0 +1,5 @@
+---
+jellyfin_version: "latest"
+jellyfin_data_dir: "{{ docker_dir }}/jellyfin"
+jellyfin_media_mount_path: "{{ docker_dir }}/jellyfin/media"
+jellyfin_storage_box_mount_enabled: true

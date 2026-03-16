@@ -113,6 +113,7 @@ All enabled application roles in execution order:
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `ntfy` | ntfy | `ntfy.{{ root_host }}` | Self-hosted push notifications |
+| `jellyfin` | jellyfin | `media.{{ root_host }}` | Media server |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 

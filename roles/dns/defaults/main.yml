@@ -84,3 +84,8 @@ dns_records:
     type: A
     content: "{{ ansible_host }}"
     proxied: true
+
+  - name: "media"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
