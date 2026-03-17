@@ -69,15 +69,18 @@
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
+    devices: "{{ jellyfin_devices | default([]) }}"
     networks:
       - name: app_network
       - name: edge_network
     tmpfs:
-      - "/config/transcodes:size=4G"
+      - "/config/transcodes:size=8G"
     volumes:
       - "{{ jellyfin_data_dir }}/config:/config"
       - "{{ jellyfin_data_dir }}/cache:/cache"
       - "{{ jellyfin_media_mount_path }}:/media:ro"
+    env:
+      JELLYFIN_CACHE_DIR: "/cache"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"

@@ -65,7 +65,7 @@
   ansible.builtin.command:
     cmd: >-
       mount.cifs //{{ storagebox_host }}/backup {{ storagebox_mount_path }}
-      -o credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0777,dir_mode=0777,iocharset=utf8,cache=loose,actimeo=120,rsize=130048,wsize=65536
+      -o credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0777,dir_mode=0777,iocharset=utf8,cache=loose,actimeo=300,rsize=4194304,wsize=65536,bsize=1048576,echo_interval=60,max_credits=600
   when:
     - storagebox_mount_enabled | default(false)
     - storagebox_mounted.rc != 0
@@ -81,7 +81,7 @@
 - name: Add storagebox to fstab
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: "//{{ storagebox_host }}/backup {{ storagebox_mount_path }} cifs credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0777,dir_mode=0777,iocharset=utf8,cache=loose,actimeo=120,rsize=130048,wsize=65536,_netdev,nofail 0 0"
+    line: "//{{ storagebox_host }}/backup {{ storagebox_mount_path }} cifs credentials=/etc/storagebox-credentials,uid={{ username }},gid={{ username }},file_mode=0777,dir_mode=0777,iocharset=utf8,cache=loose,actimeo=300,rsize=4194304,wsize=65536,bsize=1048576,echo_interval=60,max_credits=600,_netdev,nofail 0 0"
     state: present
   when: storagebox_mount_enabled | default(false)
 

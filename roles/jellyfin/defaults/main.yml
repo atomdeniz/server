@@ -4,6 +4,10 @@ jellyfin_data_dir: "{{ docker_dir }}/jellyfin"
 jellyfin_media_mount_path: "{{ docker_dir }}/jellyfin/media"
 jellyfin_storage_box_mount_enabled: true
 
+# Hardware transcoding - pass /dev/dri if available on the host
+# Set to ["/dev/dri:/dev/dri"] to enable, or [] to disable
+jellyfin_devices: []
+
 # Webhook plugin
 jellyfin_webhook_plugin_version: "18.0.0.0"
 jellyfin_webhook_plugin_url: "https://repo.jellyfin.org/releases/plugin/webhook/webhook_18.0.0.0.zip"
