@@ -73,7 +73,7 @@
       - name: app_network
       - name: edge_network
     tmpfs:
-      - "/config/transcodes:size=4G"
+      - "/cache/transcodes:size=4G,uid=1000,gid=1000,mode=0755"
     volumes:
       - "{{ jellyfin_data_dir }}/config:/config"
       - "{{ jellyfin_data_dir }}/cache:/cache"

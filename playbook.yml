@@ -174,9 +174,10 @@
       tags:
         - jellyfin
 
-    - role: media_cleanup
-      tags:
-        - media_cleanup
+    # media_cleanup disabled — rclone sync from seedbox would re-copy deleted files
+    # - role: media_cleanup
+    #   tags:
+    #     - media_cleanup
 
     - role: backup
       tags:

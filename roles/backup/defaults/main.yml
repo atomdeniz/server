@@ -8,8 +8,9 @@ restic_on_calendar: "*-*-* 03:00:00"
 # Exclude paths already on storagebox
 restic_exclude_paths:
   - "{{ docker_dir }}/immich/external"
+  - "{{ docker_dir }}/jellyfin/media"
 
 # Retention policy
 restic_keep_daily: 7
 restic_keep_weekly: 4
-restic_keep_monthly: 6
+restic_keep_monthly: 3
