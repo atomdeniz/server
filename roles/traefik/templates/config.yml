@@ -1,0 +1,78 @@
+http:
+  middlewares:
+    forward-auth:
+      forwardAuth:
+        address: "http://authelia:9091/api/authz/forward-auth?authelia_url=https://{{ authelia_host }}/"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "Remote-User"
+          - "Remote-Groups"
+          - "Remote-Name"
+          - "Remote-Email"
+    crowdsec:
+      plugin:
+        bouncer:
+          enabled: true
+          defaultDecisionSeconds: 60
+          crowdsecMode: live
+          crowdsecAppsecEnabled: true
+          crowdsecAppsecHost: crowdsec:7422
+          crowdsecAppsecFailureBlock: true
+          crowdsecAppsecUnreachableBlock: true
+          crowdsecLapiKey: "{{ crowdsecLapiKey }}"
+          crowdsecLapiHost: crowdsec:8080
+          crowdsecLapiScheme: http
+          crowdsecLapiTLSInsecureVerify: false
+          forwardedHeadersTrustedIPs:
+            - "{{ traefik_app_network_gateway }}"
+          clientTrustedIPs:
+            - "{{ traefik_app_network_gateway }}"
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 200
+        period: 1s
+    immich-login-rate-limit:
+      rateLimit:
+        average: 10
+        burst: 20
+        period: 1m
+    vpn-ipallowlist:
+      ipAllowList:
+        sourceRange:
+          - "{{ vpn_subnet_cidr }}"
+          - "10.8.0.0/16"
+    api-external:
+      chain:
+        middlewares:
+          - base
+          - crowdsec
+          - rate-limit
+    https-only:
+      redirectscheme:
+        scheme: https
+        permanent: true
+    base:
+      chain:
+        middlewares:
+          - https-only
+    open-external:
+      chain:
+        middlewares:
+          - base
+          - crowdsec
+    secure-vpn:
+      chain:
+        middlewares:
+          - base
+          - vpn-ipallowlist
+    secure-external:
+      chain:
+        middlewares:
+          - open-external
+          - forward-auth
+    secure-vpn-with-auth:
+      chain:
+        middlewares:
+          - secure-vpn
+          - forward-auth

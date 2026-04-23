@@ -1,0 +1,118 @@
+---
+- name: Read CrowdSec machine password from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+  register: homepage_crowdsec_password_file
+  become: true
+  failed_when: false
+
+- name: Set crowdsecMachineApiKey fact if not already set
+  ansible.builtin.set_fact:
+    crowdsecMachineApiKey: "{{ homepage_crowdsec_password_file.content | b64decode | trim }}"
+  when:
+    - crowdsecMachineApiKey is not defined
+    - homepage_crowdsec_password_file is succeeded
+
+- name: Create the Homepage directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/homepage"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Template the Homepage settings
+  ansible.builtin.template:
+    src: "settings.yaml"
+    dest: "{{ docker_dir }}/homepage/settings.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage widgets
+  ansible.builtin.template:
+    src: "widgets.yaml"
+    dest: "{{ docker_dir }}/homepage/widgets.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage bookmarks
+  ansible.builtin.template:
+    src: "bookmarks.yaml"
+    dest: "{{ docker_dir }}/homepage/bookmarks.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage services
+  ansible.builtin.template:
+    src: "services.yaml"
+    dest: "{{ docker_dir }}/homepage/services.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage custom CSS
+  ansible.builtin.template:
+    src: "custom.css"
+    dest: "{{ docker_dir }}/homepage/custom.css"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Template the Homepage docker settings
+  ansible.builtin.template:
+    src: "docker.yaml"
+    dest: "{{ docker_dir }}/homepage/docker.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart homepage
+
+- name: Make sure the Homepage container is created and running
+  community.general.docker_container:
+    name: "homepage"
+    image: "ghcr.io/gethomepage/homepage:{{ homepage_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: ops_network
+      - name: app_network
+      - name: edge_network
+    volumes:
+      - "{{ docker_dir }}/homepage:/app/config"
+    env:
+      HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }}"
+      HOMEPAGE_VAR_GRAFANA_PASSWORD: "{{ grafana_password | default('') }}"
+      HOMEPAGE_VAR_TRAEFIK_PASSWORD: "{{ traefik_password | default('') }}"
+      HOMEPAGE_VAR_CROWDSEC_MACHINE_API_KEY: "{{ crowdsecMachineApiKey | default('') }}"
+      HOMEPAGE_VAR_ADGUARD_PASSWORD: "{{ adguard_password | default('') }}"
+      HOMEPAGE_VAR_AMNEZIA_PASSWORD: "{{ amnezia_password | default('') }}"
+      HOMEPAGE_VAR_IMMICH_API_KEY: "{{ immich_api_key | default('') }}"
+      HOMEPAGE_VAR_CHANGEDETECTION_API_KEY: "{{ changedetection_api_key | default('') }}"
+      HOMEPAGE_VAR_JELLYFIN_API_KEY: "{{ jellyfin_api_key | default('') }}"
+      HOMEPAGE_VAR_RADARR_API_KEY: "{{ radarr_api_key | default('') }}"
+      HOMEPAGE_VAR_SONARR_API_KEY: "{{ sonarr_api_key | default('') }}"
+      HOMEPAGE_VAR_QBITTORRENT_PASSWORD: "{{ qbittorrent_password | default('') }}"
+      HOMEPAGE_VAR_PROWLARR_API_KEY: "{{ prowlarr_api_key | default('') }}"
+      HOMEPAGE_VAR_BAZARR_API_KEY: "{{ bazarr_api_key | default('') }}"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.homepage.entrypoints: "https"
+      traefik.http.routers.homepage.rule: "Host(`{{ homepage_host }}`)"
+      traefik.http.routers.homepage.tls: "true"
+      traefik.http.routers.homepage.service: "homepage"
+      traefik.http.routers.homepage.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.homepage.loadbalancer.server.port: "3000"

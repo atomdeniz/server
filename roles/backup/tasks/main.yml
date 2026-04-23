@@ -1,0 +1,79 @@
+---
+- name: Install restic
+  ansible.builtin.package:
+    name: restic
+    state: present
+  when: restic_backup_enabled | bool
+
+- name: Create DB dump directory
+  ansible.builtin.file:
+    path: "{{ restic_db_dump_dir }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0700"
+  when: restic_backup_enabled | bool
+
+- name: Write restic password file
+  ansible.builtin.copy:
+    content: "{{ restic_password }}"
+    dest: "/etc/restic-password"
+    owner: root
+    group: root
+    mode: "0600"
+  when: restic_backup_enabled | bool
+
+- name: Check if restic repo is initialized
+  ansible.builtin.command: >
+    restic -r {{ restic_repo_path }} -p /etc/restic-password snapshots
+  register: restic_repo_check
+  failed_when: false
+  changed_when: false
+  when: restic_backup_enabled | bool
+
+- name: Initialize restic repo
+  ansible.builtin.command: >
+    restic -r {{ restic_repo_path }} -p /etc/restic-password init
+  when:
+    - restic_backup_enabled | bool
+    - restic_repo_check.rc != 0
+  changed_when: true
+
+- name: Install backup script
+  ansible.builtin.template:
+    src: restic-backup.sh.j2
+    dest: /usr/local/bin/restic-backup
+    owner: root
+    group: root
+    mode: "0700"
+  when: restic_backup_enabled | bool
+
+- name: Install restic-backup systemd service
+  become: true
+  ansible.builtin.template:
+    src: restic-backup.service.j2
+    dest: /etc/systemd/system/restic-backup.service
+    mode: "0644"
+  when: restic_backup_enabled | bool
+
+- name: Install restic-backup systemd timer
+  become: true
+  ansible.builtin.template:
+    src: restic-backup.timer.j2
+    dest: /etc/systemd/system/restic-backup.timer
+    mode: "0644"
+  when: restic_backup_enabled | bool
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: restic_backup_enabled | bool
+
+- name: Enable and start restic-backup timer
+  become: true
+  ansible.builtin.systemd:
+    name: restic-backup.timer
+    enabled: true
+    state: started
+  when: restic_backup_enabled | bool

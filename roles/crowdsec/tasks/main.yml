@@ -1,0 +1,322 @@
+---
+- name: Create crowdsec notifications directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/crowdsec/etc/notifications"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Ensure authelia directory exists (CrowdSec mounts it read-only for log tailing)
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/authelia"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  become: true
+
+- name: Ensure authelia log file exists so CrowdSec's mount points at a file, not an empty dir
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/authelia/authelia.log"
+    state: touch
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+    access_time: preserve
+    modification_time: preserve
+  become: true
+
+- name: Copy the acquis.yml
+  ansible.builtin.template:
+    src: acquis.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/acquis.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+  notify: Restart crowdsec
+
+- name: Copy the config.yaml.local (prometheus bind override)
+  ansible.builtin.template:
+    src: config.yaml.local
+    dest: "{{ docker_dir }}/crowdsec/etc/config.yaml.local"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+  notify: Restart crowdsec
+
+- name: Copy the profiles.yml
+  ansible.builtin.template:
+    src: profiles.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/profiles.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+  notify: Restart crowdsec
+
+- name: Copy the http.yml
+  ansible.builtin.template:
+    src: http.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/notifications/http.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+  notify: Restart crowdsec
+
+- name: Copy the email.yml
+  ansible.builtin.template:
+    src: email.yml
+    dest: "{{ docker_dir }}/crowdsec/etc/notifications/email.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+  notify: Restart crowdsec
+
+- name: Make sure crowdsec container is created and running
+  community.docker.docker_container:
+    name: crowdsec
+    image: crowdsecurity/crowdsec:{{ crowdsec_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: "started"
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: edge_network
+      - name: app_network
+      - name: ops_network
+    ports:
+      - "9876:8080"
+    volumes:
+      - "{{ docker_dir }}/crowdsec/data:/var/lib/crowdsec/data"
+      - "{{ docker_dir }}/crowdsec/etc:/etc/crowdsec"
+      - "{{ docker_dir }}/traefik/logs:/var/log/traefik:ro"
+      - "{{ docker_dir }}/authelia:/var/log/authelia:ro"
+      - "/var/log/auth.log:/var/log/auth.log:ro"
+      - "/var/log/syslog:/var/log/syslog:ro"
+    healthcheck:
+      test: ["CMD", "cscli", "version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    dns_servers:
+      - "1.1.1.1"
+      - "1.0.0.1"
+    env:
+      GID: "1000"
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios crowdsecurity/sshd crowdsecurity/linux crowdsecurity/appsec-generic-rules crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs crowdsecurity/whitelist-good-actors LePresidente/authelia"
+
+- name: Wait for CrowdSec LAPI to be ready
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers list -o json
+  register: bouncers_result
+  retries: 15
+  delay: 5
+  until: bouncers_result.rc == 0
+  changed_when: false
+
+- name: Check if machine password file exists
+  ansible.builtin.stat:
+    path: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+  register: machine_password_stat
+  become: true
+
+- name: Generate machine password
+  ansible.builtin.command:
+    cmd: openssl rand -hex 32
+  register: generated_machine_password
+  when: not machine_password_stat.stat.exists
+  changed_when: true
+
+- name: Persist machine password to server
+  ansible.builtin.copy:
+    content: "{{ generated_machine_password.stdout | trim }}"
+    dest: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  when: not machine_password_stat.stat.exists
+
+- name: Read machine password from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.homepage-machine-password"
+  register: machine_password_file
+  become: true
+
+- name: Set crowdsecMachineApiKey fact
+  ansible.builtin.set_fact:
+    crowdsecMachineApiKey: "{{ machine_password_file.content | b64decode | trim }}"
+
+- name: Ensure Homepage machine is registered with correct password
+  ansible.builtin.command:
+    cmd: >-
+      docker exec crowdsec cscli machines add testMachine
+      --password "{{ crowdsecMachineApiKey }}" --force
+  changed_when: true
+  no_log: true
+
+# Guards against the Homepage widget silently breaking: confirms that the
+# password in .homepage-machine-password actually authenticates against LAPI
+# after the --force add. Without this, drift between file and DB can go
+# unnoticed until you check the dashboard.
+#
+# Uses curl on the host (talking to the LAPI port published at 9876).
+# ansible.builtin.uri was considered but consistently returned 401 against
+# this LAPI even when curl with the identical payload returned 200 — the
+# discrepancy was not worth chasing.
+- name: Verify Homepage machine can authenticate against LAPI
+  ansible.builtin.shell:
+    cmd: |
+      curl -sS --fail --max-time 5 \
+        -H 'Content-Type: application/json' \
+        -X POST \
+        --data-binary @- \
+        http://127.0.0.1:9876/v1/watchers/login \
+        >/dev/null <<EOF
+      {"machine_id":"testMachine","password":"{{ crowdsecMachineApiKey }}"}
+      EOF
+  register: homepage_machine_login
+  changed_when: false
+  retries: 3
+  delay: 2
+  until: homepage_machine_login.rc == 0
+  no_log: true
+
+- name: Check if traefik-bouncer already exists
+  ansible.builtin.set_fact:
+    traefik_bouncer_exists: >-
+      {{ (bouncers_result.stdout | from_json)
+         | selectattr('name', 'equalto', 'traefik-bouncer')
+         | list | length > 0 }}
+
+- name: Add traefik-bouncer and capture key
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers add traefik-bouncer -o raw
+  register: new_lapi_key
+  when: not traefik_bouncer_exists
+  changed_when: true
+
+- name: Persist crowdsecLapiKey to server
+  ansible.builtin.copy:
+    content: "{{ new_lapi_key.stdout | trim }}"
+    dest: "{{ docker_dir }}/crowdsec/.traefik-bouncer-key"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  when: not traefik_bouncer_exists
+
+- name: Read crowdsecLapiKey from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.traefik-bouncer-key"
+  register: lapi_key_file
+  become: true
+
+- name: Set crowdsecLapiKey fact for this run
+  ansible.builtin.set_fact:
+    crowdsecLapiKey: "{{ lapi_key_file.content | b64decode | trim }}"
+
+# --- Firewall Bouncer ---
+
+- name: Add CrowdSec repository
+  ansible.builtin.shell:
+    cmd: set -o pipefail && curl -s https://install.crowdsec.net | bash
+    executable: /bin/bash
+    creates: /etc/apt/sources.list.d/crowdsec_crowdsec.list
+  become: true
+
+- name: Install crowdsec-firewall-bouncer-nftables
+  ansible.builtin.apt:
+    name: crowdsec-firewall-bouncer-nftables
+    state: present
+    update_cache: true
+  become: true
+
+- name: Check if firewall-bouncer already exists
+  ansible.builtin.set_fact:
+    firewall_bouncer_exists: >-
+      {{ (bouncers_result.stdout | from_json)
+         | selectattr('name', 'equalto', 'firewall-bouncer')
+         | list | length > 0 }}
+
+- name: Check if firewall bouncer key file exists
+  ansible.builtin.stat:
+    path: "{{ docker_dir }}/crowdsec/.firewall-bouncer-key"
+  register: firewall_key_stat
+  become: true
+
+- name: Remove stale firewall-bouncer (exists but key file missing)
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers delete firewall-bouncer
+  when: firewall_bouncer_exists and not firewall_key_stat.stat.exists
+  changed_when: true
+
+- name: Add firewall-bouncer and capture key
+  ansible.builtin.command:
+    cmd: docker exec crowdsec cscli bouncers add firewall-bouncer -o raw
+  register: new_firewall_bouncer_key
+  when: not firewall_bouncer_exists or not firewall_key_stat.stat.exists
+  changed_when: true
+
+- name: Persist firewall bouncer key to server
+  ansible.builtin.copy:
+    content: "{{ new_firewall_bouncer_key.stdout | trim }}"
+    dest: "{{ docker_dir }}/crowdsec/.firewall-bouncer-key"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  when: new_firewall_bouncer_key is changed
+
+- name: Read firewall bouncer key from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.firewall-bouncer-key"
+  register: firewall_bouncer_key_file
+  become: true
+
+- name: Configure firewall bouncer
+  ansible.builtin.lineinfile:
+    path: /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - regexp: '^api_key:'
+      line: "api_key: {{ firewall_bouncer_key_file.content | b64decode | trim }}"
+    - regexp: '^api_url:'
+      line: "api_url: http://127.0.0.1:9876/"
+  become: true
+  notify: Restart crowdsec-firewall-bouncer
+
+# --- Blocklist mirror (free public blocklists) ---
+
+- name: Install blocklist-update script
+  ansible.builtin.copy:
+    src: blocklist-update.sh
+    dest: /usr/local/bin/crowdsec-blocklist-update
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Schedule daily blocklist refresh
+  ansible.builtin.cron:
+    name: "crowdsec blocklist refresh"
+    user: root
+    minute: "17"
+    hour: "4"
+    job: "/usr/local/bin/crowdsec-blocklist-update >> /var/log/crowdsec-blocklist.log 2>&1"
+  become: true
+
+- name: Run blocklist refresh once on first install
+  ansible.builtin.command:
+    cmd: /usr/local/bin/crowdsec-blocklist-update
+    creates: /var/log/crowdsec-blocklist.log
+  become: true
+  changed_when: true

@@ -1,0 +1,63 @@
+---
+- name: Restart authelia
+  community.general.docker_container:
+    name: authelia
+    restart: yes
+
+- name: Restart traefik
+  community.general.docker_container:
+    name: traefik
+    restart: yes
+  notify: Restart traefikshaper
+
+- name: Restart traefikshaper
+  community.general.docker_container:
+    name: traefikshaper
+    restart: yes
+
+- name: Restart crowdsec
+  community.general.docker_container:
+    name: crowdsec
+    restart: yes
+
+- name: Restart crowdsec-firewall-bouncer
+  become: true
+  ansible.builtin.service:
+    name: crowdsec-firewall-bouncer
+    state: restarted
+
+- name: Restart adguardhome
+  community.docker.docker_container:
+    name: adguardhome
+    restart: yes
+
+- name: Restart unbound
+  community.docker.docker_container:
+    name: unbound
+    restart: yes
+
+- name: Restart homepage
+  community.docker.docker_container:
+    name: homepage
+    restart: yes
+
+- name: Restart freqtrade
+  community.docker.docker_container:
+    name: freqtrade
+    restart: yes
+
+- name: Restart jellyfin
+  community.docker.docker_container:
+    name: jellyfin
+    restart: yes
+
+- name: Restart xray
+  community.docker.docker_container:
+    name: xray
+    restart: yes
+
+- name: Restart hysteria
+  community.docker.docker_container:
+    name: hysteria
+    restart: yes
+

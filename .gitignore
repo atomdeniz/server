@@ -1,0 +1,8 @@
+.DS_Store
+secret.yml
+custom.yml
+.vscode
+.venv
+.ansible
+cookies.txt
+.planning/

@@ -1,0 +1,31 @@
+---
+- name: Create the it-tools directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/it-tools"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Make sure the it-tools container is created and running
+  community.general.docker_container:
+    name: "it-tools"
+    image: "corentinth/it-tools:{{ it_tools_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.it-tools.entrypoints: "https"
+      traefik.http.routers.it-tools.rule: "Host(`{{ it_tools_host }}`)"
+      traefik.http.routers.it-tools.tls: "true"
+      traefik.http.routers.it-tools.service: "it-tools"
+      traefik.http.routers.it-tools.middlewares: "open-external@file"
+      traefik.http.services.it-tools.loadbalancer.server.port: "80"

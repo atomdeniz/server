@@ -1,0 +1,8 @@
+[Unit]
+Description=Prune unused Docker images older than {{ docker_image_prune_until }}
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker image prune -a -f --filter "until={{ docker_image_prune_until }}"

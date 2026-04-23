@@ -1,0 +1,9 @@
+---
+docker_image_prune_enabled: true
+docker_image_prune_on_calendar: "daily"
+docker_image_prune_until: "168h"
+
+system_swap_enabled: true
+system_swap_file: /swapfile
+system_swap_size: 2G
+system_swappiness: 10

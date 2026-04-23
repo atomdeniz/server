@@ -1,0 +1,186 @@
+---
+- name: Create prometheus directory
+  ansible.builtin.file:
+    path: "/etc/prometheus/"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy the prometheus.yml
+  ansible.builtin.template:
+    src: prometheus.yml
+    dest: "/etc/prometheus/prometheus.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create volumes for monitoring containers
+  community.docker.docker_volume:
+    name: "{{ item }}"
+    state: present
+    driver: local
+  loop:
+    - prometheus-data
+    - grafana-data
+
+- name: Ensure grafana-data directory exists and has correct permissions
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/grafana-data"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Create grafana provisioning directories
+  ansible.builtin.file:
+    path: "/etc/grafana-provisioning/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - datasources
+    - dashboards
+
+- name: Copy grafana datasource provisioning
+  ansible.builtin.template:
+    src: provisioning/datasources/datasource.yml
+    dest: /etc/grafana-provisioning/datasources/datasource.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy grafana dashboard provisioning config
+  ansible.builtin.template:
+    src: provisioning/dashboards/dashboards.yml
+    dest: /etc/grafana-provisioning/dashboards/dashboards.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create grafana dashboards directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/grafana-data/dashboards"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy grafana dashboard JSON files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ docker_dir }}/grafana-data/dashboards/"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  with_fileglob:
+    - dashboards/*.json
+
+- name: Create prometheus container
+  community.docker.docker_container:
+    name: prometheus
+    image: prom/prometheus:{{ prometheus_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    cap_drop:
+      - ALL
+    volumes:
+      - /etc/prometheus/:/etc/prometheus/
+      - prometheus-data:/prometheus
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    memory: "512M"
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.retention.time=7d --storage.tsdb.retention.size=500MB"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - name: ops_network
+
+- name: Create node exporter container
+  community.docker.docker_container:
+    name: node_exporter
+    image: quay.io/prometheus/node-exporter:{{ node_exporter_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    pid_mode: host
+    command: "--path.rootfs=/host"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - name: ops_network
+
+- name: Create cadvisor container
+  community.docker.docker_container:
+    name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:{{ cadvisor_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    memory: "256M"
+    command: "--housekeeping_interval=30s --docker_only=true --disable_metrics=cpu_topology,resctrl,hugetlb,referenced_memory,memory_numa --store_container_labels=false"
+    devices:
+      - /dev/kmsg
+    networks:
+      - name: ops_network
+
+- name: Create grafana container
+  community.docker.docker_container:
+    name: grafana
+    image: grafana/grafana-oss:{{ grafana_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
+      - /etc/grafana-provisioning:/etc/grafana/provisioning:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - name: app_network
+      - name: ops_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.grafana.entrypoints: "https"
+      traefik.http.routers.grafana.rule: "Host(`{{ grafana_host }}`)"
+      traefik.http.routers.grafana.tls: "true"
+      traefik.http.routers.grafana.service: "grafana"
+      traefik.http.routers.grafana.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.grafana.loadbalancer.server.port: "3000"

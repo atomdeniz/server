@@ -1,0 +1,59 @@
+---
+- name: Install AppArmor
+  become: true
+  ansible.builtin.apt:
+    name: apparmor
+    state: present
+    update_cache: true
+
+- name: Start AppArmor service
+  ansible.builtin.service:
+    name: apparmor
+    state: started
+    enabled: true
+
+- name: Install jq
+  become: true
+  ansible.builtin.apt:
+    name: jq
+    state: present
+    update_cache: true
+
+- name: Remove pam-notification.sh if present
+  become: true
+  ansible.builtin.file:
+    path: /opt/pam-notification.sh
+    state: absent
+
+- name: Template the sshd
+  become: true
+  ansible.builtin.template:
+    src: sshd
+    dest: /etc/pam.d/sshd
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Strip sudo PAM notification hooks
+  become: true
+  ansible.builtin.replace:
+    path: /etc/pam.d/sudo
+    regexp: '^.*pam_exec\.so.*sudo-notification\.sh.*\n?'
+    replace: ''
+
+- name: Remove sudo-notification.sh script
+  become: true
+  ansible.builtin.file:
+    path: /opt/sudo-notification.sh
+    state: absent
+
+- name: Deploy SSH hardening drop-in
+  become: true
+  ansible.builtin.template:
+    src: sshd_hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Reload sshd

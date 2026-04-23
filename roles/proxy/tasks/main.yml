@@ -1,0 +1,147 @@
+---
+# --- Cleanup of legacy proxy stack (caddy + trojan + v2fly) -----------------
+- name: Remove legacy proxy containers
+  community.general.docker_container:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - caddy
+    - trojan
+    - v2ray
+
+- name: Remove legacy proxy data directories
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: absent
+  loop:
+    - caddy
+    - trojan
+    - v2ray
+
+# --- Xray (VLESS + XTLS-Vision + Reality) ----------------------------------
+- name: Create Xray config folder
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/xray"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Template Xray config
+  become: true
+  ansible.builtin.template:
+    src: "config.json.j2"
+    dest: "{{ docker_dir }}/xray/config.json"
+    # Owner=root because this file carries the Reality private key and
+    # the VLESS UUID. The xray container runs as root but with cap_drop=ALL,
+    # so it has no CAP_DAC_OVERRIDE — it can only read its *own* 0600 files.
+    # Keeping host ownership on root + 0600 means no other host user can
+    # read the secrets, and the container can still start cleanly.
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart xray
+  no_log: true
+
+- name: Install Xray (VLESS + Vision + Reality)
+  community.general.docker_container:
+    name: "xray"
+    image: "teddysun/xray:{{ xray_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    cap_drop:
+      - ALL
+    capabilities:
+      - NET_BIND_SERVICE
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/xray/config.json:/etc/xray/config.json:ro"
+    ports:
+      - "{{ xray_reality_port }}:{{ xray_reality_port }}/tcp"
+    networks:
+      - name: app_network
+      - name: dns_network
+
+# --- Hysteria2 -------------------------------------------------------------
+- name: Create Hysteria2 config folder
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/hysteria"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Generate Hysteria2 self-signed private key
+  community.crypto.openssl_privatekey:
+    path: "{{ docker_dir }}/hysteria/privatekey.key"
+    type: ECC
+    curve: secp256r1
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    # 0644: Hysteria container runs as a non-root user that would be unable
+    # to read a 0600 key mounted from the host. This is a self-signed cert
+    # generated fresh per deploy — not an internet-exposed CA key — so the
+    # practical security difference on a single-tenant VPS is nil.
+    mode: "0644"
+
+- name: Generate Hysteria2 self-signed CSR
+  community.crypto.openssl_csr:
+    path: "{{ docker_dir }}/hysteria/request.csr"
+    privatekey_path: "{{ docker_dir }}/hysteria/privatekey.key"
+    common_name: "{{ reality_server_names[0] }}"
+    subject_alt_name:
+      - "DNS:{{ reality_server_names[0] }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Generate Hysteria2 self-signed certificate
+  community.crypto.x509_certificate:
+    path: "{{ docker_dir }}/hysteria/certificate.crt"
+    privatekey_path: "{{ docker_dir }}/hysteria/privatekey.key"
+    csr_path: "{{ docker_dir }}/hysteria/request.csr"
+    provider: selfsigned
+    selfsigned_not_after: "+3650d"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Template Hysteria2 config
+  ansible.builtin.template:
+    src: "hysteria.yaml.j2"
+    dest: "{{ docker_dir }}/hysteria/config.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0664"
+  notify: Restart hysteria
+  no_log: true
+
+- name: Install Hysteria2 server
+  community.general.docker_container:
+    name: "hysteria"
+    image: "tobyxdd/hysteria:v{{ hysteria_version }}"
+    command: ["server", "--config", "/etc/hysteria/config.yaml"]
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    cap_drop:
+      - ALL
+    capabilities:
+      - NET_BIND_SERVICE
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/hysteria/config.yaml:/etc/hysteria/config.yaml:ro"
+      - "{{ docker_dir }}/hysteria/certificate.crt:/etc/data/certificate.crt:ro"
+      - "{{ docker_dir }}/hysteria/privatekey.key:/etc/data/privatekey.key:ro"
+    ports:
+      - "{{ hysteria2_port }}:{{ hysteria2_port }}/udp"
+    networks:
+      - name: app_network
+      - name: dns_network

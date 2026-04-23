@@ -1,0 +1,13 @@
+---
+###############################################################
+#                         Users Database                      #
+###############################################################
+# List of users
+users:
+  {{ username }}:
+    displayname: "{{ username }}"
+    password: "{{ authelia_password | string | password_hash('sha512') }}"
+    email: "{{ email_recipient }}"
+    groups:
+      - admins
+      - dev

@@ -1,0 +1,89 @@
+---
+- name: Create Jellyfin directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ jellyfin_data_dir }}"
+    - "{{ jellyfin_data_dir }}/config"
+    - "{{ jellyfin_data_dir }}/cache"
+    - "{{ jellyfin_media_mount_path }}"
+
+- name: Bind mount media from storagebox
+  ansible.posix.mount:
+    src: "{{ storagebox_mount_path }}/media"
+    path: "{{ jellyfin_media_mount_path }}"
+    opts: bind,_netdev,nofail
+    fstype: none
+    state: mounted
+  when: jellyfin_storage_box_mount_enabled | default(false)
+
+- name: Mark jellyfin media mount as shared
+  become: true
+  ansible.builtin.command: mount --make-shared {{ jellyfin_media_mount_path }}
+  changed_when: false
+  when: jellyfin_storage_box_mount_enabled | default(false)
+
+- name: Create Jellyfin plugin directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ jellyfin_data_dir }}/config/plugins"
+    - "{{ jellyfin_data_dir }}/config/plugins/configurations"
+    - "{{ jellyfin_data_dir }}/config/plugins/Webhook_{{ jellyfin_webhook_plugin_version }}"
+
+- name: Download Jellyfin Webhook plugin
+  ansible.builtin.unarchive:
+    src: "{{ jellyfin_webhook_plugin_url }}"
+    dest: "{{ jellyfin_data_dir }}/config/plugins/Webhook_{{ jellyfin_webhook_plugin_version }}"
+    remote_src: true
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    creates: "{{ jellyfin_data_dir }}/config/plugins/Webhook_{{ jellyfin_webhook_plugin_version }}/Jellyfin.Plugin.Webhook.dll"
+
+- name: Configure Webhook plugin for ntfy
+  ansible.builtin.template:
+    src: webhook-config.xml.j2
+    dest: "{{ jellyfin_data_dir }}/config/plugins/configurations/Jellyfin.Plugin.Webhook.xml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart jellyfin
+
+- name: Make sure the Jellyfin container is created and running
+  community.general.docker_container:
+    name: "jellyfin"
+    image: "jellyfin/jellyfin:{{ jellyfin_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+      - name: edge_network
+    tmpfs:
+      - "/cache/transcodes:size=4G,uid=1000,gid=1000,mode=0755"
+    volumes:
+      - "{{ jellyfin_data_dir }}/config:/config"
+      - "{{ jellyfin_data_dir }}/cache:/cache"
+      - "{{ jellyfin_media_mount_path }}:/media:ro"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.jellyfin.entrypoints: "https"
+      traefik.http.routers.jellyfin.rule: "Host(`{{ jellyfin_host }}`)"
+      traefik.http.routers.jellyfin.tls: "true"
+      traefik.http.routers.jellyfin.service: "jellyfin"
+      traefik.http.routers.jellyfin.middlewares: "open-external@file"
+      traefik.http.services.jellyfin.loadbalancer.server.port: "8096"

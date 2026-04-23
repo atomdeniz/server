@@ -1,0 +1,187 @@
+---
+- name: Copy the traefik log delete file
+  become: true
+  ansible.builtin.template:
+    src: log-delete
+    dest: "/etc/logrotate.d/traefik"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Create traefik data directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - traefik
+    - traefik/data
+    - traefik/data/configs
+    - traefik/data/certificates
+    - traefik/data/logs
+
+- name: Read crowdsecLapiKey from server
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/crowdsec/.traefik-bouncer-key"
+  register: lapi_key_file
+  become: true
+  when: crowdsecLapiKey is not defined
+
+- name: Set crowdsecLapiKey fact for this run
+  ansible.builtin.set_fact:
+    crowdsecLapiKey: "{{ lapi_key_file.content | b64decode | trim }}"
+  when: crowdsecLapiKey is not defined
+
+- name: Copy the traefik.yml
+  ansible.builtin.template:
+    src: traefik.yml
+    dest: "{{ docker_dir }}/traefik/data/traefik.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart traefik
+
+- name: Copy the config.yml
+  ansible.builtin.template:
+    src: config.yml
+    dest: "{{ docker_dir }}/traefik/data/configs/config.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart traefik
+
+- name: Copy the dynamic-whitelist.yml
+  ansible.builtin.template:
+    src: dynamic-whitelist.yml
+    dest: "{{ docker_dir }}/traefik/data/configs/dynamic-whitelist.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart traefik
+
+- name: Create acme.json file
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/traefik/data/certificates/acme.json"
+    state: touch
+    mode: "0600"
+    owner: "0"
+    group: "0"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Deploy traefik with docker container
+  community.docker.docker_container:
+    name: traefik
+    image: traefik:{{ traefik_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    cap_drop:
+      - ALL
+    capabilities:
+      - NET_BIND_SERVICE
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: edge_network
+      - name: ops_network
+      - name: dns_network
+      - name: app_network
+        ipv4_address: "{{ traefik_app_network_local_ip }}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "{{ docker_dir }}/traefik/data/certificates/acme.json:/acme.json"
+      - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
+      - "{{ docker_dir }}/traefik/data/configs:/configs"
+      - "{{ docker_dir }}/traefik/data/logs:/logs"
+    env:
+      CF_API_EMAIL: "{{ cloudflare_email }}"
+      CF_API_KEY: "{{ cloudflare_api_key }}"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      traefik.enable: "true"
+      traefik.http.middlewares.traefik-auth.basicauth.users: "{{ traefik_basic_auth_hash }}"
+      traefik.http.routers.traefik.entrypoints: "https"
+      traefik.http.routers.traefik.rule: "Host(`{{ traefik_host }}`)"
+      traefik.http.routers.traefik.middlewares: "traefik-auth"
+      traefik.http.routers.traefik.tls: "true"
+      traefik.http.routers.traefik.tls.certresolver: "cloudflare"
+      traefik.http.routers.traefik.tls.domains[0].main: "{{ root_host }}"
+      traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ root_host }}"
+      traefik.http.routers.traefik.service: "api@internal"
+
+- name: DumpCertificates
+  community.docker.docker_container:
+    name: certsdump
+    image: ldez/traefik-certs-dumper:{{ certsdump_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    entrypoint:
+      - sh
+      - -c
+      - |
+        apk add --no-cache jq;
+        while ! [ -e /data/acme.json ] || ! [ "$(jq '.[] | .Certificates | length' /data/acme.json)" != "0" ];
+        do
+          sleep 5;
+        done &&
+        traefik-certs-dumper file --version v2 --domain-subdir --clean=false --watch --source ./acme.json --dest .
+    volumes:
+      - "{{ docker_dir }}/traefik/data/certificates:/data"
+    working_dir: /data
+
+# https://github.com/l4rm4nd/TraefikShaper Orginal
+- name: Deploy traefikshaper with docker container
+  community.docker.docker_container:
+    name: traefikshaper
+    image: "{{ traefikshaper_image }}:{{ traefikshaper_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: edge_network
+      - name: app_network
+    volumes:
+      - "{{ docker_dir }}/traefik/data/configs/dynamic-whitelist.yml:/app/dynamic-whitelist.yml"
+    env:
+      APPURL: "{{ traefikshaper_host }}"
+      GRANT_HTTP_ENDPOINT: "/knock-knock"
+      IPSTRATEGY_DEPTH: "1"
+      EXPIRATION_TIME: "6000"
+      WHITELISTED_IPS: "{{ ansible_host }}"
+      APPRISE_NOTIFICATION_URL: tgram://bot{{ telegram_api_token }}/{{ telegram_user_id }}
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.traefikshaper.entrypoints: "https"
+      traefik.http.routers.traefikshaper.rule: "Host(`{{ traefikshaper_host }}`)"
+      traefik.http.routers.traefikshaper.tls: "true"
+      traefik.http.routers.traefikshaper.service: "traefikshaper"
+      traefik.http.services.traefikshaper.loadbalancer.server.port: "5000"
+
+  notify: Restart traefik

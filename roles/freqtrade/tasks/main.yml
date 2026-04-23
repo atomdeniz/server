@@ -1,0 +1,36 @@
+---
+- name: Clone NostalgiaForInfinity repository
+  git:
+    repo: "{{ freqtrade_repo_url }}"
+    dest: "{{ freqtrade_repo_dest_dir }}"
+    update: yes
+    force: yes
+
+- name: Copy the main config
+  ansible.builtin.template:
+    src: config.json
+    dest: "{{ freqtrade_repo_dest_dir }}/user_data/config.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Copy the dockercompose
+  ansible.builtin.template:
+    src: docker-compose.yml
+    dest: "{{ freqtrade_repo_dest_dir }}/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: change ownership
+  file:
+    path: "{{ freqtrade_repo_dest_dir }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    state: directory
+    recurse: yes
+
+- name: Docker Compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ freqtrade_repo_dest_dir }}"
+    state: present

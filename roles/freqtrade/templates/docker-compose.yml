@@ -1,0 +1,55 @@
+---
+x-common-settings: &common-settings
+  image: freqtradeorg/freqtrade:{{ freqtrade_version }}
+  build:
+    context: .
+    dockerfile: "./docker/Dockerfile.custom"
+  restart: unless-stopped
+  volumes:
+    - "./user_data:/freqtrade/user_data"
+    - "./user_data/data:/freqtrade/user_data/data"
+    - "./configs:/freqtrade/configs"
+    - "./NostalgiaForInfinityX6.py:/freqtrade/NostalgiaForInfinityX6.py"
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8080"]
+    interval: 1m30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
+    start_interval: 5s
+  env_file:
+    - path: .env
+      required: false # default true
+
+services:
+  freqtrade:
+    <<: *common-settings
+    container_name: freqtrade
+    networks:
+      - app_network
+      - edge_network
+    user: "1000:1000"
+    security_opt:
+      - apparmor:docker-default
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.freqtrade.entrypoints: "https"
+      traefik.http.routers.freqtrade.rule: "Host(`{{ freqtrade_host }}`)"
+      traefik.http.routers.freqtrade.tls: "true"
+      traefik.http.routers.freqtrade.service: "freqtrade"
+      traefik.http.routers.freqtrade.middlewares: "secure-vpn@file"
+      traefik.http.services.freqtrade.loadbalancer.server.port: "8080"
+    command: >
+      trade
+      --db-url sqlite:////freqtrade/user_data/freqtrade-tradesv3.sqlite
+      --log-file user_data/logs/freqtrade.log
+      --strategy-path .
+
+networks:
+  edge_network:
+    external: true
+    name: edge_network
+  app_network:
+    external: true
+    name: app_network

@@ -1,0 +1,266 @@
+---
+storage:
+  type: sqlite
+  path: /data/data.db
+
+alerting:
+  ntfy:
+    url: "http://ntfy:80"
+    topic: "{{ ntfy_topic_prefix }}gatus"
+    priority: 4
+    token: "{{ ntfy_token }}"
+    default-alert:
+      enabled: true
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+      description: "health check failed"
+
+ui:
+  title: Status
+  header: Status
+
+endpoints:
+  - name: Traefik
+    group: Infrastructure
+    url: "http://traefik:80"
+    interval: 5m
+    client:
+      ignore-redirect: true
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Authelia
+    group: Infrastructure
+    url: "https://{{ authelia_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: AdGuard Home
+    group: Infrastructure
+    url: "http://adguardhome:3000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Homepage
+    group: Applications
+    url: "http://homepage:3000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Vaultwarden
+    group: Applications
+    url: "http://vaultwarden:80"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Grafana
+    group: Monitoring
+    url: "http://grafana:3000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Website
+    group: Applications
+    url: "https://{{ www_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: N8N
+    group: Applications
+    url: "http://n8n:5678"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Immich
+    group: Applications
+    url: "https://{{ immich_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Dozzle
+    group: Monitoring
+    url: "http://dozzle:8080"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: IT Tools
+    group: Applications
+    url: "https://{{ it_tools_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Pingvin Share
+    group: Applications
+    url: "https://{{ pingvin_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Wallos
+    group: Applications
+    url: "http://wallos:80"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: File Browser
+    group: Applications
+    url: "http://filebrowser:80"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Umami
+    group: Monitoring
+    url: "https://{{ umami_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Change Detection
+    group: Monitoring
+    url: "http://changedetection:5000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: ConvertX
+    group: Applications
+    url: "http://convertx:3000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Spliit
+    group: Applications
+    url: "https://{{ spliit_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Web Check
+    group: Applications
+    url: "https://{{ web_check_host }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Ntfy
+    group: Applications
+    url: "http://ntfy:80"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: Jellyfin
+    group: Applications
+    url: "http://jellyfin:8096"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: PR Queue
+    group: Applications
+    url: "http://pr_queue:8000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Proxy (Reality)
+    group: Infrastructure
+    url: "tcp://xray:{{ xray_reality_port }}"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: ntfy
+
+  # External. Suspension or node outage on Ultra.cc returns 502 at the
+  # proxy layer — [STATUS] < 500 catches that. Public URL (no internal
+  # Docker shortcut possible) and no auth required on the root path.
+  - name: Seedbox (Ultra.cc)
+    group: Infrastructure
+    url: "https://{{ seedbox_user }}.{{ seedbox_host }}/"
+    interval: 10m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy

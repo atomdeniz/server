@@ -1,0 +1,31 @@
+- search:
+    provider: custom
+    url: https://www.google.com/search?q=
+    target: _blank
+    focus: false
+
+- greeting:
+    text_size: xl
+    text: "Server Dashboard"
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+    expanded: true
+    label: System
+
+- openmeteo:
+    label: "{{ weather_label }}"
+    latitude: {{ weather_latitude }}
+    longitude: {{ weather_longitude }}
+    timezone: "{{ weather_timezone }}"
+    units: metric
+    cache: 5
+
+- datetime:
+    text_size: l
+    format:
+      dateStyle: long
+      timeStyle: short
+      hour12: false

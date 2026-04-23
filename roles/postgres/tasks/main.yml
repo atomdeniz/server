@@ -1,0 +1,83 @@
+---
+- name: Create postgres data directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/postgres"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Run postgres container
+  community.docker.docker_container:
+    name: "{{ postgres_container_name }}"
+    image: "postgres:{{ postgres_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    cap_drop:
+      - ALL
+    capabilities:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    env:
+      POSTGRES_DB: spliit
+      POSTGRES_USER: spliit
+      POSTGRES_PASSWORD: "{{ spliit_postgres_password }}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spliit"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - "{{ docker_dir }}/postgres:/var/lib/postgresql/data"
+    labels:
+      wud.watch: "false"
+    networks:
+      - name: app_network
+
+- name: Wait for postgres readiness
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - "{{ postgres_container_name }}"
+      - pg_isready
+      - -U
+      - spliit
+  register: postgres_ready
+  changed_when: false
+  retries: 20
+  delay: 3
+  until: postgres_ready.rc == 0
+
+- name: Create umami postgres user
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - "{{ postgres_container_name }}"
+      - psql
+      - -U
+      - spliit
+      - -c
+      - "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'umami') THEN CREATE ROLE umami WITH LOGIN PASSWORD '{{ umami_postgres_password }}'; END IF; END $$;"
+  changed_when: false
+
+- name: Create umami database
+  ansible.builtin.shell:
+    cmd: >-
+      set -o pipefail &&
+      docker exec {{ postgres_container_name }} psql -U spliit -tc
+      "SELECT 1 FROM pg_database WHERE datname = 'umami'" | grep -q 1 ||
+      docker exec {{ postgres_container_name }} psql -U spliit -c
+      'CREATE DATABASE umami OWNER umami'
+    executable: /bin/bash
+  changed_when: false

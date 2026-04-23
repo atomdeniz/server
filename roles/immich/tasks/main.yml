@@ -1,0 +1,57 @@
+---
+- name: Create Immich directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/immich"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Create Immich data directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - "{{ immich_upload_location }}"
+    - "{{ immich_storage_box_mount_path }}"
+
+- name: Bind mount immich data
+  ansible.posix.mount:
+    src: "{{ storagebox_mount_path }}/immich"
+    path: "{{ immich_storage_box_mount_path }}"
+    opts: bind,_netdev,nofail
+    fstype: none
+    state: mounted
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Mark immich external mount as shared
+  become: true
+  ansible.builtin.command: mount --make-shared {{ immich_storage_box_mount_path }}
+  changed_when: false
+  when: immich_storage_box_mount_enabled | default(false)
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml
+    dest: "{{ docker_dir }}/immich/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Copy .env
+  ansible.builtin.template:
+    src: .env
+    dest: "{{ docker_dir }}/immich/.env"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Docker Compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_dir }}/immich"
+    state: present
+    recreate: "{{ 'always' if (force_recreate | default(false)) else 'never' }}"

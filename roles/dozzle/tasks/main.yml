@@ -1,0 +1,28 @@
+---
+- name: Make sure the dozzle container is created and running
+  community.general.docker_container:
+    name: "dozzle"
+    image: "amir20/dozzle:{{ dozzle_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+    env:
+      DOCKER_HOST: tcp://docker_proxy:2375
+      DOZZLE_NO_ANALYTICS: "true"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.dozzle.entrypoints: "https"
+      traefik.http.routers.dozzle.rule: "Host(`{{ dozzle_host }}`)"
+      traefik.http.routers.dozzle.tls: "true"
+      traefik.http.routers.dozzle.service: "dozzle"
+      traefik.http.routers.dozzle.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.dozzle.loadbalancer.server.port: "8080"

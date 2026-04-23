@@ -1,0 +1,26 @@
+---
+media_cleanup_enabled: true
+
+# Jellyfin API
+media_cleanup_jellyfin_url: "https://{{ jellyfin_host }}"
+
+# Cleanup schedule (daily at 04:00)
+media_cleanup_on_calendar: "*-*-* 04:00:00"
+
+# Movies: delete after N days of being watched
+media_cleanup_movie_delay_days: 1
+
+# Seedbox SSH (for remote deletion)
+media_cleanup_seedbox_host: "{{ seedbox_host }}"
+media_cleanup_seedbox_user: "{{ seedbox_user }}"
+media_cleanup_seedbox_ssh_key: "/home/{{ username }}/.ssh/seedbox"
+media_cleanup_seedbox_movie_path: "~/media/Movies"
+media_cleanup_seedbox_tv_path: "~/media/TV Shows"
+
+# Local paths (storage box mount)
+media_cleanup_local_base: "{{ storagebox_mount_path }}/media"
+media_cleanup_movie_path: "{{ media_cleanup_local_base }}/movies"
+media_cleanup_tv_path: "{{ media_cleanup_local_base }}/tv"
+
+# Jellyfin container media prefix (what Jellyfin sees)
+media_cleanup_jellyfin_prefix: "/media"

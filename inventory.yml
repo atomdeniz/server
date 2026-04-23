@@ -1,0 +1,124 @@
+---
+all:
+  hosts:
+    server:
+      ansible_host: "{{ ansible_host }}"
+      ansible_user: "{{ username }}"
+  vars:
+    www_host: "www.{{ root_host }}"
+
+    authelia_host: "auth.{{ root_host }}"
+
+    proxy_host: "proxy.{{ root_host }}"
+
+    vpn_host: "vpn.{{ root_host }}"
+
+    vaultwarden_host: "password.{{ root_host }}"
+
+    adguard_host: "adguard.{{ root_host }}"
+
+    homepage_host: "home.{{ root_host }}"
+
+    traefik_host: "traefik.{{ root_host }}"
+
+    grafana_host: "grafana.{{ root_host }}"
+
+    gatus_host: "uptime.{{ root_host }}"
+
+    whoami_host: "whoami.{{ root_host }}"
+
+    traefikshaper_host: "traefikshaper.{{ root_host }}"
+
+    n8n_host: "n8n.{{ root_host }}"
+
+
+    freqtrade_host: "freqtrade.{{ root_host }}"
+
+
+    web_check_host: "web.{{ root_host }}"
+
+    convertx_host: "convertx.{{ root_host }}"
+
+    immich_host: "photos.{{ root_host }}"
+
+    it_tools_host: "dev.{{ root_host }}"
+
+    changedetection_host: "changes.{{ root_host }}"
+
+    dozzle_host: "dozzle.{{ root_host }}"
+
+    spliit_host: "spliit.{{ root_host }}"
+
+    umami_host: "analytics.{{ root_host }}"
+
+    pingvin_host: "share.{{ root_host }}"
+
+    wallos_host: "wallos.{{ root_host }}"
+
+    filebrowser_host: "files.{{ root_host }}"
+
+    ntfy_host: "ntfy.{{ root_host }}"
+
+    # ntfy_topic_prefix — sourced from custom.yml (personal namespace so
+    # ntfy.sh upstream relay doesn't collide with reserved topics).
+
+    jellyfin_host: "media.{{ root_host }}"
+
+    pr_queue_host: "pr.{{ root_host }}"
+
+    traefik_app_network_gateway: 10.8.6.1
+
+    traefik_app_network_local_ip: 10.8.6.2
+
+    adguard_local_ip: 10.8.4.2
+
+    unbound_local_ip: 10.8.4.3
+
+    vpn_subnet: "10.8.0.x"
+
+    vpn_subnet_cidr: "10.8.0.0/24"
+
+    vpn_client_allowed_ips: "0.0.0.0/0"
+
+    vpn_port: "51820"
+
+    autoupdate_reboot_time: 03:00
+
+    docker_dir: "/opt/docker"
+
+    storagebox_mount_path: "/mnt/storagebox"
+
+    ssh_port: 22
+
+
+    # SSH is restricted at the Hetzner cloud firewall (IP allowlist managed in
+    # the Hetzner console, not in this repo). Host iptables is intentionally
+    # permissive as a second layer — if the Hetzner firewall is ever removed
+    # or bypassed, tighten this value. See CLAUDE.md "Security Model".
+    ssh_allow_cidr: 0.0.0.0/0
+
+    iptables_allow_rules:
+      - desc: "Allow VPN"
+        proto: udp
+        port: "{{ vpn_port }}"
+      - desc: "Allow HTTP"
+        proto: tcp
+        port: "80"
+      - desc: "Allow HTTPS"
+        proto: tcp
+        port: "443"
+      - desc: "Allow Reality (Xray VLESS+Vision+Reality)"
+        proto: tcp
+        port: "8443"
+      - desc: "Allow Hysteria2 (UDP/QUIC)"
+        proto: udp
+        port: "443"
+      - desc: "Allow SSH"
+        proto: tcp
+        port: "{{ ssh_port }}"
+
+    pip_install_packages:
+      - name: docker
+
+    docker_users:
+      - "{{ username }}"

@@ -1,0 +1,16 @@
+base-url: "https://{{ ntfy_host }}"
+listen-http: ":80"
+cache-file: "/var/cache/ntfy/cache.db"
+auth-file: "/var/lib/ntfy/auth.db"
+auth-default-access: "deny-all"
+behind-proxy: true
+{% if ntfy_upstream_access_token is defined and ntfy_upstream_access_token %}
+upstream-base-url: "https://ntfy.sh"
+upstream-access-token: "{{ ntfy_upstream_access_token }}"
+{% endif %}
+{% if ntfy_web_push_public_key is defined and ntfy_web_push_public_key %}
+web-push-public-key: "{{ ntfy_web_push_public_key }}"
+web-push-private-key: "{{ ntfy_web_push_private_key }}"
+web-push-file: "/var/cache/ntfy/webpush.db"
+web-push-email-address: "{{ email_recipient }}"
+{% endif %}

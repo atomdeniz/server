@@ -1,0 +1,27 @@
+---
+- name: Run spliit container
+  community.docker.docker_container:
+    name: spliit
+    image: "ghcr.io/spliit-app/spliit:{{ spliit_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+      - name: edge_network
+    env:
+      POSTGRES_PRISMA_URL: "postgresql://spliit:{{ spliit_postgres_password }}@{{ postgres_container_name }}/spliit"
+      POSTGRES_URL_NON_POOLING: "postgresql://spliit:{{ spliit_postgres_password }}@{{ postgres_container_name }}/spliit"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.spliit.entrypoints: "https"
+      traefik.http.routers.spliit.rule: "Host(`{{ spliit_host }}`)"
+      traefik.http.routers.spliit.tls: "true"
+      traefik.http.routers.spliit.service: "spliit"
+      traefik.http.routers.spliit.middlewares: "open-external@file"
+      traefik.http.services.spliit.loadbalancer.server.port: "3000"

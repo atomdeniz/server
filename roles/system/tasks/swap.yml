@@ -1,0 +1,65 @@
+---
+- name: Check current active swap devices
+  ansible.builtin.command: swapon --show=NAME --noheadings
+  register: system_swap_active
+  changed_when: false
+
+- name: Check if swap file already exists
+  ansible.builtin.stat:
+    path: "{{ system_swap_file }}"
+  register: system_swap_file_stat
+
+- name: Create swap file
+  ansible.builtin.command: "fallocate -l {{ system_swap_size }} {{ system_swap_file }}"
+  when: not system_swap_file_stat.stat.exists
+  changed_when: true
+
+- name: Set swap file permissions
+  ansible.builtin.file:
+    path: "{{ system_swap_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Initialize swap area
+  ansible.builtin.command: "mkswap {{ system_swap_file }}"
+  when: not system_swap_file_stat.stat.exists
+  changed_when: true
+
+- name: Persist swap in fstab
+  ansible.posix.mount:
+    path: none
+    src: "{{ system_swap_file }}"
+    fstype: swap
+    opts: sw
+    state: present
+
+- name: Enable swap file
+  ansible.builtin.command: "swapon {{ system_swap_file }}"
+  when: system_swap_file not in system_swap_active.stdout_lines
+  changed_when: true
+
+- name: Ensure sysctl drop-in directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/sysctl.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Persist swappiness setting with elevated privileges
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-swappiness.conf
+    content: "vm.swappiness={{ system_swappiness }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  register: system_swappiness_file
+
+- name: Apply swappiness setting
+  become: true
+  ansible.builtin.command: sysctl -p /etc/sysctl.d/99-swappiness.conf
+  when: system_swappiness_file.changed
+  changed_when: true

@@ -1,0 +1,27 @@
+---
+services:
+  pr_queue:
+    build: .
+    container_name: pr_queue
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/pr_queue/data:/app/data"
+    networks:
+      - app_network
+    labels:
+      diun.enable: "false"
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.pr_queue.entrypoints: "https"
+      traefik.http.routers.pr_queue.rule: "Host(`{{ pr_queue_host }}`)"
+      traefik.http.routers.pr_queue.tls: "true"
+      traefik.http.routers.pr_queue.service: "pr_queue"
+      traefik.http.routers.pr_queue.middlewares: "open-external@file"
+      traefik.http.services.pr_queue.loadbalancer.server.port: "8000"
+
+networks:
+  app_network:
+    external: true

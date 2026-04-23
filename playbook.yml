@@ -1,0 +1,182 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Install and configure
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - custom.yml
+
+  handlers:
+    - name: Import global handlers
+      ansible.builtin.import_tasks: handlers/main.yml
+
+  roles:
+    - role: system
+      tags:
+        - system
+
+    - role: security
+      tags:
+        - security
+
+    - role: dns
+      tags:
+        - dns
+
+    - role: geerlingguy.docker
+      tags:
+        - docker
+
+    - role: docker_network
+      tags:
+        - docker
+
+    - role: docker_proxy
+      tags:
+        - docker
+
+    - role: crowdsec
+      tags:
+        - crowdsec
+
+    - role: traefik
+      tags:
+        - traefik
+
+    - role: redis
+      tags:
+        - redis
+
+    - role: authelia
+      tags:
+        - authelia
+
+    - role: whoami
+      tags:
+        - whoami
+
+    - role: unbound
+      tags:
+        - unbound
+
+    - role: adguardhome
+      tags:
+        - adguardhome
+
+    - role: amnezia_wg
+      tags:
+        - amnezia_wg
+
+    # This is my website role, you can create your own role
+    - role: mywebsite
+      tags:
+        - mywebsite
+
+    - role: vaultwarden
+      tags:
+        - vaultwarden
+
+    - role: homepage
+      tags:
+        - homepage
+
+    - role: grafana
+      tags:
+        - grafana
+
+    - role: gatus
+      tags:
+        - gatus
+
+    - role: proxy
+      tags:
+        - proxy
+
+    - role: n8n
+      tags:
+        - n8n
+
+
+    # - role: freqtrade
+    #   tags:
+    #     - freqtrade
+
+    - role: diun
+      tags:
+        - diun
+
+    - role: web_check
+      tags:
+        - web_check
+
+    - role: convertx
+      tags:
+        - convertx
+
+    - role: storagebox
+      tags:
+        - storagebox
+
+    - role: immich
+      tags:
+        - immich
+
+    - role: it_tools
+      tags:
+        - it_tools
+
+    - role: changedetection
+      tags:
+        - changedetection
+
+    - role: dozzle
+      tags:
+        - dozzle
+
+    - role: postgres
+      tags:
+        - postgres
+
+    - role: spliit
+      tags:
+        - spliit
+
+    - role: umami
+      tags:
+        - umami
+
+    - role: pingvin
+      tags:
+        - pingvin
+
+    - role: wallos
+      tags:
+        - wallos
+
+    - role: filebrowser
+      tags:
+        - filebrowser
+
+    - role: ntfy
+      tags:
+        - ntfy
+
+    - role: jellyfin
+      tags:
+        - jellyfin
+
+    - role: pr_queue
+      tags:
+        - pr_queue
+
+    # Deletes watched content on the seedbox via SSH; the next rclone sync
+    # propagates the removal to the Storage Box. Storage Box is no longer
+    # touched directly — see roles/media_cleanup/templates/media-cleanup.sh.j2.
+    - role: media_cleanup
+      tags:
+        - media_cleanup
+
+    - role: backup
+      tags:
+        - backup

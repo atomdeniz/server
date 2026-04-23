@@ -1,0 +1,47 @@
+---
+- name: Create the Vaultwarden directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/vw-data"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+
+- name: Make sure the Vaultwarden container is created and running
+  community.general.docker_container:
+    name: "vaultwarden"
+    image: "vaultwarden/server:{{ vaultwarden_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    env:
+      # Admin panel stays disabled — ADMIN_TOKEN is intentionally NOT set.
+      # /admin returns "The admin panel is disabled" until a token is added.
+      SIGNUPS_ALLOWED: "false"          # self-registration off
+      INVITATIONS_ALLOWED: "false"      # admin/org invites off (admin panel is off anyway)
+      SENDS_ALLOWED: "false"            # Bitwarden Send feature off — not used
+      EMERGENCY_ACCESS_ALLOWED: "false" # emergency-contact flow off — not used
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+      - name: dns_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.vault.entrypoints: "https"
+      traefik.http.routers.vault.rule: "Host(`{{ vaultwarden_host }}`)"
+      traefik.http.routers.vault.tls: "true"
+      traefik.http.routers.vault.service: "vault"
+      traefik.http.routers.vault.middlewares: "secure-vpn@file"
+      traefik.http.services.vault.loadbalancer.server.port: "80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/alive"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - "{{ docker_dir }}/vw-data:/data"

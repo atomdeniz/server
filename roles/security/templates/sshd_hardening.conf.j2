@@ -1,0 +1,11 @@
+# Managed by Ansible — roles/security/tasks/main.yml
+#
+# Loaded via Include /etc/ssh/sshd_config.d/*.conf in the main sshd_config.
+# OpenSSH uses first-match-wins for these directives, and the "10-" prefix
+# guarantees this file is parsed before any later drop-ins (including a
+# future /etc/ssh/sshd_config.d/50-cloud-init.conf).
+
+PasswordAuthentication no
+PermitRootLogin no
+MaxAuthTries 3
+AllowUsers {{ username }}

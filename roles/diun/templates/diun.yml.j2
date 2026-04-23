@@ -1,0 +1,16 @@
+watch:
+  workers: 10
+  schedule: "0 */6 * * *"
+
+providers:
+  docker:
+    endpoint: "tcp://docker_proxy:2375"
+    watchByDefault: true
+    watchStopped: false
+
+notif:
+  ntfy:
+    endpoint: "http://ntfy:80"
+    topic: "{{ ntfy_topic_prefix }}diun"
+    priority: 3
+    token: "{{ ntfy_token }}"

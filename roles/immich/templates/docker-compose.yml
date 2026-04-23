@@ -1,0 +1,120 @@
+#
+# WARNING: To install Immich, follow our guide: https://docs.immich.app/install/docker-compose
+#
+# Make sure to use the docker-compose.yml of the current release:
+#
+# https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+#
+# The compose file on main may not be compatible with the latest release.
+
+name: immich
+
+services:
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    pull_policy: always
+    # extends:
+    #   file: hwaccel.transcoding.yml
+    #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
+    volumes:
+      - ${UPLOAD_LOCATION}:/data
+      - "{{ immich_storage_box_mount_path }}:/external:rshared"
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      disable: false
+    networks:
+      - app_network
+      - redis_data_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      # Catch-all router — public access for mobile app, web UI and share links.
+      traefik.http.routers.immich.entrypoints: "https"
+      traefik.http.routers.immich.rule: "Host(`{{ immich_host }}`)"
+      traefik.http.routers.immich.tls: "true"
+      traefik.http.routers.immich.middlewares: "open-external@file"
+      traefik.http.services.immich.loadbalancer.server.port: "2283"
+      # Admin web UI — gated behind Authelia. Mobile app never hits /admin/*,
+      # so a second auth factor on this path does not break the app.
+      traefik.http.routers.immich-admin.entrypoints: "https"
+      traefik.http.routers.immich-admin.rule: "Host(`{{ immich_host }}`) && PathPrefix(`/admin`)"
+      traefik.http.routers.immich-admin.tls: "true"
+      traefik.http.routers.immich-admin.service: "immich"
+      traefik.http.routers.immich-admin.middlewares: "secure-external@file"
+      # Login endpoint — tight rate limit on top of the public chain to blunt
+      # credential brute-force. 10/min with burst 20 is generous for legitimate
+      # mobile sign-ins but far below any useful brute-force rate.
+      traefik.http.routers.immich-login.entrypoints: "https"
+      traefik.http.routers.immich-login.rule: "Host(`{{ immich_host }}`) && Path(`/api/auth/login`)"
+      traefik.http.routers.immich-login.tls: "true"
+      traefik.http.routers.immich-login.service: "immich"
+      traefik.http.routers.immich-login.middlewares: "open-external@file,immich-login-rate-limit@file"
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
+    # Example tag: ${IMMICH_VERSION:-release}-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    pull_policy: always
+    # extends: # uncomment this section for hardware acceleration - see https://docs.immich.app/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
+    volumes:
+      - model-cache:/cache
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      disable: false
+    networks:
+      - app_network
+      - redis_data_network
+
+  database:
+    container_name: immich_postgres
+    image: {{ immich_postgres_image }}
+    pull_policy: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE_NAME} -U ${DB_USERNAME}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command:
+      [
+        "postgres",
+        "-c", "shared_preload_libraries=vchord.so",
+        "-c", "search_path=\"$$user\", public, vectors",
+        "-c", "logging_collector=on",
+        "-c", "max_wal_size=2GB",
+        "-c", "shared_buffers=512MB",
+        "-c", "wal_compression=on",
+      ]
+    restart: always
+    networks:
+      - app_network
+    labels:
+      wud.watch: "false"
+
+volumes:
+  model-cache:
+
+networks:
+  app_network:
+    external: true
+  redis_data_network:
+    external: true

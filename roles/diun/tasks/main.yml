@@ -1,0 +1,40 @@
+---
+- name: Create diun data directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/diun"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy diun config
+  ansible.builtin.template:
+    src: diun.yml.j2
+    dest: "{{ docker_dir }}/diun/diun.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Make sure the diun container is created and running
+  community.general.docker_container:
+    name: "diun"
+    image: "crazymax/diun:{{ diun_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    memory: "128M"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: ops_network
+      - name: app_network
+    volumes:
+      - "{{ docker_dir }}/diun/diun.yml:/diun.yml:ro"
+      - "{{ docker_dir }}/diun/data:/data"
+    env:
+      LOG_LEVEL: "info"
+      LOG_JSON: "false"

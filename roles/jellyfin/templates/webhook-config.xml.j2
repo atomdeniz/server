@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PluginConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ServerUrl>https://{{ jellyfin_host }}</ServerUrl>
+  <GenericOptions>
+    <GenericOption>
+      <WebhookUri>https://{{ ntfy_host }}/jellyfin</WebhookUri>
+      <Headers>
+        <KeyValuePair>
+          <Key>Authorization</Key>
+          <Value>Bearer {{ ntfy_token }}</Value>
+        </KeyValuePair>
+        <KeyValuePair>
+          <Key>Tags</Key>
+          <Value>clapper</Value>
+        </KeyValuePair>
+      </Headers>
+      <NotificationTypeOptions>
+        <NotificationTypeMapping>
+          <NotificationType>ItemAdded</NotificationType>
+          <Enabled>true</Enabled>
+        </NotificationTypeMapping>
+      </NotificationTypeOptions>
+      <SendAllProperties>false</SendAllProperties>
+      <Template>{% raw %}{{#if_equals ItemType "Movie"}}New movie: {{Name}} ({{Year}}){{else}}New episode: {{SeriesName}} - {{Name}}{{/if_equals}}{% endraw %}</Template>
+    </GenericOption>
+  </GenericOptions>
+</PluginConfiguration>

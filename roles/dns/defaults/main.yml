@@ -1,0 +1,86 @@
+---
+dns_records:
+  - name: "{{ root_host }}"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "www"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "auth"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "traefikshaper"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "vpn"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "whoami"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "web"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "proxy"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
+
+  - name: "photos"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
+
+  - name: "drive"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
+
+  - name: "dev"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "spliit"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "share"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "analytics"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "ntfy"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
+  - name: "media"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: false
+
+  - name: "pr"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true

@@ -1,0 +1,60 @@
+:root {
+  --card-radius: 14px;
+}
+
+/* Group containers */
+.services-group {
+  border: 1px solid color-mix(in srgb, var(--color-400) 15%, transparent);
+  border-radius: 16px;
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--color-950) 60%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transition: border-color 200ms ease;
+}
+
+.services-group:hover {
+  border-color: color-mix(in srgb, var(--color-400) 28%, transparent);
+}
+
+/* Group headers */
+.services-group h2 {
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-300) 70%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-300) 12%, transparent);
+}
+
+/* Card polish */
+.service-card {
+  border-radius: var(--card-radius);
+  border: 1px solid color-mix(in srgb, var(--color-400) 10%, transparent);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.service-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-300) 30%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Denser cards */
+.service-card .card-content {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Widget bar styling */
+#widgets-wrap {
+  margin-bottom: 0.5rem;
+}
+
+/* Status dot size */
+.status-dot {
+  width: 8px;
+  height: 8px;
+}

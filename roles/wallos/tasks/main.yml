@@ -1,0 +1,39 @@
+---
+- name: Create the wallos directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "82"
+    group: "82"
+    mode: "0775"
+  loop:
+    - "{{ docker_dir }}/wallos/db"
+    - "{{ docker_dir }}/wallos/logos"
+
+- name: Create wallos container
+  community.docker.docker_container:
+    name: wallos
+    image: "bellamy/wallos:{{ wallos_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/wallos/db:/var/www/html/db"
+      - "{{ docker_dir }}/wallos/logos:/var/www/html/images/uploads/logos"
+    networks:
+      - name: app_network
+    env:
+      TZ: "Europe/Istanbul"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.wallos.entrypoints: "https"
+      traefik.http.routers.wallos.rule: "Host(`{{ wallos_host }}`)"
+      traefik.http.routers.wallos.tls: "true"
+      traefik.http.routers.wallos.service: "wallos"
+      traefik.http.routers.wallos.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.wallos.loadbalancer.server.port: "80"

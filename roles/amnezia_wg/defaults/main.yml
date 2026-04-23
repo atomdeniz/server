@@ -1,0 +1,13 @@
+---
+amnezia_wg_version: "v1"
+
+# Upstream source pins for the locally-built amnezia-wg-easy image.
+# Bumping any of these + rerunning with -e force_recreate=true will
+# rebuild the image against the new commit.
+#
+# amneziawg-go     -> tag v0.2.17        (2025)
+# amneziawg-tools  -> tag v1.0.20260223  (2026-02-23)
+# amnezia-wg-easy  -> master HEAD        (2024-09-22, w0rng fork, unchanged since)
+amnezia_wg_go_commit: "12a012205e3c444be02aba91a840455f74c127e1"
+amnezia_wg_tools_commit: "5d6179a6d0842e98dfb349c28cf1bd8e4b9d1079"
+amnezia_wg_easy_commit: "139126743757157f6c51b10132c0b8cb3824735a"

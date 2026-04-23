@@ -1,0 +1,80 @@
+---
+- name: Install jq (required for media cleanup)
+  ansible.builtin.package:
+    name: jq
+    state: present
+  when: media_cleanup_enabled | bool
+
+- name: Check if seedbox SSH key exists
+  ansible.builtin.stat:
+    path: "{{ media_cleanup_seedbox_ssh_key }}"
+  register: media_cleanup_key_stat
+  when: media_cleanup_enabled | bool
+
+- name: Generate seedbox SSH key if missing
+  ansible.builtin.command: >
+    ssh-keygen -t ed25519 -f {{ media_cleanup_seedbox_ssh_key }}
+    -N "" -C "media-cleanup@{{ ansible_hostname }}"
+  args:
+    creates: "{{ media_cleanup_seedbox_ssh_key }}"
+  become: true
+  become_user: "{{ username }}"
+  when:
+    - media_cleanup_enabled | bool
+    - not (media_cleanup_key_stat.stat.exists | default(false))
+
+- name: Display seedbox public key (add to seedbox authorized_keys)
+  ansible.builtin.command: cat {{ media_cleanup_seedbox_ssh_key }}.pub
+  register: media_cleanup_pubkey
+  changed_when: false
+  when:
+    - media_cleanup_enabled | bool
+    - not (media_cleanup_key_stat.stat.exists | default(false))
+
+- name: Show seedbox public key
+  ansible.builtin.debug:
+    msg: >
+      Add this SSH key to your seedbox ({{ media_cleanup_seedbox_host }})
+      authorized_keys: {{ media_cleanup_pubkey.stdout | default('key already exists') }}
+  when:
+    - media_cleanup_enabled | bool
+    - media_cleanup_pubkey.stdout is defined
+
+- name: Install media cleanup script
+  ansible.builtin.template:
+    src: media-cleanup.sh.j2
+    dest: /usr/local/bin/media-cleanup
+    owner: root
+    group: root
+    mode: "0700"
+  when: media_cleanup_enabled | bool
+
+- name: Install media-cleanup systemd service
+  become: true
+  ansible.builtin.template:
+    src: media-cleanup.service.j2
+    dest: /etc/systemd/system/media-cleanup.service
+    mode: "0644"
+  when: media_cleanup_enabled | bool
+
+- name: Install media-cleanup systemd timer
+  become: true
+  ansible.builtin.template:
+    src: media-cleanup.timer.j2
+    dest: /etc/systemd/system/media-cleanup.timer
+    mode: "0644"
+  when: media_cleanup_enabled | bool
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: media_cleanup_enabled | bool
+
+- name: Enable and start media-cleanup timer
+  become: true
+  ansible.builtin.systemd:
+    name: media-cleanup.timer
+    enabled: true
+    state: started
+  when: media_cleanup_enabled | bool

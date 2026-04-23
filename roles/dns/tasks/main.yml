@@ -1,0 +1,11 @@
+---
+- name: Cloudflare DNS
+  community.general.cloudflare_dns:
+    zone: "{{ root_host }}"
+    record: "{{ item.name }}"
+    type: "{{ item.type }}"
+    value: "{{ item.content }}"
+    proxied: "{{ item.proxied }}"
+    account_api_key: "{{ cloudflare_api_key }}"
+    account_email: "{{ cloudflare_email }}"
+  loop: "{{ dns_records }}"

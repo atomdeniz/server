@@ -1,0 +1,41 @@
+listen: :{{ hysteria2_port }}
+
+tls:
+  cert: /etc/data/certificate.crt
+  key: /etc/data/privatekey.key
+
+auth:
+  type: password
+  password: "{{ hysteria_password }}"
+
+# Salamander obfuscation — XORs each QUIC packet so the stream doesn't
+# look like vanilla TLS/QUIC to DPI. Required client-side too.
+obfs:
+  type: salamander
+  salamander:
+    password: "{{ hysteria_obfs_password }}"
+
+# What probers / random visitors see on the port: a reverse proxy to a
+# real website. The container returns that site's content, not a 404.
+masquerade:
+  type: proxy
+  proxy:
+    url: "{{ hysteria_masquerade_url }}"
+    rewriteHost: true
+
+# Reasonable congestion/QoS defaults.
+bandwidth:
+  up: 1 gbps
+  down: 1 gbps
+
+ignoreClientBandwidth: false
+disableUDP: false
+
+quic:
+  initStreamReceiveWindow: 8388608
+  maxStreamReceiveWindow: 8388608
+  initConnReceiveWindow: 20971520
+  maxConnReceiveWindow: 20971520
+  maxIdleTimeout: 30s
+  maxIncomingStreams: 1024
+  disablePathMTUDiscovery: false
