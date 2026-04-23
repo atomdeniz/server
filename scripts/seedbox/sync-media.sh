@@ -16,6 +16,11 @@
 
 set -euo pipefail
 
+# Fail loud if HOME is unset. Cron normally inherits HOME from the user's
+# passwd entry, but a misconfigured environment would silently turn
+# "$HOME/..." into "/..." and could write outside the user's tree.
+: "${HOME:?HOME is not set}"
+
 LOCK=/tmp/rclone-sync.lock
 LOG_DIR="$HOME/.local/log"
 LOG="$LOG_DIR/sync-media.log"
@@ -50,6 +55,27 @@ if ! flock -n 9; then
   exit 0
 fi
 
+# We hold the lock, so no live sync-media.sh exists. Any "rclone sync"
+# with our canonical path must be an orphan from a prior run that was
+# SIGKILLed (OOM, node reboot, manual kill): its parent bash died, FD 9
+# closed, lock released — but rclone was reparented to init and kept
+# running. Leaving it would mean two concurrent rclones once we start
+# ours, which is exactly the FUP violation we were suspended for.
+orphans=$(pgrep -f "^rclone sync $HOME/media/" 2>/dev/null || true)
+if [ -n "$orphans" ]; then
+  echo "[$(date -Is)] killing orphan rclone(s): $orphans" >> "$LOG"
+  # shellcheck disable=SC2086
+  kill -9 $orphans 2>/dev/null || true
+  sleep 1
+fi
+
+# Final defense: reap our own rclone children on any trappable exit so
+# they do not outlive this script and become the NEXT run's orphans.
+# SIGKILL cannot be trapped — the orphan-kill above is the recovery path
+# for that case.
+cleanup() { pkill -P $$ 2>/dev/null || true; }
+trap cleanup EXIT
+
 echo "[$(date -Is)] start pid=$$" >> "$LOG"
 
 RCLONE_OPTS=(
@@ -74,9 +100,9 @@ sync_pair() {
   fi
 }
 
-sync_pair "$HOME/media/Movies/"   "storagebox-webdav:media/movies/"
-sync_pair "$HOME/media/TV Shows/" "storagebox-webdav:media/tv/"
-sync_pair "$HOME/media/Anime/"    "storagebox-webdav:media/anime/"
+sync_pair "$HOME/media/Movies/"   "storagebox:media/movies/"
+sync_pair "$HOME/media/TV Shows/" "storagebox:media/tv/"
+sync_pair "$HOME/media/Anime/"    "storagebox:media/anime/"
 
 echo "[$(date -Is)] done pid=$$" >> "$LOG"
 

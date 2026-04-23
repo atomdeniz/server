@@ -251,7 +251,7 @@ The slot was suspended on 2026-04-23 for running 11 parallel rclones
 saturating the shared node. Any rclone automation on this slot MUST keep
 all three:
 
-- `flock -n /tmp/rclone-sync.lock` — at script entry AND in cron
+- `flock -n /tmp/rclone-sync.lock` — inside the script (cron must NOT wrap with the same lock file; that deadlocks the script's own acquire)
 - `--bwlimit=30M` — ceiling specified by Ultra.cc, do not raise
 - `--transfers=2` — do not raise
 

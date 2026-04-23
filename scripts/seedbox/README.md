@@ -31,11 +31,13 @@ ssh $SEEDBOX_USER@$SEEDBOX_HOST 'chmod 600 ~/.config/sync-media.env'
 On the slot, install the cron entry (`crontab -e`):
 
 ```
-*/30 * * * * flock -n /tmp/rclone-sync.lock $HOME/bin/sync-media.sh
+*/30 * * * * $HOME/bin/sync-media.sh
 ```
 
-The outer `flock` in cron plus the inner `flock` in the script is
-intentional belt + suspenders — both must stay.
+Do not wrap the cron invocation in an outer `flock` — the script
+already `flock`s `/tmp/rclone-sync.lock` internally, and wrapping cron
+with the same lock file causes the script's own acquire to fail
+immediately with "already running, skip".
 
 ## Ultra.cc Fair Usage Policy (2026-04-23 incident)
 
@@ -43,7 +45,7 @@ The slot was suspended after 11 parallel rclones accumulated over 26 days
 and saturated the shared node's disk I/O. Any rclone automation on this
 slot MUST preserve all three guarantees:
 
-- `flock -n /tmp/rclone-sync.lock` at script entry AND in cron
+- `flock -n /tmp/rclone-sync.lock` at script entry (the script handles this)
 - `--bwlimit=30M` — never raise
 - `--transfers=2` — never raise
 
