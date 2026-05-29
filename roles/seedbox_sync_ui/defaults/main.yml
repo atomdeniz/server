@@ -1,0 +1,18 @@
+---
+seedbox_sync_ui_version: "3.13-slim"
+
+# How often the VPS SSH-tails the seedbox log. Cheap (one tail -n 200
+# command), but keep it modest — the connection still costs an sshd
+# fork on the shared slot.
+seedbox_sync_ui_poll_interval: 15
+
+# Lines to tail. Must cover one full sync run worth of stats lines so
+# the parser can find both the last marker (start/sync/done) and the
+# last "Transferred:" line. ~200 is generous for the current 3-pair sync.
+seedbox_sync_ui_tail_lines: 300
+
+# Reuses the same SSH key the media_cleanup role creates/installs.
+# Host path; mounted read-only into the container.
+seedbox_sync_ui_ssh_key: "/home/{{ username }}/.ssh/seedbox"
+
+seedbox_sync_ui_log_path: "~/.local/log/sync-media.log"

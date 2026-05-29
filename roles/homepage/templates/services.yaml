@@ -141,6 +141,29 @@
         description: PR reviewer rotation
 
 - Seedbox:
+    - Sync Status:
+        server: my-docker
+        icon: mdi-sync
+        href: "https://{{ sync_status_host }}/api/status"
+        description: rclone sync progress (seedbox → Storage Box)
+        widget:
+          type: customapi
+          url: http://seedbox_sync_ui:8000/api/status
+          refreshInterval: 15000
+          method: GET
+          mappings:
+            - field: progress
+              label: Progress
+              format: text
+            - field: speed
+              label: Speed
+              format: text
+            - field: eta
+              label: ETA
+              format: text
+            - field: current_path
+              label: Path
+              format: text
     - Radarr:
         icon: radarr.svg
         href: "https://{{ seedbox_user }}.{{ seedbox_host }}/radarr"

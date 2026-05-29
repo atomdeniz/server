@@ -92,6 +92,7 @@
       - name: edge_network
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"
+      - "{{ storagebox_mount_path }}:/mnt/storagebox:ro,rslave"
     env:
       HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }}"
       HOMEPAGE_VAR_GRAFANA_PASSWORD: "{{ grafana_password | default('') }}"

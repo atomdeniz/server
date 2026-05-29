@@ -162,6 +162,7 @@ All enabled application roles in execution order:
 | `ntfy` | ntfy | `ntfy.{{ root_host }}` | Self-hosted push notifications |
 | `jellyfin` | jellyfin | `media.{{ root_host }}` | Media server |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
+| `seedbox_sync_ui` | seedbox_sync_ui | `sync.{{ root_host }}` | Renders Ultra.cc rclone log progress for Homepage widget (SSH-tails the slot) |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 

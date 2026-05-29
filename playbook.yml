@@ -177,6 +177,13 @@
       tags:
         - media_cleanup
 
+    # SSH-tails the seedbox rclone log and exposes parsed progress as
+    # JSON for the Homepage customapi widget. Depends on the SSH key
+    # created by media_cleanup — run that role first.
+    - role: seedbox_sync_ui
+      tags:
+        - seedbox_sync_ui
+
     - role: backup
       tags:
         - backup

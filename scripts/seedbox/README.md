@@ -55,3 +55,8 @@ Do not revert to a PID-based lock. PID reuse defeated the original script.
 
 `~/.local/log/sync-media.log` on the slot (appended; rotate manually if
 it grows, no service-level logrotate available).
+
+The script keeps rclone's `--stats` lines (one progress line every 15s)
+in this log. The VPS `seedbox_sync_ui` role SSH-tails the file and
+parses those lines to render progress in Homepage. If you ever re-add
+`-q` to `RCLONE_OPTS`, the UI goes blank.

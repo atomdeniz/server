@@ -15,6 +15,10 @@
     expanded: true
     label: System
 
+- resources:
+    disk: /mnt/storagebox
+    label: Storage Box
+
 - openmeteo:
     label: "{{ weather_label }}"
     latitude: {{ weather_latitude }}

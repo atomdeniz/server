@@ -243,6 +243,16 @@ endpoints:
     alerts:
       - type: ntfy
 
+  - name: Seedbox Sync UI
+    group: Applications
+    url: "http://seedbox_sync_ui:8000/health"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
   - name: Proxy (Reality)
     group: Infrastructure
     url: "tcp://xray:{{ xray_reality_port }}"

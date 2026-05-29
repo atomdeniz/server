@@ -1,0 +1,39 @@
+---
+services:
+  seedbox_sync_ui:
+    build: .
+    container_name: seedbox_sync_ui
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    cap_drop:
+      - ALL
+    environment:
+      SEEDBOX_HOST: "{{ seedbox_host }}"
+      SEEDBOX_USER: "{{ seedbox_user }}"
+      SEEDBOX_SSH_KEY: "/app/.ssh/seedbox"
+      SEEDBOX_LOG_PATH: "{{ seedbox_sync_ui_log_path }}"
+      POLL_INTERVAL: "{{ seedbox_sync_ui_poll_interval }}"
+      TAIL_LINES: "{{ seedbox_sync_ui_tail_lines }}"
+    volumes:
+      # Read-only mount of the existing seedbox SSH key (created by the
+      # media_cleanup role). Don't duplicate the key — one key, one
+      # rotation point.
+      - "{{ seedbox_sync_ui_ssh_key }}:/app/.ssh/seedbox:ro"
+    networks:
+      - app_network
+    labels:
+      diun.enable: "false"
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.seedbox_sync_ui.entrypoints: "https"
+      traefik.http.routers.seedbox_sync_ui.rule: "Host(`{{ sync_status_host }}`)"
+      traefik.http.routers.seedbox_sync_ui.tls: "true"
+      traefik.http.routers.seedbox_sync_ui.service: "seedbox_sync_ui"
+      traefik.http.routers.seedbox_sync_ui.middlewares: "secure-vpn@file"
+      traefik.http.services.seedbox_sync_ui.loadbalancer.server.port: "8000"
+
+networks:
+  app_network:
+    external: true

@@ -78,6 +78,9 @@ trap cleanup EXIT
 
 echo "[$(date -Is)] start pid=$$" >> "$LOG"
 
+# --stats* lines are what the VPS sync-status UI tails via SSH to render
+# progress. They cost nothing on the wire — same rclone process, just
+# more log output. Do NOT re-add -q; it would silence the stats too.
 RCLONE_OPTS=(
   --bwlimit=30M
   --transfers=2
@@ -85,7 +88,9 @@ RCLONE_OPTS=(
   --size-only
   --retries=3
   --low-level-retries=5
-  -q
+  --stats=15s
+  --stats-one-line
+  --stats-log-level=NOTICE
 )
 
 FAILED=()
