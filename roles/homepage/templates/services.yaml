@@ -120,15 +120,6 @@
         icon: umami.svg
         href: "https://{{ umami_host }}"
         description: Web analytics
-    - Jellyfin:
-        server: my-docker
-        icon: jellyfin.svg
-        href: "https://{{ jellyfin_host }}"
-        description: Media server
-        widget:
-          type: jellyfin
-          url: http://jellyfin:8096
-          key: "{% raw %}{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}{% endraw %}"
     - Ntfy:
         server: my-docker
         icon: ntfy.svg
@@ -139,72 +130,6 @@
         icon: mdi-source-pull
         href: "https://{{ pr_queue_host }}"
         description: PR reviewer rotation
-
-- Seedbox:
-    - Sync Status:
-        server: my-docker
-        icon: mdi-sync
-        href: "https://{{ sync_status_host }}/api/status"
-        description: rclone sync progress (seedbox → Storage Box)
-        widget:
-          type: customapi
-          url: http://seedbox_sync_ui:8000/api/status
-          refreshInterval: 15000
-          method: GET
-          mappings:
-            - field: progress
-              label: Progress
-              format: text
-            - field: speed
-              label: Speed
-              format: text
-            - field: eta
-              label: ETA
-              format: text
-            - field: current_path
-              label: Path
-              format: text
-    - Radarr:
-        icon: radarr.svg
-        href: "https://{{ seedbox_user }}.{{ seedbox_host }}/radarr"
-        description: Movie automation
-        widget:
-          type: radarr
-          url: "https://{{ seedbox_user }}.{{ seedbox_host }}/radarr"
-          key: "{% raw %}{{HOMEPAGE_VAR_RADARR_API_KEY}}{% endraw %}"
-    - Sonarr:
-        icon: sonarr.svg
-        href: "https://{{ seedbox_user }}.{{ seedbox_host }}/sonarr"
-        description: TV automation
-        widget:
-          type: sonarr
-          url: "https://{{ seedbox_user }}.{{ seedbox_host }}/sonarr"
-          key: "{% raw %}{{HOMEPAGE_VAR_SONARR_API_KEY}}{% endraw %}"
-    - qBittorrent:
-        icon: qbittorrent.svg
-        href: "https://{{ seedbox_user }}.{{ seedbox_host }}/qbittorrent"
-        description: Torrent client
-        widget:
-          type: qbittorrent
-          url: "https://{{ seedbox_user }}.{{ seedbox_host }}/qbittorrent"
-          username: "{{ seedbox_user }}"
-          password: "{% raw %}{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}{% endraw %}"
-    - Prowlarr:
-        icon: prowlarr.svg
-        href: "https://{{ seedbox_user }}.{{ seedbox_host }}/prowlarr"
-        description: Indexer manager
-        widget:
-          type: prowlarr
-          url: "https://{{ seedbox_user }}.{{ seedbox_host }}/prowlarr"
-          key: "{% raw %}{{HOMEPAGE_VAR_PROWLARR_API_KEY}}{% endraw %}"
-    - Bazarr:
-        icon: bazarr.svg
-        href: "https://{{ seedbox_user }}.{{ seedbox_host }}/bazarr"
-        description: Subtitle manager
-        widget:
-          type: bazarr
-          url: "https://{{ seedbox_user }}.{{ seedbox_host }}/bazarr"
-          key: "{% raw %}{{HOMEPAGE_VAR_BAZARR_API_KEY}}{% endraw %}"
 
 - Tools:
     - IT Tools:

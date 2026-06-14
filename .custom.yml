@@ -21,10 +21,6 @@ force_recreate: true
 storagebox_host: "" # uXXXXXX.your-storagebox.de
 storagebox_user: "" # uXXXXXX
 
-# --- Seedbox (Ultra.cc) ---
-seedbox_host: "" # e.g. slotXXX.usbx.me
-seedbox_user: "" # ultra.cc username
-
 # --- PR Queue ---
 # Reviewer rotation members. Real names — treat as personal data, do not
 # commit to a public repo.

@@ -62,11 +62,7 @@ all:
     # ntfy_topic_prefix — sourced from custom.yml (personal namespace so
     # ntfy.sh upstream relay doesn't collide with reserved topics).
 
-    jellyfin_host: "media.{{ root_host }}"
-
     pr_queue_host: "pr.{{ root_host }}"
-
-    sync_status_host: "sync.{{ root_host }}"
 
     traefik_app_network_gateway: 10.8.6.1
 

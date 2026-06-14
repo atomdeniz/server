@@ -46,11 +46,6 @@
     name: freqtrade
     restart: yes
 
-- name: Restart jellyfin
-  community.docker.docker_container:
-    name: jellyfin
-    restart: yes
-
 - name: Restart xray
   community.docker.docker_container:
     name: xray

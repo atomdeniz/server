@@ -160,9 +160,7 @@ All enabled application roles in execution order:
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `ntfy` | ntfy | `ntfy.{{ root_host }}` | Self-hosted push notifications |
-| `jellyfin` | jellyfin | `media.{{ root_host }}` | Media server |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
-| `seedbox_sync_ui` | seedbox_sync_ui | `sync.{{ root_host }}` | Renders Ultra.cc rclone log progress for Homepage widget (SSH-tails the slot) |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
@@ -232,43 +230,6 @@ After first CrowdSec deploy, enroll the agent on the server:
 ```bash
 docker exec crowdsec cscli console enroll -e context <key>
 ```
-
-## Seedbox (Ultra.cc, external)
-
-An Ultra.cc slot (host + user configured in `custom.yml` as `seedbox_host`
-/ `seedbox_user`) runs the download side: qBittorrent +
-Sonarr/Radarr/Prowlarr/Bazarr. A cron-driven rclone job on the slot
-one-way-syncs `~/media/{Movies,TV Shows,Anime}` to the Hetzner Storage
-Box, which the VPS Jellyfin reads over CIFS.
-
-The slot is **not managed by ansible** (shared hosting, no root). The
-sync script's canonical source lives in `scripts/seedbox/` in this repo;
-it is scp'd to the slot manually after changes. Never edit the copy on
-the slot in place.
-
-### Ultra.cc Fair Usage Policy (non-negotiable)
-
-The slot was suspended on 2026-04-23 for running 11 parallel rclones
-saturating the shared node. Any rclone automation on this slot MUST keep
-all three:
-
-- `flock -n /tmp/rclone-sync.lock` — inside the script (cron must NOT wrap with the same lock file; that deadlocks the script's own acquire)
-- `--bwlimit=30M` — ceiling specified by Ultra.cc, do not raise
-- `--transfers=2` — do not raise
-
-PID-based locking is banned; use `flock` only.
-
-### media_cleanup role
-
-`roles/media_cleanup/` queries the Jellyfin API for watched content,
-derives the corresponding paths, and deletes them **on the seedbox only**
-via SSH. `rclone sync` propagates the deletion to the Storage Box on the
-next run. The role never touches the Storage Box mount directly — doing
-so would race with an in-flight sync.
-
-### Redeploying the sync script
-
-See `scripts/seedbox/README.md` for scp + cron install steps.
 
 ## Other Playbooks
 

@@ -162,27 +162,9 @@
       tags:
         - ntfy
 
-    - role: jellyfin
-      tags:
-        - jellyfin
-
     - role: pr_queue
       tags:
         - pr_queue
-
-    # Deletes watched content on the seedbox via SSH; the next rclone sync
-    # propagates the removal to the Storage Box. Storage Box is no longer
-    # touched directly — see roles/media_cleanup/templates/media-cleanup.sh.j2.
-    - role: media_cleanup
-      tags:
-        - media_cleanup
-
-    # SSH-tails the seedbox rclone log and exposes parsed progress as
-    # JSON for the Homepage customapi widget. Depends on the SSH key
-    # created by media_cleanup — run that role first.
-    - role: seedbox_sync_ui
-      tags:
-        - seedbox_sync_ui
 
     - role: backup
       tags:
