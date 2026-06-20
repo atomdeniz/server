@@ -34,6 +34,28 @@
         icon: dozzle.png
         href: "https://{{ dozzle_host }}"
         description: Container logs
+    - Cup:
+        server: my-docker
+        icon: cup.png
+        href: "https://{{ cup_host }}"
+        description: Image update checker
+        widget:
+          type: customapi
+          url: http://cup:8000/api/v3/json
+          refreshInterval: 600000
+          mappings:
+            - field:
+                metrics: monitored_images
+              label: Monitored
+            - field:
+                metrics: updates_available
+              label: Updates
+            - field:
+                metrics: major_updates
+              label: Major
+            - field:
+                metrics: up_to_date
+              label: Up to date
 
 - Network & Security:
     - Traefik:
@@ -142,6 +164,11 @@
         icon: convertx.png
         href: "https://{{ convertx_host }}"
         description: File converter
+    - PocketBase:
+        server: my-docker
+        icon: pocketbase.svg
+        href: "https://{{ pocketbase_host }}/_/"
+        description: Waitlist backend
     - Pingvin Share:
         server: my-docker
         icon: pingvin-share.svg

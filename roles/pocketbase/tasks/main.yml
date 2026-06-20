@@ -1,0 +1,72 @@
+---
+- name: Create the pocketbase directories
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/pocketbase/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  loop:
+    - pb_data
+    - pb_migrations
+
+- name: Copy the waitlist migration
+  ansible.builtin.copy:
+    src: "1700000000_waitlist.js"
+    dest: "{{ docker_dir }}/pocketbase/pb_migrations/1700000000_waitlist.js"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Make sure the pocketbase container is created and running
+  community.general.docker_container:
+    name: "pocketbase"
+    image: "ghcr.io/muchobien/pocketbase:{{ pocketbase_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    command:
+      - "serve"
+      - "--http=0.0.0.0:8090"
+      - "--dir=/pb_data"
+      - "--migrationsDir=/pb_migrations"
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+    volumes:
+      - "{{ docker_dir }}/pocketbase/pb_data:/pb_data"
+      - "{{ docker_dir }}/pocketbase/pb_migrations:/pb_migrations"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.pocketbase.entrypoints: "https"
+      traefik.http.routers.pocketbase.rule: "Host(`{{ pocketbase_host }}`)"
+      traefik.http.routers.pocketbase.tls: "true"
+      traefik.http.routers.pocketbase.service: "pocketbase"
+      traefik.http.routers.pocketbase.middlewares: "open-external@file"
+      traefik.http.services.pocketbase.loadbalancer.server.port: "8090"
+
+- name: Wait for PocketBase to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:8090/api/health"
+    status_code: 200
+  register: pocketbase_health
+  until: pocketbase_health.status == 200
+  retries: 10
+  delay: 2
+  delegate_to: "{{ inventory_hostname }}"
+  # health endpoint is only reachable on the container network; if 127.0.0.1
+  # isn't mapped, this is best-effort — failure here doesn't block the superuser step.
+  failed_when: false
+
+- name: Ensure the PocketBase superuser exists
+  ansible.builtin.command:
+    cmd: >-
+      docker exec pocketbase pocketbase superuser upsert
+      {{ pocketbase_admin_email }} {{ pocketbase_admin_password }}
+  register: pocketbase_superuser
+  changed_when: "'Successfully' in pocketbase_superuser.stdout"
+  no_log: true

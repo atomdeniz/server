@@ -102,9 +102,9 @@
     #   tags:
     #     - freqtrade
 
-    - role: diun
+    - role: cup
       tags:
-        - diun
+        - cup
 
     - role: web_check
       tags:
@@ -113,6 +113,10 @@
     - role: convertx
       tags:
         - convertx
+
+    - role: pocketbase
+      tags:
+        - pocketbase
 
     - role: storagebox
       tags:

@@ -123,6 +123,16 @@ endpoints:
     alerts:
       - type: ntfy
 
+  - name: Cup
+    group: Monitoring
+    url: "http://cup:8000"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
   - name: IT Tools
     group: Applications
     url: "https://{{ it_tools_host }}"
@@ -190,6 +200,16 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
+    alerts:
+      - type: ntfy
+
+  - name: PocketBase
+    group: Applications
+    url: "http://pocketbase:8090/api/health"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
     alerts:
       - type: ntfy
 

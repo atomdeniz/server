@@ -1,0 +1,46 @@
+---
+- name: Create cup data directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/cup"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy cup config
+  ansible.builtin.template:
+    src: cup.json.j2
+    dest: "{{ docker_dir }}/cup/cup.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Make sure the cup container is created and running
+  community.general.docker_container:
+    name: "cup"
+    image: "ghcr.io/sergi0g/cup:{{ cup_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    command: "-c /config/cup.json serve"
+    memory: "128M"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: ops_network
+      - name: app_network
+    volumes:
+      - "{{ docker_dir }}/cup/cup.json:/config/cup.json:ro"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.cup.entrypoints: "https"
+      traefik.http.routers.cup.rule: "Host(`{{ cup_host }}`)"
+      traefik.http.routers.cup.tls: "true"
+      traefik.http.routers.cup.service: "cup"
+      traefik.http.routers.cup.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.cup.loadbalancer.server.port: "8000"

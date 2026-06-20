@@ -39,6 +39,8 @@ all:
 
     convertx_host: "convertx.{{ root_host }}"
 
+    pocketbase_host: "pb.{{ root_host }}"
+
     immich_host: "photos.{{ root_host }}"
 
     it_tools_host: "dev.{{ root_host }}"
@@ -46,6 +48,8 @@ all:
     changedetection_host: "changes.{{ root_host }}"
 
     dozzle_host: "dozzle.{{ root_host }}"
+
+    cup_host: "cup.{{ root_host }}"
 
     spliit_host: "spliit.{{ root_host }}"
 
