@@ -1,6 +1,6 @@
 ---
 # Xray (VLESS + XTLS-Vision + Reality)
-xray_version: "26.4.17"
+xray_version: "26.6.1"
 xray_reality_port: 8443
 
 # Reality masks traffic as a handshake with a real public site.
@@ -10,7 +10,7 @@ reality_server_names:
   - "www.microsoft.com"
 
 # Hysteria2 (UDP / QUIC)
-hysteria_version: "2.8.1"
+hysteria_version: "2.9.2"
 hysteria2_port: 443
 
 # Decoy site Hysteria2 serves to probers on 443/udp.
