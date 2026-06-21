@@ -154,7 +154,7 @@ All enabled application roles in execution order:
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
 | `changedetection` | changedetection | `changes.{{ root_host }}` | Website change monitoring |
 | `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer |
-| `postgres` | postgres | — | PostgreSQL with pgvecto.rs (for Immich) |
+| `postgres` | postgres | — | PostgreSQL 18 (shared DB for spliit + umami; Immich has its own pinned DB) |
 | `spliit` | spliit | `spliit.{{ root_host }}` | Expense splitting |
 | `umami` | umami | `analytics.{{ root_host }}` | Web analytics |
 | `pingvin` | pingvin | `share.{{ root_host }}` | File sharing |
