@@ -1,4 +1,4 @@
 ---
-postgres_version: "16-alpine"
+postgres_version: "18-alpine"
 postgres_container_name: "postgres"
 postgres_bootstrap_user: "spliit"
