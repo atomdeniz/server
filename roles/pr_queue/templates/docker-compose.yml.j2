@@ -12,7 +12,6 @@ services:
     networks:
       - app_network
     labels:
-      diun.enable: "false"
       traefik.enable: "true"
       traefik.docker.network: "app_network"
       traefik.http.routers.pr_queue.entrypoints: "https"
