@@ -13,3 +13,28 @@ amnezia_wg_image_tag: "15.3.0"
 # hashes it with argon2 itself; the old PASSWORD_HASH must NOT be passed, v15
 # hard-errors on boot if it sees PASSWORD/PASSWORD_HASH).
 amnezia_wg_admin_username: "admin"
+
+# --- AmneziaWG 2.0 obfuscation (applied to the v15 SQLite DB; see tasks) ---
+# v15 only auto-generates the 1.0 params (Jc/Jmin/Jmax, S1/S2, H1-H4). These add
+# the 2.0 layer. I1-I5 are Custom Signature Packets sent before the handshake to
+# mimic real protocols, written in AmneziaWG's packet-template DSL:
+#   <b 0xHEX> static bytes | <r N> random bytes | <rc N> random chars | <t> 4-byte
+#   unix timestamp   (the <c> and <wt> tags are NOT implemented — do not use).
+# They need NOT match between peers, so they're set on the interface AND every
+# client. The <r>/<t> tags re-randomize the bytes per packet, so reusing one
+# template across peers still yields distinct wire bytes.
+amnezia_wg_awg2_signature_packets:
+  - "<b 0xc30000000108><r 8><b 0x08><r 8><b 0x0045dc><t><r 16>"   # I1: QUIC Initial
+  - "<b 0x1603010200><r 2><b 0x0303><t><r 28>"                     # I2: TLS ClientHello
+  - "<r 2><b 0x0100000100000000000003><rc 8><b 0x0000010001>"      # I3: DNS query
+  - "<b 0x474554202f><rc 12><b 0x20485454502f312e310d0a0d0a>"      # I4: HTTP GET
+  - "<b 0x2112a442><r 16><t><r 8>"                                 # I5: STUN
+
+# S3/S4 extend message padding to cookie/transport packets (1.0 only padded
+# handshake init/response via S1/S2). wg-easy sources S* from the interface and
+# copies them into every client config, and they MUST match between peers, so
+# changing them requires every client to re-download its config. S4 pads EVERY
+# transport packet, so keep it small: inner MTU 1420 + ~60B WireGuard overhead +
+# S4 must stay under the 1500B physical MTU to avoid fragmentation (1420+60+16<1500).
+amnezia_wg_awg2_s3: 64
+amnezia_wg_awg2_s4: 16

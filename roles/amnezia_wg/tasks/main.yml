@@ -111,4 +111,49 @@
     executable: python3
   register: amnezia_wg_hook_fix
   changed_when: "'CHANGED' in amnezia_wg_hook_fix.stdout"
-  notify: Restart amnezia-wg to apply masquerade hook
+  notify: Restart amnezia-wg
+
+- name: Render the AmneziaWG 2.0 obfuscation params
+  ansible.builtin.template:
+    src: awg2.json.j2
+    dest: "{{ docker_dir }}/amnezia-wg-awg2.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Apply AmneziaWG 2.0 signature packets + paddings to the v15 DB
+  # v15 only auto-generates the 1.0 params (Jc/Jmin/Jmax, S1/S2, H1-H4); the 2.0
+  # signature packets (I1-I5) and extra paddings (S3/S4) are left empty. Write
+  # them into the SQLite DB: I1-I5 on the interface AND every client (they need
+  # not match peers), S3/S4 on the interface (propagated to clients, must match,
+  # so every client must re-download its config after a change). Idempotent;
+  # restarts the container only when it actually rewrites a row.
+  ansible.builtin.script:
+    cmd: "files/apply_awg2.py {{ docker_dir }}/amnezia-wg/wg-easy.db {{ docker_dir }}/amnezia-wg-awg2.json"
+    executable: python3
+  register: amnezia_wg_awg2_apply
+  changed_when: "'CHANGED' in amnezia_wg_awg2_apply.stdout"
+  notify: Restart amnezia-wg
+
+- name: Render the AmneziaWG 2.0 obfuscation params
+  ansible.builtin.template:
+    src: awg2.json.j2
+    dest: "{{ docker_dir }}/amnezia-wg-awg2.json"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Apply AmneziaWG 2.0 signature packets + paddings to the v15 DB
+  # v15 only auto-generates the 1.0 params (Jc/Jmin/Jmax, S1/S2, H1-H4); the 2.0
+  # signature packets (I1-I5) and extra paddings (S3/S4) start empty. Write them
+  # into the SQLite DB: I1-I5 on the interface AND every client (they need not
+  # match peers), S3/S4 on the interface (propagated into client configs, must
+  # match -> every client must re-download its config after a change). The
+  # written value is the dest of the task above. Idempotent; restarts only on
+  # an actual change.
+  ansible.builtin.script:
+    cmd: "files/apply_awg2.py {{ docker_dir }}/amnezia-wg/wg-easy.db {{ docker_dir }}/amnezia-wg-awg2.json"
+    executable: python3
+  register: amnezia_wg_awg2_apply
+  changed_when: "'CHANGED' in amnezia_wg_awg2_apply.stdout"
+  notify: Restart amnezia-wg

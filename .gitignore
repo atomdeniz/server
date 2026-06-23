@@ -7,3 +7,7 @@ custom.yml
 cookies.txt
 .planning/
 .claude/
+
+# Python bytecode
+__pycache__/
+*.pyc

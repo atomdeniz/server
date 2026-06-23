@@ -1,7 +1,7 @@
 ---
-- name: Restart amnezia-wg to apply masquerade hook
-  # Restarting re-runs awg-quick up, which regenerates wg0.conf from the (now
-  # corrected) DB hook, so the device-agnostic masquerade rule takes effect.
+- name: Restart amnezia-wg
+  # Restarting re-runs awg-quick up, which regenerates wg0.conf from the DB, so
+  # DB-level changes (the corrected masquerade hook, AWG 2.0 params) take effect.
   community.docker.docker_container:
     name: "amnezia-wg"
     restart: true
