@@ -98,3 +98,17 @@
       traefik.http.routers.amnezia-wg-dynamic.tls: "true"
       traefik.http.routers.amnezia-wg-dynamic.service: "traefikshaper"
       traefik.http.services.amnezia-wg-dynamic.loadbalancer.server.port: "5000"
+
+- name: Broaden the v15 NAT masquerade hook so VPN client DNS works
+  # v15 seeds the interface masquerade as `-o eth0`, which only NATs traffic
+  # leaving eth0 (internet). VPN clients' DNS goes to AdGuard on dns_network via
+  # the `myeth` interface, so it isn't masqueraded and AdGuard can't route
+  # replies back to the VPN subnet -> client DNS/internet breaks. No env
+  # overrides the seeded hook, so patch the DB to the device-agnostic
+  # `! -o wg0` form. Idempotent; restarts the container only when it rewrites.
+  ansible.builtin.script:
+    cmd: "files/fix_masquerade_hook.py {{ docker_dir }}/amnezia-wg/wg-easy.db"
+    executable: python3
+  register: amnezia_wg_hook_fix
+  changed_when: "'CHANGED' in amnezia_wg_hook_fix.stdout"
+  notify: Restart amnezia-wg to apply masquerade hook
