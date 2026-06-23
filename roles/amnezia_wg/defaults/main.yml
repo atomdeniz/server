@@ -10,6 +10,6 @@ amnezia_wg_version: "v1"
 # .github/workflows/amnezia-upstream-check.yml workflow, which opens an issue
 # when a newer tag is published. amnezia-wg-easy is a dead fork (no releases
 # since 2024-09-22) so it stays pinned to a commit SHA — nothing to track.
-amnezia_wg_go_tag: "v0.2.17"          # amnezia-vpn/amneziawg-go
-amnezia_wg_tools_tag: "v1.0.20260223" # amnezia-vpn/amneziawg-tools
+amnezia_wg_go_tag: "v0.2.19"            # amnezia-vpn/amneziawg-go
+amnezia_wg_tools_tag: "v1.0.20260618-2" # amnezia-vpn/amneziawg-tools
 amnezia_wg_easy_commit: "139126743757157f6c51b10132c0b8cb3824735a" # w0rng/amnezia-wg-easy @ master HEAD
