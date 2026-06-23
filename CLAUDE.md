@@ -137,7 +137,7 @@ All enabled application roles in execution order:
 | `whoami` | whoami | `whoami.{{ root_host }}` | HTTP request debug service |
 | `unbound` | unbound | — | Recursive DNS resolver (10.8.4.3) |
 | `adguardhome` | adguardhome | `adguard.{{ root_host }}` | DNS ad blocker (10.8.4.2) |
-| `amnezia_wg` | amnezia_wg | `vpn.{{ root_host }}` | AmneziaWG VPN |
+| `amnezia_wg` | amnezia_wg | `vpn.{{ root_host }}` | VPN — official `ghcr.io/wg-easy/wg-easy:15` image running AmneziaWG (AWG 2.0) in userspace; tracked by Cup |
 | `mywebsite` | mywebsite | `www.{{ root_host }}` | Personal website |
 | `vaultwarden` | vaultwarden | `password.{{ root_host }}` | Password manager |
 | `homepage` | homepage | `home.{{ root_host }}` | Dashboard |

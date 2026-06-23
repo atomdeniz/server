@@ -95,7 +95,9 @@
         description: VPN gateway
         widget:
           type: wgeasy
+          version: 2
           url: http://amnezia-wg:51821
+          username: "{{ amnezia_wg_admin_username }}"
           password: "{% raw %}{{HOMEPAGE_VAR_AMNEZIA_PASSWORD}}{% endraw %}"
     - Proxy (Reality + Hysteria2):
         server: my-docker

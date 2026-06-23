@@ -1,15 +1,15 @@
 ---
-amnezia_wg_version: "v1"
+# Official wg-easy v15 image (the major rewrite: SQLite-backed, new UI). The
+# image already bundles amneziawg-go + awg/awg-quick and runs them in USERSPACE
+# when no kernel module is present, so there is no local build on ARM64 anymore.
+# AmneziaWG (AWG 2.0 obfuscation, I1–I5) is turned on via EXPERIMENTAL_AWG +
+# OVERRIDE_AUTO_AWG in tasks/main.yml. The official ghcr image is tracked by Cup
+# natively, so no upstream-check workflow is needed.
+amnezia_wg_image: "ghcr.io/wg-easy/wg-easy"
+amnezia_wg_image_tag: "15.3.0"
 
-# Upstream source pins for the locally-built amnezia-wg-easy image. ARM64 has
-# no working upstream image, so we build from source (see
-# w0rng/amnezia-wg-easy#10). Bumping any of these + rerunning with
-# -e force_recreate=true rebuilds the image against the new ref.
-#
-# go/tools are pinned to release TAGS: readable, and tracked by the
-# .github/workflows/amnezia-upstream-check.yml workflow, which opens an issue
-# when a newer tag is published. amnezia-wg-easy is a dead fork (no releases
-# since 2024-09-22) so it stays pinned to a commit SHA — nothing to track.
-amnezia_wg_go_tag: "v0.2.19"            # amnezia-vpn/amneziawg-go
-amnezia_wg_tools_tag: "v1.0.20260618-2" # amnezia-vpn/amneziawg-tools
-amnezia_wg_easy_commit: "139126743757157f6c51b10132c0b8cb3824735a" # w0rng/amnezia-wg-easy @ master HEAD
+# Admin username for the wg-easy web UI. Seeded once via INIT_USERNAME on first
+# boot (alongside the vault var `amnezia_password`, which is PLAINTEXT — v15
+# hashes it with argon2 itself; the old PASSWORD_HASH must NOT be passed, v15
+# hard-errors on boot if it sees PASSWORD/PASSWORD_HASH).
+amnezia_wg_admin_username: "admin"
