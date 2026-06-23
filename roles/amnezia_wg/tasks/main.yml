@@ -22,10 +22,7 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
-    # v15's HEALTHCHECK runs `wg show | grep interface`, but in AWG userspace
-    # mode the device is an amneziawg-go interface that plain `wg` does not list,
-    # so the built-in check would flap to "unhealthy" while the tunnel is fine.
-    # Disable it; Gatus/awg show is the real liveness signal.
+    # v15's `wg show` healthcheck can't see the userspace awg0, so it false-flaps
     healthcheck:
       test: ["NONE"]
     security_opts:
@@ -45,54 +42,36 @@
     devices:
       - /dev/net/tun:/dev/net/tun
     env:
-      # --- runtime (v15 WG_ENV) ---
-      PORT: "51821"           # web UI port (v15 default); Traefik targets this
+      PORT: "51821"
       HOST: "0.0.0.0"
-      INSECURE: "false"       # served behind Traefik TLS
-      DISABLE_IPV6: "true"    # IPv6 is disabled at the Hetzner layer (see CLAUDE.md)
-      # --- AmneziaWG userspace ---
-      # This VPS has no amneziawg kernel module. EXPERIMENTAL_AWG enables AWG and
-      # OVERRIDE_AUTO_AWG=awg forces the userspace amneziawg-go path, skipping the
-      # `modinfo amneziawg` probe (which would otherwise fall back to plain wg).
+      INSECURE: "false"
+      DISABLE_IPV6: "true"
+      # force userspace amneziawg-go (no kernel module on this VPS)
       EXPERIMENTAL_AWG: "true"
       OVERRIDE_AUTO_AWG: "awg"
-      # --- one-time unattended provisioning (v15 WG_INITIAL_ENV) ---
-      # Consumed only on first boot, before setup is marked complete; ignored on
-      # every subsequent start. All four of USERNAME/PASSWORD/HOST/PORT are
-      # required for the admin user to be created without the web wizard.
+      # INIT_* seed the admin + interface on first boot only
       INIT_ENABLED: "true"
       INIT_USERNAME: "{{ amnezia_wg_admin_username }}"
-      INIT_PASSWORD: "{{ amnezia_password }}"   # plaintext; v15 argon2-hashes it
+      INIT_PASSWORD: "{{ amnezia_password }}"   # plaintext; v15 hashes it
       INIT_HOST: "{{ ansible_host }}"
       INIT_PORT: "{{ vpn_port }}"
       INIT_DNS: "{{ adguard_local_ip }}"
       INIT_ALLOWED_IPS: "{{ vpn_client_allowed_ips }}"
-      # v15's seeded default IPv4 CIDR is already 10.8.0.0/24 (== vpn_subnet_cidr).
-      # NOTE: v15 only applies the CIDR override when BOTH INIT_IPV4_CIDR and
-      # INIT_IPV6_CIDR are set; with IPv6 disabled this stays a no-op that simply
-      # documents the intended subnet.
       INIT_IPV4_CIDR: "{{ vpn_subnet_cidr }}"
     ports:
       - "{{ vpn_port }}:51820/udp"
-    # v15 stores everything (SQLite DB wg-easy.db + generated wg0.conf + keys)
-    # under a single path. The image symlinks /etc/amnezia/amneziawg -> here.
     volumes:
       - "{{ docker_dir }}/amnezia-wg:/etc/wireguard"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"
-      # Main UI router. v15 serves the web UI on 51821 (same as the old fork).
       traefik.http.routers.amnezia-wg.entrypoints: "https"
       traefik.http.routers.amnezia-wg.rule: "Host(`{{ vpn_host }}`) && !Path(`/knock-knock`)"
       traefik.http.routers.amnezia-wg.tls: "true"
       traefik.http.routers.amnezia-wg.service: "amnezia-wg"
       traefik.http.services.amnezia-wg.loadbalancer.server.port: "51821"
       traefik.http.routers.amnezia-wg.middlewares: "dynamic-ipwhitelist@file,secure-external@file"
-      # TraefikShaper "knock" endpoint on the same host: hitting
-      # https://{{ vpn_host }}/knock-knock authorizes the caller's IP into the
-      # dynamic-ipwhitelist that gates the router above. traefikshaper is a
-      # standalone service from the traefik role (port 5000), independent of the
-      # VPN image, so this stays unchanged across the v15 migration.
+      # /knock-knock authorizes the caller's IP via the standalone traefikshaper
       traefik.http.routers.amnezia-wg-dynamic.entrypoints: "https"
       traefik.http.routers.amnezia-wg-dynamic.rule: "Host(`{{ vpn_host }}`) && PathPrefix(`/knock-knock`)"
       traefik.http.routers.amnezia-wg-dynamic.tls: "true"
@@ -100,12 +79,7 @@
       traefik.http.services.amnezia-wg-dynamic.loadbalancer.server.port: "5000"
 
 - name: Broaden the v15 NAT masquerade hook so VPN client DNS works
-  # v15 seeds the interface masquerade as `-o eth0`, which only NATs traffic
-  # leaving eth0 (internet). VPN clients' DNS goes to AdGuard on dns_network via
-  # the `myeth` interface, so it isn't masqueraded and AdGuard can't route
-  # replies back to the VPN subnet -> client DNS/internet breaks. No env
-  # overrides the seeded hook, so patch the DB to the device-agnostic
-  # `! -o wg0` form. Idempotent; restarts the container only when it rewrites.
+  # v15 seeds `-o eth0`, which skips DNS leaving via myeth; `! -o wg0` covers both
   ansible.builtin.script:
     cmd: "files/fix_masquerade_hook.py {{ docker_dir }}/amnezia-wg/wg-easy.db"
     executable: python3
@@ -122,35 +96,6 @@
     mode: "0644"
 
 - name: Apply AmneziaWG 2.0 signature packets + paddings to the v15 DB
-  # v15 only auto-generates the 1.0 params (Jc/Jmin/Jmax, S1/S2, H1-H4); the 2.0
-  # signature packets (I1-I5) and extra paddings (S3/S4) are left empty. Write
-  # them into the SQLite DB: I1-I5 on the interface AND every client (they need
-  # not match peers), S3/S4 on the interface (propagated to clients, must match,
-  # so every client must re-download its config after a change). Idempotent;
-  # restarts the container only when it actually rewrites a row.
-  ansible.builtin.script:
-    cmd: "files/apply_awg2.py {{ docker_dir }}/amnezia-wg/wg-easy.db {{ docker_dir }}/amnezia-wg-awg2.json"
-    executable: python3
-  register: amnezia_wg_awg2_apply
-  changed_when: "'CHANGED' in amnezia_wg_awg2_apply.stdout"
-  notify: Restart amnezia-wg
-
-- name: Render the AmneziaWG 2.0 obfuscation params
-  ansible.builtin.template:
-    src: awg2.json.j2
-    dest: "{{ docker_dir }}/amnezia-wg-awg2.json"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0644"
-
-- name: Apply AmneziaWG 2.0 signature packets + paddings to the v15 DB
-  # v15 only auto-generates the 1.0 params (Jc/Jmin/Jmax, S1/S2, H1-H4); the 2.0
-  # signature packets (I1-I5) and extra paddings (S3/S4) start empty. Write them
-  # into the SQLite DB: I1-I5 on the interface AND every client (they need not
-  # match peers), S3/S4 on the interface (propagated into client configs, must
-  # match -> every client must re-download its config after a change). The
-  # written value is the dest of the task above. Idempotent; restarts only on
-  # an actual change.
   ansible.builtin.script:
     cmd: "files/apply_awg2.py {{ docker_dir }}/amnezia-wg/wg-easy.db {{ docker_dir }}/amnezia-wg-awg2.json"
     executable: python3

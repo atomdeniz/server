@@ -1,7 +1,6 @@
 ---
 - name: Restart amnezia-wg
-  # Restarting re-runs awg-quick up, which regenerates wg0.conf from the DB, so
-  # DB-level changes (the corrected masquerade hook, AWG 2.0 params) take effect.
+  # re-runs awg-quick up so DB-level changes (masquerade hook, AWG 2.0) apply
   community.docker.docker_container:
     name: "amnezia-wg"
     restart: true

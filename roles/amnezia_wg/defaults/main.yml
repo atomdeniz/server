@@ -1,40 +1,23 @@
 ---
-# Official wg-easy v15 image (the major rewrite: SQLite-backed, new UI). The
-# image already bundles amneziawg-go + awg/awg-quick and runs them in USERSPACE
-# when no kernel module is present, so there is no local build on ARM64 anymore.
-# AmneziaWG (AWG 2.0 obfuscation, I1–I5) is turned on via EXPERIMENTAL_AWG +
-# OVERRIDE_AUTO_AWG in tasks/main.yml. The official ghcr image is tracked by Cup
-# natively, so no upstream-check workflow is needed.
+# Official wg-easy v15 image: bundles amneziawg-go + awg in userspace (no kernel
+# module needed on ARM64) and is tracked by Cup.
 amnezia_wg_image: "ghcr.io/wg-easy/wg-easy"
 amnezia_wg_image_tag: "15.3.0"
 
-# Admin username for the wg-easy web UI. Seeded once via INIT_USERNAME on first
-# boot (alongside the vault var `amnezia_password`, which is PLAINTEXT — v15
-# hashes it with argon2 itself; the old PASSWORD_HASH must NOT be passed, v15
-# hard-errors on boot if it sees PASSWORD/PASSWORD_HASH).
+# Web UI admin, seeded via INIT_USERNAME (password is the vault var amnezia_password)
 amnezia_wg_admin_username: "admin"
 
-# --- AmneziaWG 2.0 obfuscation (applied to the v15 SQLite DB; see tasks) ---
-# v15 only auto-generates the 1.0 params (Jc/Jmin/Jmax, S1/S2, H1-H4). These add
-# the 2.0 layer. I1-I5 are Custom Signature Packets sent before the handshake to
-# mimic real protocols, written in AmneziaWG's packet-template DSL:
-#   <b 0xHEX> static bytes | <r N> random bytes | <rc N> random chars | <t> 4-byte
-#   unix timestamp   (the <c> and <wt> tags are NOT implemented — do not use).
-# They need NOT match between peers, so they're set on the interface AND every
-# client. The <r>/<t> tags re-randomize the bytes per packet, so reusing one
-# template across peers still yields distinct wire bytes.
+# AmneziaWG 2.0 params (applied to the v15 DB; v15 itself only generates the 1.0
+# set). I1-I5 are pre-handshake signature packets in awg's <b 0xHEX>/<r N>/
+# <rc N>/<t> DSL; they need not match between peers.
 amnezia_wg_awg2_signature_packets:
-  - "<b 0xc30000000108><r 8><b 0x08><r 8><b 0x0045dc><t><r 16>"   # I1: QUIC Initial
-  - "<b 0x1603010200><r 2><b 0x0303><t><r 28>"                     # I2: TLS ClientHello
-  - "<r 2><b 0x0100000100000000000003><rc 8><b 0x0000010001>"      # I3: DNS query
-  - "<b 0x474554202f><rc 12><b 0x20485454502f312e310d0a0d0a>"      # I4: HTTP GET
-  - "<b 0x2112a442><r 16><t><r 8>"                                 # I5: STUN
+  - "<b 0xc30000000108><r 8><b 0x08><r 8><b 0x0045dc><t><r 16>"   # QUIC Initial
+  - "<b 0x1603010200><r 2><b 0x0303><t><r 28>"                     # TLS ClientHello
+  - "<r 2><b 0x0100000100000000000003><rc 8><b 0x0000010001>"      # DNS query
+  - "<b 0x474554202f><rc 12><b 0x20485454502f312e310d0a0d0a>"      # HTTP GET
+  - "<b 0x2112a442><r 16><t><r 8>"                                 # STUN
 
-# S3/S4 extend message padding to cookie/transport packets (1.0 only padded
-# handshake init/response via S1/S2). wg-easy sources S* from the interface and
-# copies them into every client config, and they MUST match between peers, so
-# changing them requires every client to re-download its config. S4 pads EVERY
-# transport packet, so keep it small: inner MTU 1420 + ~60B WireGuard overhead +
-# S4 must stay under the 1500B physical MTU to avoid fragmentation (1420+60+16<1500).
+# Cookie/transport padding; must match peers (so clients re-download configs).
+# S4 pads every transport packet, kept small to stay under MTU.
 amnezia_wg_awg2_s3: 64
 amnezia_wg_awg2_s4: 16

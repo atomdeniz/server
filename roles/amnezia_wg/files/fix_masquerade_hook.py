@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 """Rewrite wg-easy v15's seeded NAT masquerade hook to a device-agnostic form.
 
-v15 seeds the interface PostUp/PostDown with `-o {{device}}` (eth0), which only
-masquerades internet-bound traffic leaving eth0. But VPN clients send DNS to
-AdGuard (10.8.4.2) on dns_network, reached via the `myeth` interface, so those
-packets are NOT masqueraded -> AdGuard can't route replies back to the VPN
-subnet -> client DNS (and thus "the internet") breaks.
-
-There is no env var to override the seeded hook, so this patches the SQLite DB
-directly to the device-agnostic `! -o wg0` form the old image used (masquerade
-everything from the VPN subnet except what re-enters the tunnel). Idempotent:
-prints CHANGED only when it actually rewrites a row, OK otherwise.
+v15 seeds `-o {{device}}` (eth0), which doesn't NAT VPN-client DNS to AdGuard
+(that leaves via myeth) -> client DNS breaks. There's no env to override it, so
+patch the SQLite DB to `! -o wg0`. Idempotent: prints CHANGED only on a rewrite.
 
 Usage: fix_masquerade_hook.py /path/to/wg-easy.db
 """
@@ -24,7 +17,7 @@ REPLACE = "! -o wg0"
 
 def main() -> int:
     db = sys.argv[1]
-    deadline = time.time() + 60  # wg-easy seeds the hook async on first boot
+    deadline = time.time() + 60  # hook is seeded async on first boot
     rows = []
     while True:
         try:
