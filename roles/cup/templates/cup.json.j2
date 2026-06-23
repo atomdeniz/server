@@ -1,6 +1,10 @@
 {
+  "$schema": "https://raw.githubusercontent.com/sergi0g/cup/main/cup.schema.json",
   "version": 3,
   "theme": "default",
   "socket": "tcp://docker_proxy:2375",
-  "refresh_interval": "0 0 */6 * * *"
+  "refresh_interval": "0 0 */6 * * *",
+  "images": {
+    "exclude": ["amnezia-wg-easy-local"]
+  }
 }

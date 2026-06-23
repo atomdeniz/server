@@ -1,13 +1,13 @@
 FROM alpine AS build-go
 RUN apk add --no-cache git go make
 RUN git clone https://github.com/amnezia-vpn/amneziawg-go.git && \
-    cd amneziawg-go && git checkout {{ amnezia_wg_go_commit }}
+    cd amneziawg-go && git checkout {{ amnezia_wg_go_tag }}
 RUN cd amneziawg-go && make
 
 FROM alpine AS build-c
 RUN apk add --no-cache git build-base linux-headers
 RUN git clone https://github.com/amnezia-vpn/amneziawg-tools.git && \
-    cd amneziawg-tools && git checkout {{ amnezia_wg_tools_commit }}
+    cd amneziawg-tools && git checkout {{ amnezia_wg_tools_tag }}
 RUN cd amneziawg-tools/src && make
 
 FROM alpine AS build-node

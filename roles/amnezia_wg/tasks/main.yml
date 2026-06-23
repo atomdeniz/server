@@ -15,20 +15,23 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
-  register: amnezia_dockerfile
 
 - name: Build amnezia-wg image locally (on the target host)
   community.docker.docker_image:
     name: "amnezia-wg-easy-local"
     tag: "{{ amnezia_wg_version }}"
     source: build
-    # docker_image is idempotent on image existence, not on Dockerfile
-    # content. When the Dockerfile changes (e.g. bumping a pinned commit),
-    # force_source forces a rebuild so the new content actually lands.
-    force_source: "{{ amnezia_dockerfile.changed }}"
+    # Always rebuild from scratch. force_source triggers the build every run;
+    # nocache + pull make `apk add` fetch the latest OS packages (nodejs,
+    # iptables, bash) and re-pull the alpine base, so the image never ships
+    # stale OS packages. This image is only ever deployed deliberately
+    # (--tags amnezia_wg), so paying the full recompile each time is intentional:
+    # every VPN deploy lands fresh source tags + fresh OS packages.
+    force_source: true
     build:
       path: "{{ docker_dir }}/amnezia-wg"
       pull: true
+      nocache: true
   register: amnezia_build
 
 - name: Configure AmneziaWG to use as a proxy
