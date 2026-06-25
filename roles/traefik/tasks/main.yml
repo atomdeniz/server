@@ -123,31 +123,6 @@
       traefik.http.routers.traefik.tls.domains[0].sans: "*.{{ root_host }}"
       traefik.http.routers.traefik.service: "api@internal"
 
-- name: DumpCertificates
-  community.docker.docker_container:
-    name: certsdump
-    image: ldez/traefik-certs-dumper:{{ certsdump_version }}
-    pull: "always"
-    recreate: "{{ force_recreate | default(false) }}"
-    state: started
-    restart_policy: unless-stopped
-    security_opts:
-      - no-new-privileges:true
-      - apparmor:docker-default
-    entrypoint:
-      - sh
-      - -c
-      - |
-        apk add --no-cache jq;
-        while ! [ -e /data/acme.json ] || ! [ "$(jq '.[] | .Certificates | length' /data/acme.json)" != "0" ];
-        do
-          sleep 5;
-        done &&
-        traefik-certs-dumper file --version v2 --domain-subdir --clean=false --watch --source ./acme.json --dest .
-    volumes:
-      - "{{ docker_dir }}/traefik/data/certificates:/data"
-    working_dir: /data
-
 # https://github.com/l4rm4nd/TraefikShaper Orginal
 - name: Deploy traefikshaper with docker container
   community.docker.docker_container:
