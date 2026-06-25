@@ -197,6 +197,10 @@ roles/<name>/
 
 Global handlers (notify targets used across roles) are in `handlers/main.yml`.
 
+### Comment Style
+
+Keep comments minimal and terse. Prefer one short line explaining *why* over multi-line blocks, and only where the intent is non-obvious. Do not narrate what the code already says. Match the surrounding files' low comment density.
+
 ### Disabled Roles
 
 `freqtrade` is commented out in `playbook.yml`. Its role folder still exists and can be re-enabled.
