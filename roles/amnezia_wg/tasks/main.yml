@@ -87,6 +87,14 @@
   changed_when: "'CHANGED' in amnezia_wg_hook_fix.stdout"
   notify: Restart amnezia-wg
 
+- name: Seed the MSS clamp into the v15 PostUp hook
+  ansible.builtin.script:
+    cmd: "files/ensure_mss_clamp.py {{ docker_dir }}/amnezia-wg/wg-easy.db {{ amnezia_wg_mss_clamp }}"
+    executable: python3
+  register: amnezia_wg_mss_fix
+  changed_when: "'CHANGED' in amnezia_wg_mss_fix.stdout"
+  notify: Restart amnezia-wg
+
 - name: Render the AmneziaWG 2.0 obfuscation params
   ansible.builtin.template:
     src: awg2.json.j2

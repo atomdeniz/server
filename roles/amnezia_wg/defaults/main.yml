@@ -21,3 +21,7 @@ amnezia_wg_awg2_signature_packets:
 # S4 pads every transport packet, kept small to stay under MTU.
 amnezia_wg_awg2_s3: 64
 amnezia_wg_awg2_s4: 16
+
+# Clamp forwarded TCP MSS so large TLS flows survive the AWG-obfuscation overhead
+# on constrained client uplinks. Seeded into the v15 PostUp hook.
+amnezia_wg_mss_clamp: 1280
