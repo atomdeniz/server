@@ -4,6 +4,7 @@ http:
       forwardAuth:
         address: "http://authelia:9091/api/authz/forward-auth?authelia_url=https://{{ authelia_host }}/"
         trustForwardHeader: true
+        maxResponseBodySize: 4194304
         authResponseHeaders:
           - "Remote-User"
           - "Remote-Groups"

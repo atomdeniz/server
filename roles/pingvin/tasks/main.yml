@@ -8,6 +8,7 @@
     mode: "0775"
   loop:
     - "{{ docker_dir }}/pingvin/data"
+    - "{{ docker_dir }}/pingvin/data/uploads/shares"
     - "{{ docker_dir }}/pingvin/images"
 
 - name: Create pingvin share container
