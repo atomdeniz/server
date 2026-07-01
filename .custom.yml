@@ -28,12 +28,6 @@ pr_queue_members:
   - "Reviewer 1"
   - "Reviewer 2"
 
-# --- Ntfy ---
-# Random prefix so ntfy.sh upstream relay (iOS APNS) doesn't collide with
-# reserved topics owned by other ntfy.sh users. Generate with:
-#   echo "$(whoami | head -c2)-$(openssl rand -hex 4)-"
-ntfy_topic_prefix: "" # e.g. "xx-1a2b3c4d-"
-
 # --- Homepage weather widget ---
 weather_label: "City"
 weather_latitude: 0.0
@@ -45,4 +39,3 @@ mywebsite_image: "" # docker image ref (e.g. your-dockerhub-user/your-image)
 
 # --- traefikshaper (legacy, only if enabled) ---
 traefikshaper_image: ""
-

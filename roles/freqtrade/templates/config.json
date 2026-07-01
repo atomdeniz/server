@@ -12,7 +12,7 @@
   },
   "telegram": {
     "enabled": true,
-    "token": "{{ telegram_api_token }}",
+    "token": "{{ telegram_alert_bot_token }}",
     "chat_id": "{{ telegram_user_id }}"
   },
   "api_server": {

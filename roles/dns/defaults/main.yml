@@ -70,11 +70,6 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: true
 
-  - name: "ntfy"
-    type: A
-    content: "{{ ansible_host }}"
-    proxied: true
-
   - name: "pr"
     type: A
     content: "{{ ansible_host }}"

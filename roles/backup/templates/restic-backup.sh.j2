@@ -4,25 +4,19 @@ set -euo pipefail
 REPO="{{ restic_repo_path }}"
 PASSWORD_FILE="/etc/restic-password"
 DUMP_DIR="{{ restic_db_dump_dir }}"
-NTFY_URL="https://{{ ntfy_host }}/{{ ntfy_topic_prefix }}backup"
+TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
 HOSTNAME=$(hostname)
 
 export RESTIC_REPOSITORY="$REPO"
 export RESTIC_PASSWORD_FILE="$PASSWORD_FILE"
 export RESTIC_COMPRESSION="auto"
 
-send_ntfy() {
+send_telegram() {
   local title="$1"
   local body="$2"
-  local priority="${3:-default}"
-  local tags="${4:-}"
-  curl -s \
-    -H "Title: $title" \
-    -H "Priority: $priority" \
-    -H "Tags: $tags" \
-    -H "Authorization: Bearer {{ ntfy_token }}" \
-    -d "$body" \
-    "$NTFY_URL"
+  curl -s -o /dev/null "$TELEGRAM_API" \
+    --data-urlencode "chat_id={{ telegram_user_id }}" \
+    --data-urlencode "text=$title"$'\n\n'"$body"
 }
 
 LOG=$(mktemp)
@@ -62,9 +56,10 @@ STATUS="SUCCESS"
 } > "$LOG" 2>&1 || STATUS="FAILED"
 
 if [ "$STATUS" = "SUCCESS" ]; then
-  send_ntfy "Backup OK - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -5 "$LOG")" "default" "white_check_mark"
+  send_telegram "✅ Backup OK - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -5 "$LOG")"
 else
-  send_ntfy "Backup FAILED - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -20 "$LOG")" "urgent" "x"
+  # Telegram 4096-char limit
+  send_telegram "❌ Backup FAILED - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -20 "$LOG" | tail -c 3500)"
 fi
 rm -f "$LOG"
 

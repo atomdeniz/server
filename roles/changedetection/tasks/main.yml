@@ -43,7 +43,7 @@
     env:
       BASE_URL: "https://{{ changedetection_host }}"
       PLAYWRIGHT_DRIVER_URL: "ws://changedetection-browser:3000?stealth=1&--disable-web-security=true"
-      NOTIFICATION_URLS: "ntfy://{{ ntfy_token }}@ntfy:80/{{ ntfy_topic_prefix }}changedetection/?priority=high"
+      NOTIFICATION_URLS: "tgram://{{ telegram_alert_bot_token }}/{{ telegram_user_id }}"
       HIDE_REFERER: "true"
       FETCH_WORKERS: "5"
       TZ: "Europe/Istanbul"

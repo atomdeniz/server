@@ -4,11 +4,9 @@ storage:
   path: /data/data.db
 
 alerting:
-  ntfy:
-    url: "http://ntfy:80"
-    topic: "{{ ntfy_topic_prefix }}gatus"
-    priority: 4
-    token: "{{ ntfy_token }}"
+  telegram:
+    token: "{{ telegram_alert_bot_token }}"
+    id: "{{ telegram_user_id }}"
     default-alert:
       enabled: true
       failure-threshold: 3
@@ -31,7 +29,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Authelia
     group: Infrastructure
@@ -41,7 +39,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: AdGuard Home
     group: Infrastructure
@@ -51,7 +49,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Homepage
     group: Applications
@@ -61,7 +59,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Vaultwarden
     group: Applications
@@ -71,7 +69,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Grafana
     group: Monitoring
@@ -81,7 +79,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Website
     group: Applications
@@ -91,7 +89,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: N8N
     group: Applications
@@ -101,7 +99,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Immich
     group: Applications
@@ -111,7 +109,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Dozzle
     group: Monitoring
@@ -121,7 +119,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Cup
     group: Monitoring
@@ -131,7 +129,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: IT Tools
     group: Applications
@@ -141,7 +139,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Pingvin Share
     group: Applications
@@ -151,7 +149,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Wallos
     group: Applications
@@ -161,7 +159,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: File Browser
     group: Applications
@@ -171,7 +169,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Umami
     group: Monitoring
@@ -181,7 +179,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Change Detection
     group: Monitoring
@@ -191,7 +189,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: ConvertX
     group: Applications
@@ -201,7 +199,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: PocketBase
     group: Applications
@@ -211,7 +209,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Spliit
     group: Applications
@@ -221,7 +219,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Web Check
     group: Applications
@@ -231,17 +229,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] < 500"
     alerts:
-      - type: ntfy
-
-  - name: Ntfy
-    group: Applications
-    url: "http://ntfy:80"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
-    alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: PR Queue
     group: Applications
@@ -251,7 +239,7 @@ endpoints:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
     alerts:
-      - type: ntfy
+      - type: telegram
 
   - name: Proxy (Reality)
     group: Infrastructure
@@ -260,4 +248,4 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
     alerts:
-      - type: ntfy
+      - type: telegram

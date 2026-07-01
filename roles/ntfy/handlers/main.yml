@@ -1,5 +1,0 @@
----
-- name: Restart ntfy
-  community.docker.docker_container:
-    name: ntfy
-    restart: true

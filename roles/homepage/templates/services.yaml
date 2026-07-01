@@ -144,11 +144,6 @@
         icon: umami.svg
         href: "https://{{ umami_host }}"
         description: Web analytics
-    - Ntfy:
-        server: my-docker
-        icon: ntfy.svg
-        href: "https://{{ ntfy_host }}"
-        description: Push notifications
     - PR Queue:
         server: my-docker
         icon: mdi-source-pull

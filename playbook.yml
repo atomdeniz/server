@@ -162,10 +162,6 @@
       tags:
         - filebrowser
 
-    - role: ntfy
-      tags:
-        - ntfy
-
     - role: pr_queue
       tags:
         - pr_queue

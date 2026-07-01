@@ -160,7 +160,6 @@ All enabled application roles in execution order:
 | `pingvin` | pingvin | `share.{{ root_host }}` | File sharing |
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
-| `ntfy` | ntfy | `ntfy.{{ root_host }}` | Self-hosted push notifications |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
