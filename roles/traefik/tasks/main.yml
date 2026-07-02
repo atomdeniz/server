@@ -1,4 +1,65 @@
 ---
+# AOP must be enabled before the cloudflare-mtls option starts rejecting
+# certless connections, so this runs ahead of the container config below.
+- name: Look up Cloudflare zone id
+  ansible.builtin.uri:
+    url: "https://api.cloudflare.com/client/v4/zones?name={{ root_host }}&status=active"
+    headers:
+      X-Auth-Email: "{{ cloudflare_email }}"
+      X-Auth-Key: "{{ cloudflare_api_key }}"
+  register: _cf_zone
+  no_log: true
+
+# We rely on the shared global cert (origin-pull.cloudflare.net); zone-level would
+# take precedence and present nothing (no cert uploaded), so keep it off.
+- name: Get zone-level AOP state
+  ansible.builtin.uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/origin_tls_client_auth/settings"
+    headers:
+      X-Auth-Email: "{{ cloudflare_email }}"
+      X-Auth-Key: "{{ cloudflare_api_key }}"
+    status_code: [200, 202]
+  register: _cf_aop_zone
+  no_log: true
+
+- name: Disable zone-level AOP
+  ansible.builtin.uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/origin_tls_client_auth/settings"
+    method: PUT
+    headers:
+      X-Auth-Email: "{{ cloudflare_email }}"
+      X-Auth-Key: "{{ cloudflare_api_key }}"
+    body_format: json
+    body:
+      enabled: false
+    status_code: [200, 202]
+  when: _cf_aop_zone.json.result.enabled | default(false)
+  no_log: true
+
+- name: Get global AOP state
+  ansible.builtin.uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/settings/tls_client_auth"
+    headers:
+      X-Auth-Email: "{{ cloudflare_email }}"
+      X-Auth-Key: "{{ cloudflare_api_key }}"
+    status_code: [200, 202]
+  register: _cf_aop_global
+  no_log: true
+
+- name: Enable global AOP (Cloudflare shared origin-pull cert)
+  ansible.builtin.uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/settings/tls_client_auth"
+    method: PATCH
+    headers:
+      X-Auth-Email: "{{ cloudflare_email }}"
+      X-Auth-Key: "{{ cloudflare_api_key }}"
+    body_format: json
+    body:
+      value: "on"
+    status_code: [200, 202]
+  when: (_cf_aop_global.json.result.value | default('off')) != 'on'
+  no_log: true
+
 - name: Copy the traefik log delete file
   become: true
   ansible.builtin.template:
@@ -62,6 +123,24 @@
     mode: "0644"
   notify: Restart traefik
 
+- name: Copy the tls-options.yml (Cloudflare mTLS)
+  ansible.builtin.template:
+    src: tls-options.yml
+    dest: "{{ docker_dir }}/traefik/data/configs/tls-options.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart traefik
+
+- name: Copy the Cloudflare origin-pull CA cert
+  ansible.builtin.copy:
+    src: authenticated_origin_pull_ca.pem
+    dest: "{{ docker_dir }}/traefik/data/certificates/authenticated_origin_pull_ca.pem"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  notify: Restart traefik
+
 - name: Create acme.json file
   become: true
   ansible.builtin.file:
@@ -101,6 +180,7 @@
       - "{{ docker_dir }}/traefik/data/certificates/acme.json:/acme.json"
       - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
       - "{{ docker_dir }}/traefik/data/configs:/configs"
+      - "{{ docker_dir }}/traefik/data/certificates/authenticated_origin_pull_ca.pem:/authenticated_origin_pull_ca.pem:ro"
       - "{{ docker_dir }}/traefik/data/logs:/logs"
     env:
       CF_API_EMAIL: "{{ cloudflare_email }}"
@@ -156,6 +236,8 @@
       traefik.http.routers.traefikshaper.entrypoints: "https"
       traefik.http.routers.traefikshaper.rule: "Host(`{{ traefikshaper_host }}`)"
       traefik.http.routers.traefikshaper.tls: "true"
+      # origin-lock: only Cloudflare (with client cert) can reach this router
+      traefik.http.routers.traefikshaper.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.traefikshaper.service: "traefikshaper"
       traefik.http.services.traefikshaper.loadbalancer.server.port: "5000"
 

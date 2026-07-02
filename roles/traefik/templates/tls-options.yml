@@ -1,0 +1,8 @@
+tls:
+  options:
+    # Rejects direct-to-origin TLS; needs zone-level Authenticated Origin Pulls on in Cloudflare.
+    cloudflare-mtls:
+      clientAuth:
+        caFiles:
+          - /authenticated_origin_pull_ca.pem
+        clientAuthType: RequireAndVerifyClientCert
