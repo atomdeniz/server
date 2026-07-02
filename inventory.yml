@@ -31,9 +31,7 @@ all:
 
     n8n_host: "n8n.{{ root_host }}"
 
-
     freqtrade_host: "freqtrade.{{ root_host }}"
-
 
     web_check_host: "web.{{ root_host }}"
 
@@ -86,7 +84,6 @@ all:
     storagebox_mount_path: "/mnt/storagebox"
 
     ssh_port: 22
-
 
     # SSH is restricted at the Hetzner cloud firewall (IP allowlist managed in
     # the Hetzner console, not in this repo). Host iptables is intentionally

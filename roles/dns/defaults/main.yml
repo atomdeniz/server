@@ -45,11 +45,6 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: false
 
-  - name: "drive"
-    type: A
-    content: "{{ ansible_host }}"
-    proxied: false
-
   - name: "dev"
     type: A
     content: "{{ ansible_host }}"
