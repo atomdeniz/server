@@ -22,6 +22,7 @@
       traefik.http.routers.spliit.entrypoints: "https"
       traefik.http.routers.spliit.rule: "Host(`{{ spliit_host }}`)"
       traefik.http.routers.spliit.tls: "true"
+      traefik.http.routers.spliit.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.spliit.service: "spliit"
       traefik.http.routers.spliit.middlewares: "open-external@file"
       traefik.http.services.spliit.loadbalancer.server.port: "3000"

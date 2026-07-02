@@ -45,6 +45,7 @@
       traefik.http.routers.pocketbase.entrypoints: "https"
       traefik.http.routers.pocketbase.rule: "Host(`{{ pocketbase_host }}`)"
       traefik.http.routers.pocketbase.tls: "true"
+      traefik.http.routers.pocketbase.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.pocketbase.service: "pocketbase"
       traefik.http.routers.pocketbase.middlewares: "open-external@file"
       traefik.http.services.pocketbase.loadbalancer.server.port: "8090"

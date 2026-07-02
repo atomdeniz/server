@@ -17,6 +17,7 @@ services:
       traefik.http.routers.pr_queue.entrypoints: "https"
       traefik.http.routers.pr_queue.rule: "Host(`{{ pr_queue_host }}`)"
       traefik.http.routers.pr_queue.tls: "true"
+      traefik.http.routers.pr_queue.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.pr_queue.service: "pr_queue"
       traefik.http.routers.pr_queue.middlewares: "open-external@file"
       traefik.http.services.pr_queue.loadbalancer.server.port: "8000"

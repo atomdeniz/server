@@ -53,4 +53,5 @@
       traefik.http.routers.authelia.middlewares: "open-external@file"
       traefik.http.routers.authelia.service: "authelia"
       traefik.http.routers.authelia.tls: "true"
+      traefik.http.routers.authelia.tls.options: "cloudflare-mtls@file"
       traefik.http.services.authelia.loadbalancer.server.port: "9091"

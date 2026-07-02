@@ -26,6 +26,7 @@
       traefik.http.routers.it-tools.entrypoints: "https"
       traefik.http.routers.it-tools.rule: "Host(`{{ it_tools_host }}`)"
       traefik.http.routers.it-tools.tls: "true"
+      traefik.http.routers.it-tools.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.it-tools.service: "it-tools"
       traefik.http.routers.it-tools.middlewares: "open-external@file"
       traefik.http.services.it-tools.loadbalancer.server.port: "80"

@@ -19,6 +19,7 @@
       traefik.http.routers.whoami.entrypoints: "https"
       traefik.http.routers.whoami.rule: "Host(`{{ whoami_host }}`)"
       traefik.http.routers.whoami.tls: "true"
+      traefik.http.routers.whoami.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.whoami.service: "whoami"
       traefik.http.routers.whoami.middlewares: "open-external@file"
       traefik.http.services.whoami.loadbalancer.server.port: "80"

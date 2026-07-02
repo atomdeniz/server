@@ -18,6 +18,7 @@
       traefik.http.routers.mywebsite.entrypoints: "https"
       traefik.http.routers.mywebsite.rule: "Host(`{{ root_host }}`) || Host(`{{ www_host }}`)"
       traefik.http.routers.mywebsite.tls: "true"
+      traefik.http.routers.mywebsite.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.mywebsite.service: "mywebsite"
       traefik.http.routers.mywebsite.middlewares: "open-external@file"
       traefik.http.services.mywebsite.loadbalancer.server.port: "80"

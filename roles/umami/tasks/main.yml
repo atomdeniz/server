@@ -21,6 +21,7 @@
       traefik.http.routers.umami.entrypoints: "https"
       traefik.http.routers.umami.rule: "Host(`{{ umami_host }}`)"
       traefik.http.routers.umami.tls: "true"
+      traefik.http.routers.umami.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.umami.service: "umami"
       traefik.http.routers.umami.middlewares: "open-external@file"
       traefik.http.services.umami.loadbalancer.server.port: "3000"

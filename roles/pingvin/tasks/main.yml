@@ -36,6 +36,7 @@
       traefik.http.routers.pingvin.entrypoints: "https"
       traefik.http.routers.pingvin.rule: "Host(`{{ pingvin_host }}`)"
       traefik.http.routers.pingvin.tls: "true"
+      traefik.http.routers.pingvin.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.pingvin.service: "pingvin"
       traefik.http.routers.pingvin.middlewares: "open-external@file"
       traefik.http.services.pingvin.loadbalancer.server.port: "3000"
