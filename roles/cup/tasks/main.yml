@@ -44,3 +44,37 @@
       traefik.http.routers.cup.service: "cup"
       traefik.http.routers.cup.middlewares: "secure-vpn-with-auth@file"
       traefik.http.services.cup.loadbalancer.server.port: "8000"
+
+- name: Install cup-notify script
+  ansible.builtin.template:
+    src: cup-notify.sh.j2
+    dest: /usr/local/bin/cup-notify
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Install cup-notify systemd service
+  become: true
+  ansible.builtin.template:
+    src: cup-notify.service.j2
+    dest: /etc/systemd/system/cup-notify.service
+    mode: "0644"
+
+- name: Install cup-notify systemd timer
+  become: true
+  ansible.builtin.template:
+    src: cup-notify.timer.j2
+    dest: /etc/systemd/system/cup-notify.timer
+    mode: "0644"
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start cup-notify timer
+  become: true
+  ansible.builtin.systemd:
+    name: cup-notify.timer
+    enabled: true
+    state: started

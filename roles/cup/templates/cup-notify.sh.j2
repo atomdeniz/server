@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
+STATE_FILE="{{ docker_dir }}/cup/notified-updates"
+
+CUP_IP=$(docker inspect -f '{% raw %}{{ (index .NetworkSettings.Networks "app_network").IPAddress }}{% endraw %}' cup)
+
+UPDATES=$(curl -sf "http://$CUP_IP:8000/api/v3/json" | jq -r '
+  .images[] | select(.result.has_update == true) |
+  "\(.reference) → \(.result.info.new_version // .result.info.new_tag // "digest") [\(.result.info.version_update_type // .result.info.type)]"' | sort -u)
+
+touch "$STATE_FILE"
+NEW=""
+if [ -n "$UPDATES" ]; then
+  NEW=$(comm -13 "$STATE_FILE" <(printf '%s\n' "$UPDATES"))
+fi
+
+if [ -n "$NEW" ]; then
+  COUNT=$(printf '%s\n' "$NEW" | wc -l | tr -d ' ')
+  TEXT="🐳 $COUNT yeni image güncellemesi
+
+$NEW"
+  # Telegram 4096-char limit
+  curl -s -o /dev/null "$TELEGRAM_API" \
+    --data-urlencode "chat_id={{ telegram_user_id }}" \
+    --data-urlencode "text=$(printf '%s' "$TEXT" | head -c 3500)"
+fi
+
+if [ -n "$UPDATES" ]; then
+  printf '%s\n' "$UPDATES" > "$STATE_FILE"
+else
+  : > "$STATE_FILE"
+fi

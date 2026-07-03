@@ -1,2 +1,4 @@
 ---
 cup_version: "v3.5.1"
+# 15 min after cup's 6-hourly refresh
+cup_notify_on_calendar: "*-*-* 00/6:15:00"

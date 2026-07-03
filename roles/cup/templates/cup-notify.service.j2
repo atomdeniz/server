@@ -1,0 +1,8 @@
+[Unit]
+Description=Notify Telegram about pending Docker image updates
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/cup-notify

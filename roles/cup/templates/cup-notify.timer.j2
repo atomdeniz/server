@@ -1,0 +1,9 @@
+[Unit]
+Description=Run cup-notify on schedule
+
+[Timer]
+OnCalendar={{ cup_notify_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
