@@ -1,7 +1,7 @@
 ---
 # PocketBase — open-source backend (single Go binary + SQLite) used as the
 # waitlist / lead-capture backend for the landing page.
-pocketbase_version: "0.39.4"
+pocketbase_version: "0.39.5"
 
 # Admin (superuser) account. The password MUST be defined in secret.yml (vault):
 #   pocketbase_admin_password: "<a-strong-password>"
