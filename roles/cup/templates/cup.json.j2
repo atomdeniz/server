@@ -6,7 +6,9 @@
   "refresh_interval": "0 0 */6 * * *",
   "images": {
     "exclude": [
-      "pr_queue-pr_queue"
+      "pr_queue-pr_queue",
+      {# TEMP: cup exit(1)'s on an unexpected registry HEAD status, so docker.n8n.io's 429s crash-loop it (upstream fix: sergi0g/cup#172). Drop this line once running the fixed release. #}
+      "docker.n8n.io/n8nio/n8n"
     ]
   }
 }
