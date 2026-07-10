@@ -41,7 +41,8 @@ banks:
   - name: İş Bankası
     color: "#00519e"
     match:
-      subject: "Özeti"
+      from: "isbank.com.tr"
+      subject: "Hesap Özeti"
     source: pdf
     fields:
       card: 'Kart Numarası:\s*(\d{4})\*+(\d{4})'
