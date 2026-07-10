@@ -145,6 +145,7 @@ All enabled application roles in execution order:
 | `gatus` | gatus | `uptime.{{ root_host }}` | Uptime monitoring (lightweight) |
 | `proxy` | proxy | `proxy.{{ root_host }}` | Xray (VLESS+Vision+Reality, TCP 8443) + Hysteria2 (UDP 443) censorship-resistant proxies |
 | `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation |
+| `ekstre` | ekstre | `ekstre.{{ root_host }}` | Credit-card statement tracker (standalone app, image `ghcr.io/atomdeniz/ekstre`; repo `atomdeniz/ekstre`) |
 | `cup` | cup | `cup.{{ root_host }}` | Docker image update checker (web UI dashboard) |
 | `web_check` | web_check | `web.{{ root_host }}` | Website analysis tool |
 | `convertx` | convertx | `convertx.{{ root_host }}` | File converter |

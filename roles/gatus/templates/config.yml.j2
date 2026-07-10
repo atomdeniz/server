@@ -101,6 +101,16 @@ endpoints:
     alerts:
       - type: telegram
 
+  - name: Ekstre
+    group: Applications
+    url: "http://ekstre:8080/healthz"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] == 200"
+    alerts:
+      - type: telegram
+
   - name: Immich
     group: Applications
     url: "https://{{ immich_host }}"

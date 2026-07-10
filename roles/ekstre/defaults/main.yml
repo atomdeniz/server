@@ -1,0 +1,8 @@
+---
+ekstre_image: "ghcr.io/atomdeniz/ekstre:latest"
+ekstre_imap_host: "imap.gmail.com"
+ekstre_imap_port: 993
+ekstre_imap_mailbox: "INBOX"
+ekstre_poll_interval_min: 15
+ekstre_reminder_cron: "0 9 * * *"
+ekstre_tz: "Europe/Istanbul"

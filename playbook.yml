@@ -97,6 +97,10 @@
       tags:
         - n8n
 
+    - role: ekstre
+      tags:
+        - ekstre
+
 
     # - role: freqtrade
     #   tags:

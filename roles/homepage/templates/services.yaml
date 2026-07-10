@@ -125,6 +125,11 @@
         icon: n8n.svg
         href: "https://{{ n8n_host }}"
         description: Workflow automation
+    - Ekstre:
+        server: my-docker
+        icon: mdi-credit-card-clock
+        href: "https://{{ ekstre_host }}"
+        description: Kredi kartı ekstre takibi
     - ChangeDetection:
         server: my-docker
         icon: changedetection.png

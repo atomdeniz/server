@@ -31,6 +31,8 @@ all:
 
     n8n_host: "n8n.{{ root_host }}"
 
+    ekstre_host: "ekstre.{{ root_host }}"
+
     freqtrade_host: "freqtrade.{{ root_host }}"
 
     web_check_host: "web.{{ root_host }}"

@@ -1,0 +1,50 @@
+# Bank definitions. Copy to banks.yml and adjust.
+#
+# Each bank:
+#   name            display name (also stored in DB)
+#   color           hex color for the dashboard card
+#   match.from      substring matched against the From header (optional)
+#   match.subject   substring matched against the Subject header (optional)
+#   source          "body" (parse the plain-text email body) or "pdf" (parse the first PDF attachment)
+#   fallback_masked masked-card label used when the card regex finds nothing (optional)
+#   fields.*        regexes. card -> 2 groups (first4, last4); total_due/min_due -> amount group;
+#                   due_date -> 3 groups (day, month, year)
+#
+# Amounts use Turkish formatting (1.234,56). Dates are DD/MM/YYYY or DD.MM.YYYY.
+
+banks:
+  - name: TEB
+    color: "#00a651"
+    match:
+      from: "teb.com.tr"
+      subject: "Ekstreniz"
+    source: body
+    fields:
+      card: '(\d{4})\s*\*{4}\s*\*{4}\s*(\d{4})'
+      total_due: 'Dönem Borcunuz\s*:?\s*([\d.]+,\d{2})'
+      min_due: 'Minimum Ödeme Tutarı\s*:?\s*([\d.]+,\d{2})'
+      due_date: 'Son Ödeme Tarihi\s*:?\s*(\d{2})/(\d{2})/(\d{4})'
+
+  - name: ENPARA
+    color: "#5b2d8e"
+    match:
+      from: "enpara"
+      subject: "ekstreniz"
+    source: pdf
+    fallback_masked: "Enpara.com"
+    fields:
+      card: 'Kart numarası\s*(\d{4})\s*\d{2}\*+\s*\*+\s*(\d{4})'
+      total_due: 'Ekstre borcu\s*([\d.]+,\d{2})'
+      min_due: 'Minimum ödeme tutar[ıi]\s*([\d.]+,\d{2})'
+      due_date: 'Son ödeme tarihi\s*(\d{2})/(\d{2})/(\d{4})'
+
+  - name: İş Bankası
+    color: "#00519e"
+    match:
+      subject: "Özeti"
+    source: pdf
+    fields:
+      card: 'Kart Numarası:\s*(\d{4})\*+(\d{4})'
+      total_due: 'Hesap Özeti Borcu:\s*([\d.]+,\d{2})'
+      min_due: 'Ödenmesi Gereken Asgari Tutar:\s*([\d.]+,\d{2})'
+      due_date: 'Son Ödeme Tarihi:\s*(\d{2})[.\/](\d{2})[.\/](\d{4})'

@@ -85,6 +85,8 @@ dns:
       answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ n8n_host }}"
       answer: "{{ traefik_app_network_local_ip }}"
+    - domain: "{{ ekstre_host }}"
+      answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ convertx_host }}"
       answer: "{{ traefik_app_network_local_ip }}"
     - domain: "{{ changedetection_host }}"
