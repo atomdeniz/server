@@ -37,8 +37,8 @@
     env:
       IMAP_HOST: "{{ ekstre_imap_host }}"
       IMAP_PORT: "{{ ekstre_imap_port | string }}"
-      IMAP_USER: "{{ email_login }}"
-      IMAP_PASSWORD: "{{ email_password }}"
+      IMAP_USER: "{{ ekstre_imap_user }}"
+      IMAP_PASSWORD: "{{ ekstre_imap_password }}"
       IMAP_MAILBOX: "{{ ekstre_imap_mailbox }}"
       TELEGRAM_BOT_TOKEN: "{{ telegram_alert_bot_token }}"
       TELEGRAM_CHAT_ID: "{{ telegram_user_id | string }}"
