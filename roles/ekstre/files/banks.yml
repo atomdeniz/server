@@ -37,6 +37,7 @@ banks:
       total_due: 'Ekstre borcu\s*([\d.]+,\d{2})'
       min_due: 'Minimum ödeme tutar[ıi]\s*([\d.]+,\d{2})'
       due_date: 'Son ödeme tarihi\s*(\d{2})/(\d{2})/(\d{4})'
+      statement_date: 'Ekstre tarihi\s*(\d{2})/(\d{2})/(\d{4})'
 
   - name: İş Bankası
     color: "#00519e"
@@ -49,3 +50,4 @@ banks:
       total_due: 'Hesap Özeti Borcu:\s*([\d.]+,\d{2})'
       min_due: 'Ödenmesi Gereken Asgari Tutar:\s*([\d.]+,\d{2})'
       due_date: 'Son Ödeme Tarihi:\s*(\d{2})[.\/](\d{2})[.\/](\d{4})'
+      statement_date: 'Hesap Kesim Tarihi:\s*(\d{2})[.\/](\d{2})[.\/](\d{4})'
