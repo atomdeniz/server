@@ -25,6 +25,16 @@
     group: "{{ username }}"
     mode: "0640"
 
+# Only this subdir is writable; the rest of /srv stays read-only.
+- name: Create writable storagebox subdir for filebrowser
+  ansible.builtin.file:
+    path: "{{ storagebox_mount_path }}/filebrowser"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0775"
+  when: storagebox_mount_enabled | default(false)
+
 - name: Make sure the filebrowser container is created and running
   community.general.docker_container:
     name: "filebrowser"
@@ -41,6 +51,7 @@
       - name: edge_network
     volumes:
       - "{{ storagebox_mount_path }}:/srv:ro"
+      - "{{ storagebox_mount_path }}/filebrowser:/srv/filebrowser:rw"
       - "{{ docker_dir }}/filebrowser/filebrowser.db:/database/filebrowser.db"
       - "{{ docker_dir }}/filebrowser/settings.json:/.filebrowser.json:ro"
     labels:
