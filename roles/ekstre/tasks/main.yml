@@ -1,19 +1,16 @@
 ---
-- name: Create the ekstre directories
+- name: Create the ekstre html directory
   ansible.builtin.file:
-    path: "{{ docker_dir }}/ekstre/{{ item }}"
+    path: "{{ docker_dir }}/ekstre/html"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0775"
-  loop:
-    - ""
-    - data
 
-- name: Copy the bank definitions
+- name: Deploy the landing page
   ansible.builtin.copy:
-    src: "banks.yml"
-    dest: "{{ docker_dir }}/ekstre/banks.yml"
+    src: "index.html"
+    dest: "{{ docker_dir }}/ekstre/html/index.html"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
@@ -26,45 +23,25 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /run
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
       - name: app_network
     volumes:
-      - "{{ docker_dir }}/ekstre/data:/data"
-      - "{{ docker_dir }}/ekstre/banks.yml:/app/banks.yml:ro"
-    env:
-      IMAP_HOST: "{{ ekstre_imap_host }}"
-      IMAP_PORT: "{{ ekstre_imap_port | string }}"
-      IMAP_USER: "{{ ekstre_imap_user }}"
-      IMAP_PASSWORD: "{{ ekstre_imap_password }}"
-      IMAP_MAILBOX: "{{ ekstre_imap_mailbox }}"
-      TELEGRAM_BOT_TOKEN: "{{ telegram_alert_bot_token }}"
-      TELEGRAM_CHAT_ID: "{{ telegram_user_id | string }}"
-      POLL_INTERVAL_MIN: "{{ ekstre_poll_interval_min | string }}"
-      REMINDER_CRON: "{{ ekstre_reminder_cron }}"
-      TZ: "{{ ekstre_tz }}"
-      DB_PATH: "/data/ekstre.db"
-      BANKS_PATH: "/app/banks.yml"
+      - "{{ docker_dir }}/ekstre/html:/usr/share/nginx/html:ro"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"
       traefik.http.routers.ekstre.entrypoints: "https"
       traefik.http.routers.ekstre.rule: "Host(`{{ ekstre_host }}`)"
       traefik.http.routers.ekstre.tls: "true"
+      traefik.http.routers.ekstre.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.ekstre.service: "ekstre"
-      traefik.http.routers.ekstre.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.ekstre.loadbalancer.server.port: "8080"
-
-- name: Wait for ekstre to be healthy
-  community.docker.docker_container_exec:
-    container: ekstre
-    command: >-
-      python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz').status==200 else 1)"
-  register: ekstre_health
-  until: ekstre_health.rc == 0
-  retries: 10
-  delay: 2
-  changed_when: false
-  failed_when: false
+      traefik.http.routers.ekstre.middlewares: "open-external@file"
+      traefik.http.services.ekstre.loadbalancer.server.port: "80"

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ekstre — Kredi kartı son ödeme gününü kaçırma</title>
+<meta name="description" content="E-postandaki kredi kartı ekstrelerini okur, son ödeme gününde masaüstünden hatırlatır. Veriler cihazından çıkmaz. macOS ve Windows için ücretsiz.">
+<meta name="color-scheme" content="light">
+<meta property="og:title" content="Ekstre — Kredi kartı son ödeme gününü kaçırma">
+<meta property="og:description" content="E-postandaki ekstreleri okur, son ödeme gününde hatırlatır. Veriler cihazından çıkmaz.">
+<meta property="og:type" content="website">
+<script defer src="https://analytics.denizozogul.com/script.js" data-website-id="f3912da1-af14-49d0-9444-2fe4c89136de"></script>
+<style>
+  :root {
+    --pine:      #0E211B;
+    --pine-2:    #143026;
+    --paper:     #F1EFE6;
+    --paper-2:   #E9E6DA;
+    --surface:   #FFFFFF;
+    --ink:       #15201B;
+    --ink-soft:  #4C5852;
+    --amber:     #E8A13A;
+    --amber-deep:#C4832A;
+    --mint:      #86B7A4;
+    --on-dark:   #ECEBE0;
+    --on-dark-dim: rgba(236, 235, 224, 0.62);
+    --line:      rgba(20, 32, 27, 0.12);
+    --line-dark: rgba(236, 235, 224, 0.16);
+    --radius:    14px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a { color: inherit; }
+
+  .wrap { width: min(1080px, 100% - 2.5rem); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber-deep);
+    display: inline-block;
+  }
+
+  /* ---------- top bar ---------- */
+  header.bar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(14, 33, 27, 0.86);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--line-dark);
+  }
+  .bar .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 0.6rem; color: var(--on-dark); font-weight: 700; letter-spacing: -0.01em; }
+  .brand .glyph {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: linear-gradient(150deg, var(--amber), var(--amber-deep));
+    display: grid; place-items: center;
+    color: var(--pine); font-family: var(--mono); font-weight: 700; font-size: 0.95rem;
+  }
+  .bar nav { display: flex; align-items: center; gap: 1.6rem; }
+  .bar nav a { color: var(--on-dark-dim); text-decoration: none; font-size: 0.9rem; transition: color .15s; }
+  .bar nav a:hover { color: var(--on-dark); }
+  .bar nav a.ghubs { display: inline-flex; align-items: center; gap: .4rem; }
+  @media (max-width: 620px) { .bar nav .hide-sm { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { background: var(--pine); color: var(--on-dark); padding: clamp(3.5rem, 8vw, 6.5rem) 0 clamp(4rem, 9vw, 7rem); position: relative; overflow: hidden; }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(60% 55% at 78% 18%, rgba(232,161,58,0.14), transparent 70%);
+  }
+  .hero .wrap { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: clamp(2rem, 5vw, 4.5rem); align-items: center; position: relative; z-index: 1; }
+  @media (max-width: 860px) { .hero .wrap { grid-template-columns: 1fr; } }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    line-height: 1.02; font-weight: 800; letter-spacing: -0.035em;
+    margin-top: 1rem;
+  }
+  .hero h1 .hl { color: var(--amber); }
+  .hero .lede { margin-top: 1.3rem; font-size: clamp(1.02rem, 1.6vw, 1.18rem); color: var(--on-dark-dim); max-width: 30rem; }
+
+  .cta-row { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .meta-line { margin-top: 1.1rem; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--on-dark-dim); }
+  .meta-line b { color: var(--mint); font-weight: 400; }
+
+  /* buttons */
+  .btn {
+    --b: var(--on-dark);
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.82rem 1.25rem; border-radius: 11px;
+    font-size: 0.98rem; font-weight: 650; text-decoration: none;
+    border: 1px solid transparent; cursor: pointer;
+    transition: transform .12s ease, background .15s, border-color .15s, opacity .15s;
+    position: relative;
+  }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+
+  .btn--primary { background: var(--paper); color: var(--ink); }
+  .btn--primary:hover { background: #fff; }
+  .btn--ghost { background: transparent; color: var(--on-dark); border-color: var(--line-dark); }
+  .btn--ghost:hover { border-color: rgba(236,235,224,0.4); background: rgba(236,235,224,0.06); }
+
+  .btn .rec {
+    position: absolute; top: -9px; right: 10px;
+    font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+    background: var(--amber); color: var(--pine); padding: 2px 7px; border-radius: 20px; font-weight: 700;
+  }
+  .btn.is-soon { opacity: 0.55; cursor: not-allowed; }
+  .btn.is-soon:hover { transform: none; }
+  .btn .sub { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.06em; opacity: 0.6; font-weight: 400; margin-left: 0.1rem; }
+
+  @media (prefers-reduced-motion: reduce) { .btn:hover { transform: none; } }
+
+  /* ---------- statement card (signature) ---------- */
+  .ticket {
+    background: var(--surface); color: var(--ink);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px -22px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.4) inset;
+    padding: 1.35rem 1.4rem 1.5rem;
+    max-width: 340px; width: 100%; margin-inline: auto;
+    animation: rise .7s cubic-bezier(.2,.7,.2,1) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .ticket { animation: none; } }
+
+  .ticket .t-head { display: flex; align-items: center; justify-content: space-between; }
+  .ticket .bank { font-family: var(--mono); font-weight: 700; letter-spacing: 0.05em; font-size: 0.86rem; }
+  .ticket .card-no { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-soft); letter-spacing: 0.08em; }
+  .ticket .perf { border: none; border-top: 2px dashed var(--line); margin: 1.05rem 0; position: relative; }
+  .ticket .perf::before, .ticket .perf::after {
+    content: ""; position: absolute; top: -9px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--pine);
+  }
+  .ticket .perf::before { left: -25px; } .ticket .perf::after { right: -25px; }
+
+  .ticket .row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.55rem; }
+  .ticket .k { font-size: 0.8rem; color: var(--ink-soft); }
+  .ticket .v { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .ticket .countdown { text-align: center; margin: 0.2rem 0 0.1rem; }
+  .ticket .countdown .num {
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 3.4rem; line-height: 1; font-weight: 700; color: var(--amber-deep);
+    letter-spacing: -0.02em;
+  }
+  .ticket .countdown .unit { font-size: 1rem; color: var(--ink-soft); margin-left: 0.15rem; }
+  .ticket .countdown .when { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.15rem; }
+  .ticket .amount { font-size: 1.15rem; }
+  .ticket .chip {
+    display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 1.1rem;
+    background: var(--paper-2); border-radius: 20px; padding: 0.32rem 0.7rem;
+    font-size: 0.72rem; color: var(--ink-soft); font-family: var(--mono); letter-spacing: 0.03em;
+  }
+  .ticket .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+
+  /* ---------- generic section ---------- */
+  section { padding: clamp(3.5rem, 7vw, 5.5rem) 0; }
+  .sec-head { max-width: 34rem; }
+  .sec-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); letter-spacing: -0.025em; line-height: 1.08; margin-top: 0.6rem; font-weight: 800; }
+  .sec-head p { color: var(--ink-soft); margin-top: 0.7rem; font-size: 1.02rem; }
+
+  /* how it works — a real sequence, so it's numbered */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 2.5rem; }
+  @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+  .step { border-top: 2px solid var(--ink); padding-top: 1rem; }
+  .step .n { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; color: var(--amber-deep); }
+  .step h3 { font-size: 1.12rem; margin: 0.5rem 0 0.35rem; letter-spacing: -0.01em; }
+  .step p { color: var(--ink-soft); font-size: 0.94rem; }
+
+  /* features */
+  .features { background: var(--pine); color: var(--on-dark); }
+  .features .sec-head h2 { color: var(--on-dark); }
+  .features .sec-head p { color: var(--on-dark-dim); }
+  .features .eyebrow { color: var(--mint); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 2.5rem; background: var(--line-dark); border: 1px solid var(--line-dark); border-radius: var(--radius); overflow: hidden; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .feat { background: var(--pine); padding: 1.5rem 1.4rem; }
+  .feat .ic { width: 30px; height: 30px; color: var(--amber); margin-bottom: 0.8rem; }
+  .feat .ic svg { width: 100%; height: 100%; }
+  .feat h3 { font-size: 1.05rem; letter-spacing: -0.01em; }
+  .feat p { color: var(--on-dark-dim); font-size: 0.92rem; margin-top: 0.35rem; }
+  .feat .banks { font-family: var(--mono); font-size: 0.82rem; color: var(--mint); margin-top: 0.5rem; letter-spacing: 0.02em; }
+
+  /* download */
+  .download { text-align: center; }
+  .download .sec-head { margin-inline: auto; }
+  .dl-box { max-width: 620px; margin: 2rem auto 0; }
+  .dl-buttons { display: flex; flex-wrap: wrap; gap: 0.85rem; justify-content: center; }
+  .download .btn--primary { background: var(--pine); color: var(--on-dark); }
+  .download .btn--primary:hover { background: var(--pine-2); }
+  .download .btn--ghost { color: var(--ink); border-color: var(--line); }
+  .download .btn--ghost:hover { background: var(--paper-2); border-color: rgba(20,32,27,0.28); }
+  .download .btn.is-soon { background: var(--paper-2); color: var(--ink-soft); border-color: transparent; }
+  .notes { margin-top: 1.6rem; display: grid; gap: 0.5rem; font-size: 0.85rem; color: var(--ink-soft); }
+  .notes .note { display: flex; gap: 0.55rem; align-items: baseline; justify-content: center; text-align: left; }
+  .notes .note b { color: var(--ink); font-weight: 600; }
+  .other { margin-top: 1.4rem; font-size: 0.86rem; }
+  .other a { color: var(--amber-deep); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+  .other a:hover { color: var(--ink); }
+
+  /* footer */
+  footer { background: var(--pine); color: var(--on-dark-dim); border-top: 1px solid var(--line-dark); padding: 2.5rem 0; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+  footer a { color: var(--on-dark); text-decoration: none; }
+  footer a:hover { color: var(--amber); }
+  footer .foot-links { display: flex; gap: 1.4rem; font-size: 0.9rem; }
+  footer .copy { font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.03em; }
+
+  .privacy-strip {
+    background: var(--paper-2); text-align: center; padding: 0.9rem 1rem;
+    font-size: 0.86rem; color: var(--ink-soft);
+  }
+  .privacy-strip b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand"><span class="glyph">₺</span> Ekstre</div>
+    <nav>
+      <a class="hide-sm" href="#nasil">Nasıl çalışır</a>
+      <a class="hide-sm" href="#ozellikler">Özellikler</a>
+      <a class="ghubs" href="https://github.com/atomdeniz/ekstre-desktop" target="_blank" rel="noopener" data-umami-event="github">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
+        GitHub
+      </a>
+      <a class="btn btn--ghost" href="#indir" style="padding:.5rem .95rem;font-size:.88rem">İndir</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="eyebrow" style="color:var(--mint)">Masaüstü · macOS &amp; Windows</span>
+        <h1>Kredi kartı ekstreni <span class="hl">bir daha kaçırma.</span></h1>
+        <p class="lede">Ekstre, e-posta kutundaki kredi kartı ekstrelerini kendisi okur, son ödeme gününde seni menü çubuğundan uyarır. Kurulum sihirbazını takip et, gerisini o halleder.</p>
+        <div class="cta-row" id="cta">
+          <a class="btn btn--primary" id="dl-mac" href="#indir" data-umami-event="download" data-umami-event-os="mac" data-umami-event-pos="hero">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.9c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.3 2-1.4 2.44-.36 6.05 1 8.03.67.97 1.46 2.05 2.5 2.01 1-.04 1.38-.65 2.6-.65 1.2 0 1.55.65 2.61.63 1.08-.02 1.76-.98 2.42-1.96.76-1.12 1.08-2.21 1.1-2.27-.02-.01-2.11-.81-2.13-3.24ZM14.4 6.98c.55-.67.93-1.6.82-2.53-.8.03-1.77.53-2.34 1.2-.51.59-.96 1.53-.84 2.44.89.07 1.8-.45 2.36-1.11Z"></path></svg>
+            <span class="lbl">macOS için indir</span>
+          </a>
+          <a class="btn btn--ghost" id="dl-win" href="#indir" data-umami-event="download" data-umami-event-os="win" data-umami-event-pos="hero">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1 10.5 4v7.5H3V5.1Zm0 13.8L10.5 20v-7.4H3v6.3ZM11.5 3.86 21 2.5v9H11.5V3.86Zm0 16.28L21 21.5v-9H11.5v7.64Z"></path></svg>
+            <span class="lbl">Windows için indir</span>
+          </a>
+        </div>
+        <p class="meta-line" id="meta">Ücretsiz · açık kaynak · <b id="ver">en son sürüm</b></p>
+      </div>
+
+      <div class="hero-art">
+        <div class="ticket" role="img" aria-label="Örnek ekstre hatırlatması: Enpara kartının son ödemesine 7 gün, 4.812,50 lira.">
+          <div class="t-head">
+            <span class="bank">ENPARA</span>
+            <span class="card-no">•••• 4821</span>
+          </div>
+          <hr class="perf">
+          <span class="eyebrow" style="font-size:.62rem">Son ödeme tarihi</span>
+          <div class="countdown">
+            <span class="num">7</span><span class="unit">gün</span>
+            <div class="when">19 Temmuz Cumartesi</div>
+          </div>
+          <div class="row amount">
+            <span class="k">Ekstre borcu</span>
+            <span class="v">₺4.812,50</span>
+          </div>
+          <div class="row">
+            <span class="k">Asgari ödeme</span>
+            <span class="v">₺1.203,10</span>
+          </div>
+          <span class="chip"><span class="dot"></span> Hatırlatma bildirimi hazır</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="privacy-strip">
+    🔒 <b>Veriler cihazından çıkmaz.</b> Ekstre, e-postanı yalnızca senin bilgisayarında okur — sunucu yok, hesap yok, bulut yok.
+  </div>
+
+  <section id="nasil">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Üç adım</span>
+        <h2>Bir kez kur, sonra unut.</h2>
+        <p>Kurulum sihirbazı seni tek tek yönlendirir. Teknik bilgi gerekmez.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="n">01</div>
+          <h3>E-postanı bağla</h3>
+          <p>Kurulumda e-posta adresini girersin. Ekstre gelen kutunu yalnızca okur, hiçbir postayı açılmış olarak işaretlemez.</p>
+        </div>
+        <div class="step">
+          <div class="n">02</div>
+          <h3>Ekstreler okunur</h3>
+          <p>Bankalarından gelen ekstre e-postalarını ve PDF eklerini tanır; kart, borç ve son ödeme tarihini kendisi çıkarır.</p>
+        </div>
+        <div class="step">
+          <div class="n">03</div>
+          <h3>Zamanında hatırlar</h3>
+          <p>Son ödeme günü yaklaşınca bilgisayarından bildirim alırsın. Menü çubuğundaki panelden tüm kartlarını görürsün.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="ozellikler">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Neden Ekstre</span>
+        <h2>Küçük bir uygulama, tek bir iş — ama tam yapar.</h2>
+      </div>
+      <div class="grid">
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 7.6 8 9 4.6-1.4 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>Gizlilik önce</h3>
+          <p>Tüm veriler yerel bir dosyada tutulur. E-posta şifren macOS/Windows anahtar zincirinde saklanır, hiçbir yere gönderilmez.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9Z"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          <h3>Native bildirimler</h3>
+          <p>Chat botu ya da e-posta değil — işletim sisteminin kendi bildirimi. Hatırlatma saatini sen belirlersin.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+          <h3>Menü çubuğu paneli</h3>
+          <p>Tüm kartların, borçların ve son ödeme tarihlerin tek bakışta. Aylık takvim görünümüyle ödeme günlerini gör.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+          <h3>Türk bankaları</h3>
+          <p>Yaygın bankaların ekstre biçimlerini tanır. Yeni banka eklemek bir topluluk katkısıyla mümkün.</p>
+          <div class="banks">TEB · Enpara · İş Bankası · …</div>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
+          <h3>Otomatik güncelleme</h3>
+          <p>Yeni sürüm çıktığında uygulama kendini sessizce günceller. Bir daha indirmene gerek kalmaz.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5l-8-3Z"/></svg></div>
+          <h3>Ücretsiz &amp; açık kaynak</h3>
+          <p>Kod tamamen açık. Ne yaptığını kendin görebilir, katkı verebilirsin. Abonelik yok, reklam yok.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="download" id="indir">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">İndir</span>
+        <h2>Kendi işletim sistemin için indir.</h2>
+        <p>Kur, e-postanı bağla, son ödeme günlerini bir daha düşünme.</p>
+      </div>
+      <div class="dl-box">
+        <div class="dl-buttons" id="dl-buttons">
+          <a class="btn btn--primary" id="dl-mac-2" href="#indir" data-umami-event="download" data-umami-event-os="mac" data-umami-event-pos="footer">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.9c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.3 2-1.4 2.44-.36 6.05 1 8.03.67.97 1.46 2.05 2.5 2.01 1-.04 1.38-.65 2.6-.65 1.2 0 1.55.65 2.61.63 1.08-.02 1.76-.98 2.42-1.96.76-1.12 1.08-2.21 1.1-2.27-.02-.01-2.11-.81-2.13-3.24ZM14.4 6.98c.55-.67.93-1.6.82-2.53-.8.03-1.77.53-2.34 1.2-.51.59-.96 1.53-.84 2.44.89.07 1.8-.45 2.36-1.11Z"></path></svg>
+            <span class="lbl">macOS için indir</span>
+          </a>
+          <a class="btn btn--ghost" id="dl-win-2" href="#indir" data-umami-event="download" data-umami-event-os="win" data-umami-event-pos="footer">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1 10.5 4v7.5H3V5.1Zm0 13.8L10.5 20v-7.4H3v6.3ZM11.5 3.86 21 2.5v9H11.5V3.86Zm0 16.28L21 21.5v-9H11.5v7.64Z"></path></svg>
+            <span class="lbl">Windows için indir</span>
+          </a>
+        </div>
+        <div class="notes">
+          <div class="note" id="note-win">💡 <span><b>Windows:</b> Kurulumda “Bilinmeyen yayıncı” uyarısı çıkarsa → <b>Ek bilgi</b> → <b>Yine de çalıştır</b>.</span></div>
+          <div class="note" id="note-mac" hidden>💡 <span><b>macOS:</b> İlk açılışta uygulamaya sağ tıkla → <b>Aç</b> de.</span></div>
+        </div>
+        <p class="other">Diğer dosyalar (MSI, önceki sürümler) →
+          <a href="https://github.com/atomdeniz/ekstre-desktop/releases" target="_blank" rel="noopener" data-umami-event="releases">tüm sürümler</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://github.com/atomdeniz/ekstre-desktop" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/atomdeniz/ekstre-desktop/releases" target="_blank" rel="noopener">Sürümler</a>
+      <a href="https://github.com/atomdeniz/ekstre-desktop/issues" target="_blank" rel="noopener">Sorun bildir</a>
+    </div>
+    <div class="copy">Ekstre · yerel · açık kaynak · verilerin sende kalır</div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var REPO = "atomdeniz/ekstre-desktop";
+  var RELEASES = "https://github.com/" + REPO + "/releases";
+  var LATEST_PAGE = RELEASES + "/latest";
+
+  var macBtns = [document.getElementById("dl-mac"), document.getElementById("dl-mac-2")];
+  var winBtns = [document.getElementById("dl-win"), document.getElementById("dl-win-2")];
+
+  function detectOS() {
+    var p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+    var ua = navigator.userAgent || "";
+    if (/mac/i.test(p) && !/iphone|ipad|ipod/i.test(ua)) return "mac";
+    if (/win/i.test(p) || /windows/i.test(ua)) return "win";
+    return "other";
+  }
+
+  function setHref(btns, url) {
+    btns.forEach(function (b) { if (b) { b.href = url; b.removeAttribute("aria-disabled"); } });
+  }
+
+  function markSoon(btns) {
+    btns.forEach(function (b) {
+      if (!b) return;
+      b.classList.add("is-soon");
+      b.classList.remove("btn--primary"); b.classList.add("btn--ghost");
+      b.removeAttribute("href");
+      b.setAttribute("aria-disabled", "true");
+      b.setAttribute("role", "link");
+      var lbl = b.querySelector(".lbl"); if (lbl) lbl.textContent = "macOS · yakında";
+      b.addEventListener("click", function (e) { e.preventDefault(); });
+    });
+  }
+
+  function addRecommended(btns) {
+    btns.forEach(function (b) {
+      if (!b || b.classList.contains("is-soon")) return;
+      if (b.querySelector(".rec")) return;
+      var s = document.createElement("span"); s.className = "rec"; s.textContent = "Önerilen";
+      b.appendChild(s);
+    });
+  }
+
+  // Make the recommended OS button the primary (filled) style, the other secondary.
+  function emphasize(os) {
+    if (os === "mac") {
+      macBtns.forEach(function (b) { if (b && !b.classList.contains("is-soon")) { b.classList.add("btn--primary"); b.classList.remove("btn--ghost"); } });
+      addRecommended(macBtns);
+    } else if (os === "win") {
+      winBtns.forEach(function (b) { if (b) { b.classList.add("btn--primary"); b.classList.remove("btn--ghost"); } });
+      macBtns.forEach(function (b) { if (b && !b.classList.contains("is-soon")) { b.classList.remove("btn--primary"); b.classList.add("btn--ghost"); } });
+      addRecommended(winBtns);
+    }
+  }
+
+  function showNote(os) {
+    var nm = document.getElementById("note-mac");
+    var nw = document.getElementById("note-win");
+    if (os === "mac" && nm) nm.hidden = false;
+    // Windows note is shown by default; keep it visible on any OS.
+    if (nw) nw.hidden = false;
+  }
+
+  function fallback() {
+    setHref(macBtns, LATEST_PAGE);
+    setHref(winBtns, LATEST_PAGE);
+  }
+
+  var os = detectOS();
+  showNote(os);
+  // Sensible defaults before the API answers.
+  fallback();
+
+  fetch("https://api.github.com/repos/" + REPO + "/releases/latest", { headers: { "Accept": "application/vnd.github+json" } })
+    .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+    .then(function (data) {
+      var assets = data.assets || [];
+      var ver = (data.tag_name || "").replace(/^v/, "");
+      if (ver) { var v = document.getElementById("ver"); if (v) v.textContent = "sürüm " + ver; }
+
+      function find(re) { for (var i = 0; i < assets.length; i++) { if (re.test(assets[i].name)) return assets[i].browser_download_url; } return null; }
+
+      var winUrl = find(/-setup\.exe$/i) || find(/\.exe$/i) || find(/\.msi$/i);
+      var macUrl = find(/\.dmg$/i) || find(/universal.*\.app\.tar\.gz$/i);
+
+      if (winUrl) setHref(winBtns, winUrl); else setHref(winBtns, LATEST_PAGE);
+      if (macUrl) setHref(macBtns, macUrl); else markSoon(macBtns);
+
+      // If the detected OS has no build yet, recommend the other one instead.
+      if (os === "mac" && !macUrl) emphasize("win");
+      else emphasize(os);
+    })
+    .catch(function () {
+      // API blocked or offline: keep both pointing at the latest release page.
+      fallback();
+      emphasize(os);
+    });
+})();
+</script>
+</body>
+</html>

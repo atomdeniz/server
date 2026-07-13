@@ -127,9 +127,9 @@
         description: Workflow automation
     - Ekstre:
         server: my-docker
-        icon: mdi-credit-card-clock
+        icon: mdi-download-circle
         href: "https://{{ ekstre_host }}"
-        description: Kredi kartı ekstre takibi
+        description: Masaüstü uygulaması indirme sayfası
     - ChangeDetection:
         server: my-docker
         icon: changedetection.png

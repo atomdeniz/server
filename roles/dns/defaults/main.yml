@@ -35,6 +35,11 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: true
 
+  - name: "ekstre"
+    type: A
+    content: "{{ ansible_host }}"
+    proxied: true
+
   - name: "proxy"
     type: A
     content: "{{ ansible_host }}"
