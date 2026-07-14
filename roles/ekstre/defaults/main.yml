@@ -1,2 +1,2 @@
 ---
-ekstre_image: "nginx:1.27-alpine"
+ekstre_image: "nginx:1.31-alpine"
