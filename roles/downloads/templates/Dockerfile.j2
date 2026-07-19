@@ -1,0 +1,8 @@
+FROM qx6ghqkz/gallery-dl-server:{{ gallery_dl_server_version }}
+
+RUN apk add --no-cache 7zip
+
+# bundled gallery-dl goes stale vs site changes (gofile); overwrite the copy on PYTHONPATH
+RUN pip install --no-cache-dir --upgrade \
+    --target /usr/src/app/.local/lib/python3.12/site-packages \
+    gallery-dl=={{ gallery_dl_pkg_version }}

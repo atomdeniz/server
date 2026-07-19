@@ -1,0 +1,86 @@
+---
+# Fixed-size loop image = hard quota; zip bombs can only fill this file, not the root disk
+- name: Create downloads disk image
+  ansible.builtin.command: "fallocate -l {{ downloads_quota }} {{ downloads_image_file }}"
+  args:
+    creates: "{{ downloads_image_file }}"
+
+- name: Format downloads disk image
+  community.general.filesystem:
+    fstype: ext4
+    dev: "{{ downloads_image_file }}"
+
+- name: Create downloads mount point
+  ansible.builtin.file:
+    path: "{{ downloads_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Mount downloads disk image
+  ansible.posix.mount:
+    src: "{{ downloads_image_file }}"
+    path: "{{ downloads_dir }}"
+    fstype: ext4
+    opts: loop,nodev,nosuid,noexec
+    state: mounted
+
+- name: Create media and thumbnail-cache directories
+  ansible.builtin.file:
+    path: "{{ downloads_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ downloads_uid }}"
+    group: "{{ downloads_uid }}"
+    mode: "0750"
+  loop:
+    - data
+    - hist
+
+- name: Create downloads project directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - "{{ docker_dir }}/downloads"
+    - "{{ docker_dir }}/downloads/config"
+
+- name: Copy gallery-dl config
+  ansible.builtin.template:
+    src: gallery-dl.conf.j2
+    dest: "{{ docker_dir }}/downloads/config/gallery-dl.conf"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Copy archive extraction script
+  ansible.builtin.template:
+    src: extract.sh.j2
+    dest: "{{ docker_dir }}/downloads/config/extract.sh"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy Dockerfile
+  ansible.builtin.template:
+    src: Dockerfile.j2
+    dest: "{{ docker_dir }}/downloads/Dockerfile"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_dir }}/downloads/docker-compose.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0640"
+
+- name: Docker Compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_dir }}/downloads"
+    build: always
+    state: present
+    recreate: "{{ 'always' if (force_recreate | default(false)) else 'auto' }}"

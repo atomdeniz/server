@@ -1,0 +1,14 @@
+{
+  "extractor": {
+    "base-directory": "/gallery-dl/",
+    "skip": true,
+    "postprocessors": [
+      {
+        "name": "exec",
+        "event": "after",
+        "async": false,
+        "command": ["/config/extract.sh", "{}"]
+      }
+    ]
+  }
+}

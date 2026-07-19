@@ -1,0 +1,69 @@
+---
+services:
+  gallery-dl:
+    build: .
+    image: downloads-gallery-dl
+    container_name: gallery-dl
+    restart: unless-stopped
+    environment:
+      UID: "{{ downloads_uid }}"
+      GID: "{{ downloads_uid }}"
+      LOG_DIR: /tmp
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    cap_drop:
+      - ALL
+    # entrypoint starts as root, drops to UID via su-exec
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - FOWNER
+    mem_limit: 1g
+    volumes:
+      - "{{ docker_dir }}/downloads/config:/config:ro"
+      - "{{ downloads_dir }}/data:/gallery-dl"
+    networks:
+      - app_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.gallerydl.entrypoints: "https"
+      traefik.http.routers.gallerydl.rule: "Host(`{{ gallerydl_host }}`)"
+      traefik.http.routers.gallerydl.tls: "true"
+      traefik.http.routers.gallerydl.service: "gallerydl"
+      traefik.http.routers.gallerydl.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.gallerydl.loadbalancer.server.port: "9080"
+
+  copyparty:
+    image: copyparty/ac:{{ copyparty_version }}
+    container_name: copyparty
+    restart: unless-stopped
+    user: "{{ downloads_uid }}:{{ downloads_uid }}"
+    command: ["-v", "/w::rwmd", "--hist", "/hist", "-e2d", "-e2t"]
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    cap_drop:
+      - ALL
+    mem_limit: 512m
+    volumes:
+      - "{{ downloads_dir }}/data:/w"
+      - "{{ downloads_dir }}/hist:/hist"
+    networks:
+      - app_network
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.copyparty.entrypoints: "https"
+      traefik.http.routers.copyparty.rule: "Host(`{{ copyparty_host }}`)"
+      traefik.http.routers.copyparty.tls: "true"
+      traefik.http.routers.copyparty.service: "copyparty"
+      traefik.http.routers.copyparty.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.copyparty.loadbalancer.server.port: "3923"
+
+networks:
+  app_network:
+    external: true

@@ -162,6 +162,7 @@ All enabled application roles in execution order:
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
+| `downloads` | downloads | `dl.` + `media.{{ root_host }}` | Link-based media downloader (gallery-dl-server, custom image w/ 7zip auto-extract) + copyparty gallery viewer; media on 15G loop image at `/opt/downloads` — outside backup scope, invisible to FileBrowser/Immich |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 

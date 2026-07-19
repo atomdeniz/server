@@ -151,6 +151,26 @@ endpoints:
     alerts:
       - type: telegram
 
+  - name: Gallery-dl Server
+    group: Applications
+    url: "http://gallery-dl:9080"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: telegram
+
+  - name: Copyparty
+    group: Applications
+    url: "http://copyparty:3923"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: telegram
+
   - name: Pingvin Share
     group: Applications
     url: "https://{{ pingvin_host }}"

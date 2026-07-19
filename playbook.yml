@@ -170,6 +170,10 @@
       tags:
         - pr_queue
 
+    - role: downloads
+      tags:
+        - downloads
+
     - role: backup
       tags:
         - backup

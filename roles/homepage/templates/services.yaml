@@ -154,6 +154,16 @@
         icon: mdi-source-pull
         href: "https://{{ pr_queue_host }}"
         description: PR reviewer rotation
+    - Downloader:
+        server: my-docker
+        icon: mdi-cloud-download
+        href: "https://{{ gallerydl_host }}"
+        description: Link-based media downloader (gallery-dl)
+    - Media:
+        server: my-docker
+        icon: mdi-filmstrip-box-multiple
+        href: "https://{{ copyparty_host }}"
+        description: Downloaded media gallery (copyparty)
 
 - Tools:
     - IT Tools:

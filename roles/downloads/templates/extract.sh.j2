@@ -1,0 +1,22 @@
+#!/bin/sh
+# runs after each job: extract archives in-place, delete on success (loop image caps bombs)
+dir="$1"
+[ -d "$dir" ] || exit 0
+
+find "$dir" -type f \( -iname '*.zip' -o -iname '*.rar' -o -iname '*.7z' \) | while read -r f; do
+  case "$f" in
+    *.part0[2-9].rar | *.part[2-9].rar | *.part[1-9][0-9].rar) continue ;;
+  esac
+  out="${f%.*}"
+  mkdir -p "$out"
+  if 7zz x -y -p- -aou -o"$out" "$f" > /dev/null 2>&1; then
+    case "$f" in
+      *.part01.rar) rm -f "${f%01.rar}"*.rar ;;
+      *.part1.rar) rm -f "${f%1.rar}"*.rar ;;
+      *) rm -f "$f" ;;
+    esac
+  else
+    rmdir "$out" 2> /dev/null
+  fi
+done
+exit 0

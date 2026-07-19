@@ -1,0 +1,10 @@
+---
+gallery_dl_server_version: "0.8.1"
+gallery_dl_pkg_version: "1.32.7"
+copyparty_version: "1.20.18"
+
+# Media lives outside docker_dir so it is never in restic's backup scope
+downloads_dir: /opt/downloads
+downloads_image_file: /opt/downloads.img
+downloads_quota: 15G
+downloads_uid: 3000
