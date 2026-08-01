@@ -5,7 +5,7 @@ global:
 serversTransport:
   insecureSkipVerify: true
 api:
-  insecure: true
+  insecure: false
   dashboard: true
 
 ping: {}

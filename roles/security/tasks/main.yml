@@ -30,9 +30,9 @@
   ansible.builtin.template:
     src: sshd
     dest: /etc/pam.d/sshd
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0755"
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Strip sudo PAM notification hooks
   become: true
@@ -46,6 +46,16 @@
   ansible.builtin.file:
     path: /opt/sudo-notification.sh
     state: absent
+
+- name: Deploy sysctl hardening drop-in
+  become: true
+  ansible.builtin.template:
+    src: 99-hardening.conf.j2
+    dest: /etc/sysctl.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sysctl
 
 - name: Deploy SSH hardening drop-in
   become: true

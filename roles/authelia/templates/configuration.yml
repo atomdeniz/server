@@ -46,6 +46,7 @@ session:
   redis:
     host: redis
     port: 6379
+    password: "{{ redis_password }}"
 
 regulation:
   max_retries: 3

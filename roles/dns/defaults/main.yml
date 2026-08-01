@@ -25,16 +25,6 @@ dns_records:
     content: "{{ ansible_host }}"
     proxied: true
 
-  - name: "whoami"
-    type: A
-    content: "{{ ansible_host }}"
-    proxied: true
-
-  - name: "web"
-    type: A
-    content: "{{ ansible_host }}"
-    proxied: true
-
   - name: "ekstre"
     type: A
     content: "{{ ansible_host }}"

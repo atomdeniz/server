@@ -23,6 +23,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
     restart: always
     depends_on:
       database:
@@ -70,6 +73,9 @@ services:
       - model-cache:/cache
     env_file:
       - .env
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
     restart: always
     healthcheck:
       disable: false
@@ -86,6 +92,9 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: ${DB_DATABASE_NAME}
       POSTGRES_INITDB_ARGS: '--data-checksums'
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
     volumes:
       - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
     healthcheck:

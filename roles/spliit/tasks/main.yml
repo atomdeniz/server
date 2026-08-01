@@ -1,5 +1,6 @@
 ---
 - name: Run spliit container
+  no_log: true
   community.docker.docker_container:
     name: spliit
     image: "ghcr.io/spliit-app/spliit:{{ spliit_version }}"

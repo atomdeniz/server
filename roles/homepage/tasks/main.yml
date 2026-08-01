@@ -76,6 +76,7 @@
   notify: Restart homepage
 
 - name: Make sure the Homepage container is created and running
+  no_log: true
   community.general.docker_container:
     name: "homepage"
     image: "ghcr.io/gethomepage/homepage:{{ homepage_version }}"
@@ -90,6 +91,7 @@
       - name: ops_network
       - name: app_network
       - name: edge_network
+    etc_hosts: "{{ {traefik_host: traefik_app_network_local_ip} }}"
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"
       - "{{ storagebox_mount_path }}:/mnt/storagebox:ro,rslave"

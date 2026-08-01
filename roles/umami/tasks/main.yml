@@ -1,5 +1,6 @@
 ---
 - name: Run umami container
+  no_log: true
   community.docker.docker_container:
     name: umami
     image: "ghcr.io/umami-software/umami:{{ umami_version }}"

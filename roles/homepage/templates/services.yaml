@@ -65,7 +65,7 @@
         description: Reverse proxy
         widget:
           type: traefik
-          url: http://traefik:8080
+          url: https://{{ traefik_host }}
           username: user
           password: "{% raw %}{{HOMEPAGE_VAR_TRAEFIK_PASSWORD}}{% endraw %}"
     - Crowdsec:

@@ -26,6 +26,7 @@
       MAX_CONCURRENT_CHROME_PROCESSES: "5"
 
 - name: Create the changedetection container
+  no_log: true
   community.docker.docker_container:
     name: changedetection
     image: "ghcr.io/dgtlmoon/changedetection.io:{{ changedetection_version }}"

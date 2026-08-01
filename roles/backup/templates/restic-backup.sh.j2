@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="{{ restic_repo_path }}"
 PASSWORD_FILE="/etc/restic-password"
 DUMP_DIR="{{ restic_db_dump_dir }}"
+TEXTFILE="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}/restic.prom"
 TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
 HOSTNAME=$(hostname)
 
@@ -56,6 +57,10 @@ STATUS="SUCCESS"
 } > "$LOG" 2>&1 || STATUS="FAILED"
 
 if [ "$STATUS" = "SUCCESS" ]; then
+  # Expose last-success timestamp to node_exporter (backup-age alerting)
+  if [ -d "$(dirname "$TEXTFILE")" ]; then
+    printf 'restic_last_success_timestamp_seconds %s\n' "$(date +%s)" > "$TEXTFILE.tmp" && mv "$TEXTFILE.tmp" "$TEXTFILE"
+  fi
   send_telegram "✅ Backup OK - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -5 "$LOG")"
 else
   # Telegram 4096-char limit

@@ -20,7 +20,7 @@
       PING: "1"
       VERSION: "1"
       INFO: "1"
-      IMAGES_DELETE: "1"
+      IMAGES_DELETE: "0"
     networks:
       - name: ops_network
       - name: app_network

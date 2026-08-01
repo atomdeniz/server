@@ -116,6 +116,7 @@ all:
       - desc: "Allow SSH"
         proto: tcp
         port: "{{ ssh_port }}"
+        src: "{{ ssh_allow_cidr }}"
 
     pip_install_packages:
       - name: docker

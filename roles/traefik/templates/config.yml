@@ -43,6 +43,15 @@ http:
         sourceRange:
           - "{{ vpn_subnet_cidr }}"
           - "10.8.0.0/16"
+    secure-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        contentTypeNosniff: true
+        frameDeny: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
     api-external:
       chain:
         middlewares:
@@ -57,6 +66,7 @@ http:
       chain:
         middlewares:
           - https-only
+          - secure-headers
     open-external:
       chain:
         middlewares:

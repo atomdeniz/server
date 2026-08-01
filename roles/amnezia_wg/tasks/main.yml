@@ -15,6 +15,7 @@
     force_source: true
 
 - name: Configure AmneziaWG (wg-easy v15, userspace AWG 2.0)
+  no_log: true
   community.general.docker_container:
     name: "amnezia-wg"
     image: "{{ amnezia_wg_image }}:{{ amnezia_wg_image_tag }}"

@@ -6,6 +6,10 @@
 # future /etc/ssh/sshd_config.d/50-cloud-init.conf).
 
 PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
 PermitRootLogin no
 MaxAuthTries 3
 AllowUsers {{ username }}
+AddressFamily inet

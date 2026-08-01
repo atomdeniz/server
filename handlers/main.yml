@@ -56,3 +56,12 @@
     name: hysteria
     restart: yes
 
+- name: Restart grafana
+  community.docker.docker_container:
+    name: grafana
+    restart: yes
+
+- name: Reload sysctl
+  become: true
+  ansible.builtin.command: sysctl --system
+  changed_when: false

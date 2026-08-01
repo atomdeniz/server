@@ -13,7 +13,7 @@
     dest: "{{ docker_dir }}/gatus/config.yml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: "0644"
+    mode: "0640"
   notify: Restart gatus
 
 - name: Create gatus container

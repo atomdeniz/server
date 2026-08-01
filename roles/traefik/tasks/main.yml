@@ -196,7 +196,7 @@
       traefik.http.middlewares.traefik-auth.basicauth.users: "{{ traefik_basic_auth_hash }}"
       traefik.http.routers.traefik.entrypoints: "https"
       traefik.http.routers.traefik.rule: "Host(`{{ traefik_host }}`)"
-      traefik.http.routers.traefik.middlewares: "traefik-auth"
+      traefik.http.routers.traefik.middlewares: "secure-vpn@file,traefik-auth"
       traefik.http.routers.traefik.tls: "true"
       traefik.http.routers.traefik.tls.certresolver: "cloudflare"
       traefik.http.routers.traefik.tls.domains[0].main: "{{ root_host }}"

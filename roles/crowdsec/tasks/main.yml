@@ -91,7 +91,7 @@
       - name: app_network
       - name: ops_network
     ports:
-      - "9876:8080"
+      - "127.0.0.1:9876:8080"
     volumes:
       - "{{ docker_dir }}/crowdsec/data:/var/lib/crowdsec/data"
       - "{{ docker_dir }}/crowdsec/etc:/etc/crowdsec"

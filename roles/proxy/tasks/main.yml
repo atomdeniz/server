@@ -114,9 +114,9 @@
   ansible.builtin.template:
     src: "hysteria.yaml.j2"
     dest: "{{ docker_dir }}/hysteria/config.yaml"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0664"
+    owner: root
+    group: root
+    mode: "0600"
   notify: Restart hysteria
   no_log: true
 

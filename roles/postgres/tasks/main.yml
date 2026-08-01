@@ -8,6 +8,7 @@
     mode: "0775"
 
 - name: Run postgres container
+  no_log: true
   community.docker.docker_container:
     name: "{{ postgres_container_name }}"
     image: "postgres:{{ postgres_version }}"
@@ -64,6 +65,7 @@
   until: postgres_ready.rc == 0
 
 - name: Create umami postgres user
+  no_log: true
   ansible.builtin.command:
     argv:
       - docker
