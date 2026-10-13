@@ -2,7 +2,7 @@
 # Official wg-easy v15 image: bundles amneziawg-go + awg in userspace (no kernel
 # module needed on ARM64) and is tracked by Cup.
 amnezia_wg_image: "ghcr.io/wg-easy/wg-easy"
-amnezia_wg_image_tag: "15.3.0"
+amnezia_wg_image_tag: "15.4.0"
 
 # Web UI admin, seeded via INIT_USERNAME (password is the vault var amnezia_password)
 amnezia_wg_admin_username: "admin"

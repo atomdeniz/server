@@ -27,15 +27,6 @@ services:
       - "{{ downloads_dir }}/data:/gallery-dl"
     networks:
       - app_network
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.gallerydl.entrypoints: "https"
-      traefik.http.routers.gallerydl.rule: "Host(`{{ gallerydl_host }}`)"
-      traefik.http.routers.gallerydl.tls: "true"
-      traefik.http.routers.gallerydl.service: "gallerydl"
-      traefik.http.routers.gallerydl.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.gallerydl.loadbalancer.server.port: "9080"
 
   copyparty:
     image: copyparty/ac:{{ copyparty_version }}
@@ -54,15 +45,6 @@ services:
       - "{{ downloads_dir }}/hist:/hist"
     networks:
       - app_network
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.copyparty.entrypoints: "https"
-      traefik.http.routers.copyparty.rule: "Host(`{{ copyparty_host }}`)"
-      traefik.http.routers.copyparty.tls: "true"
-      traefik.http.routers.copyparty.service: "copyparty"
-      traefik.http.routers.copyparty.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.copyparty.loadbalancer.server.port: "3923"
 
 networks:
   app_network:

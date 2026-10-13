@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-Ansible playbook for a self-hosted infrastructure on Ubuntu ARM64 VPS.
+Ansible playbook for a self-hosted infrastructure on two Ubuntu ARM64 VPSes:
+
+- **`server`** — Hetzner (`server_ip`), the main host: Traefik, Authelia, VPN, all stateful apps.
+- **`oracle`** — Oracle Cloud Always Free A1 (`oracle_ip`, 2 OCPU / 12 GB / 200 GB, Frankfurt): heavy tools, n8n, Immich machine learning, downloads, the only Grafana/Prometheus (scrapes both hosts), and Gatus as an external watchdog. It exposes **no public ports**; its services are reached through a tunnel into the server's Traefik (see "Oracle Tunnel").
 
 ## Server Access — ALWAYS Use Ansible (MOST IMPORTANT RULE)
 
@@ -21,6 +24,11 @@ ansible server -i inventory.yml -e @custom.yml -e @secret.yml \
   --vault-password-file ~/.vault_pass \
   -m community.docker.docker_container_exec \
   -a 'container=amnezia-wg command="awg show"' -b
+
+# Same for the Oracle host
+ansible oracle -i inventory.yml -e @custom.yml -e @secret.yml \
+  --vault-password-file ~/.vault_pass \
+  -m ansible.builtin.shell -a 'docker ps' -b
 ```
 
 Why: Ansible enforces consistent become/sudo handling, vault decryption, inventory-driven host resolution, and produces structured/idempotent output. Raw SSH bypasses all of that and creates state drift.
@@ -44,6 +52,13 @@ Defense-in-depth is split across two layers that must be kept in sync:
   - Treat this as a fail-open second layer, not a primary defense.
 
 When changing SSH exposure, update **both** layers. If the Hetzner firewall is ever removed, tighten `ssh_allow_cidr` in `inventory.yml` to a real CIDR before redeploying.
+
+**Oracle host** — the inverse of Hetzner:
+
+- Host iptables is the **authoritative** layer: the `oracle` host var `iptables_allow_rules` allows only SSH from `operator_ip` and `server_ip` (the latter keeps SSH working while the operator is on the VPN, which exits via the server). Nothing else is open.
+- The Oracle VCN Security List (console, not in this repo) should mirror that (22/tcp from the same IPs, no other ingress).
+- If `operator_ip` changes, either connect to the VPN first or update `operator_ip` in `custom.yml` from a VPN session and redeploy `--limit oracle --tags system`. Last resort: Oracle console → instance → Console connection.
+- The default `ubuntu` / `opc` users are locked out by `AllowUsers {{ username }}`.
 
 ### IPv6
 
@@ -98,7 +113,8 @@ ansible-playbook playbook.yml -i inventory.yml -e @custom.yml -e @secret.yml --v
 
 Before running, two files must exist (both gitignored):
 
-- **`custom.yml`** — copy from `.custom.yml`, fill in `ansible_host`, `root_host`, `username`, SSH key path, email settings, `force_recreate`, and storage config.
+- **`custom.yml`** — copy from `.custom.yml`, fill in `server_ip`, `oracle_ip`, `operator_ip`, `root_host`, `username`, SSH key path, email settings, `force_recreate`, and storage config.
+  - **Never put `ansible_host` (or any other per-host connection var) in `custom.yml`/`secret.yml`.** They are passed as extra-vars, which override inventory host vars for *every* host — the Oracle play would silently connect to the Hetzner server.
 - **`secret.yml`** — copy from `.secret.yml`, fill in all secrets. Must be `chmod 600` and encrypted with `ansible-vault`.
 
 `ansible.cfg` sets `roles_path = .ansible/roles`, `collections_path = .ansible/collections`, enables `profile_tasks` callback, YAML output format, SSH connection multiplexing, and disables retry files.
@@ -109,11 +125,15 @@ Before running, two files must exist (both gitignored):
 
 ### Role Execution Order
 
-Roles in `playbook.yml` run in this sequence and must be thought of as layers:
+`playbook.yml` has two plays: **"Configure the main server"** (`hosts: server`) and **"Configure the Oracle server"** (`hosts: oracle`). Tags are shared, so e.g. `--tags grafana` deploys the exporters on both and Grafana/Prometheus on Oracle; use `--limit server|oracle` to target one.
+
+Main server roles run in this sequence and must be thought of as layers:
 
 1. **Infrastructure base**: `system` → `security` → `dns` → `geerlingguy.docker` → `docker_network` → `docker_proxy`
 2. **Security/proxy layer**: `crowdsec` → `traefik` → `redis` → `authelia`
-3. **Applications**: all remaining roles (each has its own tag matching its folder name)
+3. **Applications**: all remaining roles (each has its own tag matching its folder name). `tunnel_server` (tag `tunnel`) runs right after `traefik`.
+
+Oracle roles: `system` → `security` → `geerlingguy.docker` → `docker_network` → `tunnel_client` → `convertx` → `web_check` → `changedetection` → `grafana` → `n8n` → `immich_ml` → `downloads` (with `gatus` right after `docker_network`). Host-specific behaviour comes from host vars in `inventory.yml`: `oracle` has `iptables_allow_rules`, `gatus_external: true`, `prometheus_peers`, `system_swap_size`; `server` has `monitoring_primary: false` (exporters only, no Grafana/Prometheus). Docker uses the default `/var/lib/docker` on both (`docker_data_root` is optional and unset).
 
 External roles (installed to `.ansible/roles/`):
 
@@ -141,19 +161,16 @@ All enabled application roles in execution order:
 | `mywebsite` | mywebsite | `www.{{ root_host }}` | Personal website |
 | `vaultwarden` | vaultwarden | `password.{{ root_host }}` | Password manager |
 | `homepage` | homepage | `home.{{ root_host }}` | Dashboard |
-| `grafana` | grafana | `grafana.{{ root_host }}` | Monitoring (Grafana + Prometheus + cAdvisor + Node Exporter) |
+| `grafana` | grafana | — | Node Exporter + cAdvisor only (`monitoring_primary: false`); scraped by Oracle's Prometheus through the tunnel |
 | `gatus` | gatus | `uptime.{{ root_host }}` | Uptime monitoring (lightweight) |
 | `proxy` | proxy | `proxy.{{ root_host }}` | Xray (VLESS+Vision+Reality, TCP 8443) + Hysteria2 (UDP 443) censorship-resistant proxies |
-| `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation |
 | `ekstre` | ekstre | `ekstre.{{ root_host }}` | Static download/landing page for the Ekstre **desktop** app (nginx, serves `roles/ekstre/files/index.html`; repo `atomdeniz/ekstre-desktop`) |
 | `cup` | cup | `cup.{{ root_host }}` | Docker image update checker (web UI dashboard) |
-| `web_check` | web_check | `web.{{ root_host }}` | Website analysis tool |
-| `convertx` | convertx | `convertx.{{ root_host }}` | File converter |
+| `tunnel_server` | tunnel | `tunnel.{{ root_host }}` | chisel server for the Oracle tunnel (Traefik-routed, Oracle-IP-only) |
 | `pocketbase` | pocketbase | `pb.{{ root_host }}` | Waitlist/lead-capture backend (PocketBase) |
 | `storagebox` | storagebox | — | Hetzner Storage Box CIFS mount |
-| `immich` | immich | `photos.{{ root_host }}` | Photo management |
+| `immich` | immich | `photos.{{ root_host }}` | Photo management (machine learning runs on Oracle, reached as `immich-machine-learning:3003` via a tunnel-server alias) |
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
-| `changedetection` | changedetection | `changes.{{ root_host }}` | Website change monitoring |
 | `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer |
 | `postgres` | postgres | — | PostgreSQL 18 (shared DB for spliit + umami; Immich has its own pinned DB) |
 | `spliit` | spliit | `spliit.{{ root_host }}` | Expense splitting |
@@ -162,9 +179,22 @@ All enabled application roles in execution order:
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
-| `downloads` | downloads | `dl.` + `media.{{ root_host }}` | Link-based media downloader (gallery-dl-server, custom image w/ 7zip auto-extract) + copyparty gallery viewer; media on 15G loop image at `/opt/downloads` — outside backup scope, invisible to FileBrowser/Immich |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
+
+Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only service):
+
+| Role | Tag | Subdomain | Description |
+|---|---|---|---|
+| `tunnel_client` | tunnel | — | chisel client; dials `tunnel.{{ root_host }}`, exposes `tunnel_routes`/`tunnel_exports`, imports server metrics |
+| `convertx` | convertx | `convertx.{{ root_host }}` | File converter |
+| `web_check` | web_check | `web.{{ root_host }}` | Website analysis tool |
+| `changedetection` | changedetection | `changes.{{ root_host }}` | Website change monitoring |
+| `grafana` | grafana | `grafana.{{ root_host }}` | The only Grafana + Prometheus: scrapes both hosts (server's node_exporter/cAdvisor/Traefik/CrowdSec via `tunnel_imports`), all alert rules → Telegram |
+| `immich_ml` | immich | — | Immich machine-learning container (version pin read from `roles/immich/defaults`) |
+| `downloads` | downloads | `dl.` + `media.{{ root_host }}` | Link-based media downloader (gallery-dl-server, custom image w/ 7zip auto-extract) + copyparty gallery viewer; media on 15G loop image at `/opt/downloads` — outside backup scope, invisible to FileBrowser/Immich |
+| `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation (runs as the image's uid 1000) |
+| `gatus` | gatus | `uptime-oracle.{{ root_host }}` | External uptime monitoring (`gatus_external: true` renders `gatus_external_endpoints` instead of the server list) |
 
 ### Docker Networking
 
@@ -179,6 +209,20 @@ Five isolated bridge networks are created by the `docker_network` role:
 | `app_network` | 10.8.6.0/24 | no | Application services |
 
 Traefik sits on `edge_network` and `app_network`. Most app containers join `app_network`. Security/proxy containers join `edge_network`.
+
+### Oracle Tunnel
+
+Oracle has no inbound ports, so it dials out: `tunnel-client` (Oracle) → `https://tunnel.{{ root_host }}` (grey-cloud A record → server IP) → Traefik router `tunnel` (ipAllowList `oracle_ip/32`) → `tunnel-server` (chisel, on `app_network` + `ops_network`). The shared secret is generated on the server at `{{ docker_dir }}/tunnel/.secret` and read by the Oracle play via `delegate_to: server`; the chisel authfile only permits the configured ports/targets.
+
+All tunnel config lives in `inventory.yml`:
+
+- `tunnel_routes` — Oracle services published on the server: `tunnel-server:<port>` → `<container>:<port>` on Oracle. `tunnel_server` renders a Traefik file-provider router per entry (`traefik/data/configs/tunnel.yml`) with `secure-vpn-with-auth@file`.
+- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged).
+- `tunnel_imports` — server endpoints for Oracle's Prometheus (`tunnel-client:19100/18080/18899/16060`).
+
+The tunnel-server authfile is a single-file bind mount, so the role restarts the container when it changes.
+
+Inside the server, reach an Oracle service via `http://tunnel-server:<port>` (Gatus, Homepage widgets).
 
 ### Traefik Pattern
 
@@ -219,6 +263,8 @@ Keep comments minimal and terse. Prefer one short line explaining *why* over mul
 
 Every new role with a subdomain **must** also be added to the following:
 
+0. **Oracle-hosted services:** add an entry to `tunnel_routes` (new unique port) instead of Traefik labels, add the role to the Oracle play, and use `http://tunnel-server:<port>` for Gatus/Homepage.
+
 1. **DNS Registration:**
    - **VPN-only services** (`secure-vpn@file` or `secure-vpn-with-auth@file` middleware) → Add a rewrite entry in `roles/adguardhome/templates/AdGuardHome.yaml` under `rewrites:`.
    - **Public services** (`open-external@file` middleware) → Add a DNS record in `roles/dns/defaults/main.yml` under `dns_records:`.
@@ -240,3 +286,4 @@ docker exec crowdsec cscli console enroll -e context <key>
 ## Other Playbooks
 
 - **`migrate-docker-dir.yml`** — Utility playbook for migrating the Docker data directory to a new location.
+- **`bootstrap.yml`** — Creates the `ansible` user (key + passwordless sudo) on a fresh host via its cloud default user: `ansible-playbook bootstrap.yml -i inventory.yml -e @custom.yml --limit oracle [-e bootstrap_user=ubuntu]`.

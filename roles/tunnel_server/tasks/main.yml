@@ -1,0 +1,69 @@
+---
+- name: Create the tunnel directory
+  ansible.builtin.file:
+    path: "{{ tunnel_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Generate the tunnel secret
+  ansible.builtin.shell:
+    cmd: umask 077 && openssl rand -hex 32 > {{ tunnel_dir }}/.secret
+    creates: "{{ tunnel_dir }}/.secret"
+
+- name: Read the tunnel secret
+  ansible.builtin.slurp:
+    src: "{{ tunnel_dir }}/.secret"
+  register: _tunnel_secret
+  no_log: true
+
+- name: Set the tunnel secret fact
+  ansible.builtin.set_fact:
+    tunnel_secret: "{{ _tunnel_secret.content | b64decode | trim }}"
+  no_log: true
+
+- name: Template the tunnel authfile
+  ansible.builtin.template:
+    src: users.json.j2
+    dest: "{{ tunnel_dir }}/users.json"
+    owner: "65534"
+    group: "65534"
+    mode: "0400"  # holds the tunnel secret
+  register: _tunnel_authfile
+  no_log: true
+
+- name: Template the tunnel routes for Traefik
+  ansible.builtin.template:
+    src: tunnel.yml.j2
+    dest: "{{ docker_dir }}/traefik/data/configs/tunnel.yml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+
+- name: Create the tunnel server container
+  community.docker.docker_container:
+    name: tunnel-server
+    image: "jpillora/chisel:{{ chisel_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    restart: "{{ _tunnel_authfile.changed }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "65534:65534"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    memory: "128M"
+    command: >-
+      server --host 0.0.0.0 --port 8080 --reverse --keepalive 25s
+      --authfile /etc/chisel/users.json
+    volumes:
+      - "{{ tunnel_dir }}/users.json:/etc/chisel/users.json:ro"
+    networks:
+      - name: app_network
+        aliases: "{{ tunnel_exports | selectattr('alias', 'defined') | map(attribute='alias') | list }}"
+      - name: ops_network

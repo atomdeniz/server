@@ -6,6 +6,44 @@ groups:
     folder: Alerts
     interval: 1m
     rules:
+      - uid: monitoring-target-down
+        title: Monitoring target down
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: critical
+        annotations:
+          summary: A Prometheus scrape target is down (up == 0).
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: prometheus
+            model:
+              datasource: {type: prometheus, uid: prometheus}
+              editorMode: code
+              expr: 'up'
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              type: threshold
+              expression: A
+              refId: C
+              conditions:
+                - evaluator: {type: lt, params: [1]}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {type: last}
+                  type: query
+
       - uid: host-disk-usage-high
         title: Host disk usage high
         condition: C
@@ -191,44 +229,6 @@ groups:
               refId: C
               conditions:
                 - evaluator: {type: lt, params: [{{ alert_cert_expiry_days }}]}
-                  operator: {type: and}
-                  query: {params: [C]}
-                  reducer: {type: last}
-                  type: query
-
-      - uid: monitoring-target-down
-        title: Monitoring target down
-        condition: C
-        for: 5m
-        noDataState: OK
-        execErrState: OK
-        labels:
-          severity: critical
-        annotations:
-          summary: A Prometheus scrape target is down (up == 0).
-        data:
-          - refId: A
-            relativeTimeRange: {from: 600, to: 0}
-            datasourceUid: prometheus
-            model:
-              datasource: {type: prometheus, uid: prometheus}
-              editorMode: code
-              expr: 'up'
-              instant: true
-              range: false
-              intervalMs: 1000
-              maxDataPoints: 43200
-              refId: A
-          - refId: C
-            relativeTimeRange: {from: 600, to: 0}
-            datasourceUid: __expr__
-            model:
-              datasource: {type: __expr__, uid: __expr__}
-              type: threshold
-              expression: A
-              refId: C
-              conditions:
-                - evaluator: {type: lt, params: [1]}
                   operator: {type: and}
                   query: {params: [C]}
                   reducer: {type: last}

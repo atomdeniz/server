@@ -15,10 +15,26 @@ alerting:
       description: "health check failed"
 
 ui:
-  title: Status
-  header: Status
+  title: "{{ 'External status' if gatus_external else 'Status' }}"
+  header: "{{ 'External status' if gatus_external else 'Status' }}"
 
 endpoints:
+{% if gatus_external %}
+{% for e in gatus_external_endpoints %}
+  - name: "{{ e.name }}"
+    group: {{ e.group }}
+    url: "{{ e.url }}"
+    interval: 2m
+    conditions:
+      - "[CONNECTED] == true"
+{% if not e.url.startswith('tcp://') %}
+      - "[STATUS] < 400"
+{% endif %}
+    alerts:
+      - type: telegram
+
+{% endfor %}
+{% else %}
   - name: Traefik
     group: Infrastructure
     url: "http://traefik:80"
@@ -73,11 +89,21 @@ endpoints:
 
   - name: Grafana
     group: Monitoring
-    url: "http://grafana:3000"
+    url: "http://tunnel-server:13004/api/health"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
+    alerts:
+      - type: telegram
+
+  - name: Gatus (Oracle)
+    group: Monitoring
+    url: "http://tunnel-server:13003/health"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
     alerts:
       - type: telegram
 
@@ -93,7 +119,7 @@ endpoints:
 
   - name: N8N
     group: Applications
-    url: "http://n8n:5678"
+    url: "http://tunnel-server:13005/healthz"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
@@ -153,7 +179,7 @@ endpoints:
 
   - name: Gallery-dl Server
     group: Applications
-    url: "http://gallery-dl:9080"
+    url: "http://tunnel-server:13006"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
@@ -163,7 +189,7 @@ endpoints:
 
   - name: Copyparty
     group: Applications
-    url: "http://copyparty:3923"
+    url: "http://tunnel-server:13007"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
@@ -213,7 +239,7 @@ endpoints:
 
   - name: Change Detection
     group: Monitoring
-    url: "http://changedetection:5000"
+    url: "http://tunnel-server:13002"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
@@ -223,7 +249,7 @@ endpoints:
 
   - name: ConvertX
     group: Applications
-    url: "http://convertx:3000"
+    url: "http://tunnel-server:13000"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
@@ -279,3 +305,4 @@ endpoints:
       - "[CONNECTED] == true"
     alerts:
       - type: telegram
+{% endif %}

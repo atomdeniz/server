@@ -23,7 +23,7 @@
   ansible.posix.mount:
     src: "{{ storagebox_mount_path }}/immich"
     path: "{{ immich_storage_box_mount_path }}"
-    opts: bind,_netdev,nofail
+    opts: bind,_netdev,nofail,x-systemd.before=docker.service
     fstype: none
     state: mounted
   when: immich_storage_box_mount_enabled | default(false)

@@ -1,0 +1,1 @@
+{{ {tunnel_user ~ ':' ~ tunnel_secret: (tunnel_routes + tunnel_exports) | map(attribute='port') | map('regex_replace', '^(.*)$', '^R:0\\.0\\.0\\.0:\\1$') | list + tunnel_imports | map(attribute='target') | map('regex_escape') | map('regex_replace', '^(.*)$', '^\\1$') | list} | to_nice_json }}

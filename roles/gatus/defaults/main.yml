@@ -1,2 +1,28 @@
 ---
-gatus_version: "5.36.0"
+gatus_version: "5.37.0"
+gatus_external: false
+
+gatus_external_endpoints:
+  - {name: "HTTPS (443/tcp)", group: Server, url: "tcp://{{ server_ip }}:443"}
+  - {name: "Xray Reality (8443/tcp)", group: Server, url: "tcp://{{ server_ip }}:8443"}
+  - {name: "Tunnel", group: Server, url: "http://tunnel-client:19100/metrics"}
+  - {name: "Website", group: Public, url: "https://{{ www_host }}"}
+  - {name: "Root domain", group: Public, url: "https://{{ root_host }}"}
+  - {name: "Authelia", group: Public, url: "https://{{ authelia_host }}"}
+  - {name: "Immich", group: Public, url: "https://{{ immich_host }}"}
+  - {name: "Pingvin Share", group: Public, url: "https://{{ pingvin_host }}"}
+  - {name: "Spliit", group: Public, url: "https://{{ spliit_host }}"}
+  - {name: "Umami", group: Public, url: "https://{{ umami_host }}"}
+  - {name: "Ekstre", group: Public, url: "https://{{ ekstre_host }}"}
+  - {name: "IT Tools", group: Public, url: "https://{{ it_tools_host }}"}
+  - {name: "PR Queue", group: Public, url: "https://{{ pr_queue_host }}"}
+  - {name: "PocketBase", group: Public, url: "https://{{ pocketbase_host }}/api/health"}
+  - {name: "ConvertX", group: Oracle, url: "http://convertx:3000"}
+  - {name: "Web Check", group: Oracle, url: "http://web-check:3000"}
+  - {name: "Change Detection", group: Oracle, url: "http://changedetection:5000"}
+  - {name: "N8N", group: Oracle, url: "http://n8n:5678/healthz"}
+  - {name: "Grafana", group: Oracle, url: "http://grafana:3000/api/health"}
+  - {name: "Prometheus", group: Oracle, url: "http://prometheus:9090/-/healthy"}
+  - {name: "Immich ML", group: Oracle, url: "http://immich-machine-learning:3003/ping"}
+  - {name: "Gallery-dl Server", group: Oracle, url: "http://gallery-dl:9080"}
+  - {name: "Copyparty", group: Oracle, url: "http://copyparty:3923"}

@@ -61,6 +61,11 @@
     name: grafana
     restart: yes
 
+- name: Restart prometheus
+  community.docker.docker_container:
+    name: prometheus
+    restart: yes
+
 - name: Reload sysctl
   become: true
   ansible.builtin.command: sysctl --system

@@ -20,17 +20,7 @@
       - apparmor:docker-default
     networks:
       - name: app_network
-      - name: edge_network
     env:
       ALLOW_UNAUTHENTICATED: "true"
     volumes:
       - "{{ docker_dir }}/convertx:/app/data"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.convertx.entrypoints: "https"
-      traefik.http.routers.convertx.rule: "Host(`{{ convertx_host }}`)"
-      traefik.http.routers.convertx.tls: "true"
-      traefik.http.routers.convertx.service: "convertx"
-      traefik.http.routers.convertx.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.convertx.loadbalancer.server.port: "3000"

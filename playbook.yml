@@ -1,7 +1,7 @@
 #!/usr/bin/env ansible-playbook
 ---
-- name: Install and configure
-  hosts: all
+- name: Configure the main server
+  hosts: server
   gather_facts: true
 
   vars_files:
@@ -43,6 +43,10 @@
     - role: traefik
       tags:
         - traefik
+
+    - role: tunnel_server
+      tags:
+        - tunnel
 
     - role: redis
       tags:
@@ -93,10 +97,6 @@
       tags:
         - proxy
 
-    - role: n8n
-      tags:
-        - n8n
-
     - role: ekstre
       tags:
         - ekstre
@@ -109,14 +109,6 @@
     - role: cup
       tags:
         - cup
-
-    - role: web_check
-      tags:
-        - web_check
-
-    - role: convertx
-      tags:
-        - convertx
 
     - role: pocketbase
       tags:
@@ -133,10 +125,6 @@
     - role: it_tools
       tags:
         - it_tools
-
-    - role: changedetection
-      tags:
-        - changedetection
 
     - role: dozzle
       tags:
@@ -170,10 +158,70 @@
       tags:
         - pr_queue
 
-    - role: downloads
-      tags:
-        - downloads
-
     - role: backup
       tags:
         - backup
+
+- name: Configure the Oracle server
+  hosts: oracle
+  gather_facts: true
+
+  vars_files:
+    - custom.yml
+
+  handlers:
+    - name: Import global handlers
+      ansible.builtin.import_tasks: handlers/main.yml
+
+  roles:
+    - role: system
+      tags:
+        - system
+
+    - role: security
+      tags:
+        - security
+
+    - role: geerlingguy.docker
+      tags:
+        - docker
+
+    - role: docker_network
+      tags:
+        - docker
+
+    - role: gatus
+      tags:
+        - gatus
+
+    - role: tunnel_client
+      tags:
+        - tunnel
+
+    - role: convertx
+      tags:
+        - convertx
+
+    - role: web_check
+      tags:
+        - web_check
+
+    - role: changedetection
+      tags:
+        - changedetection
+
+    - role: grafana
+      tags:
+        - grafana
+
+    - role: n8n
+      tags:
+        - n8n
+
+    - role: immich_ml
+      tags:
+        - immich
+
+    - role: downloads
+      tags:
+        - downloads

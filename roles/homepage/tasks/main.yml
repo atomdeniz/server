@@ -96,7 +96,7 @@
       - "{{ docker_dir }}/homepage:/app/config"
       - "{{ storagebox_mount_path }}:/mnt/storagebox:ro,rslave"
     env:
-      HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }}"
+      HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_host }},homepage:3000"
       HOMEPAGE_VAR_GRAFANA_PASSWORD: "{{ grafana_password | default('') }}"
       HOMEPAGE_VAR_TRAEFIK_PASSWORD: "{{ traefik_password | default('') }}"
       HOMEPAGE_VAR_CROWDSEC_MACHINE_API_KEY: "{{ crowdsecMachineApiKey | default('') }}"

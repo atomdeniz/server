@@ -2,70 +2,75 @@
 dns_records:
   - name: "{{ root_host }}"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "www"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "auth"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "traefikshaper"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "vpn"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "ekstre"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "proxy"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
+    proxied: false
+
+  - name: "tunnel"
+    type: A
+    content: "{{ server_ip }}"
     proxied: false
 
   - name: "photos"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: false
 
   - name: "dev"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "spliit"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "share"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "analytics"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "pr"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true
 
   - name: "pb"
     type: A
-    content: "{{ ansible_host }}"
+    content: "{{ server_ip }}"
     proxied: true

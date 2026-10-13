@@ -2,8 +2,25 @@
 all:
   hosts:
     server:
-      ansible_host: "{{ ansible_host }}"
+      ansible_host: "{{ server_ip }}"
       ansible_user: "{{ username }}"
+      monitoring_primary: false
+    oracle:
+      ansible_host: "{{ oracle_ip }}"
+      ansible_user: "{{ username }}"
+      system_swap_size: 4G
+      gatus_external: true
+      prometheus_peers:
+        - host: server
+          node_exporter: "tunnel-client:19100"
+          cadvisor: "tunnel-client:18080"
+          traefik: "tunnel-client:18899"
+          crowdsec: "tunnel-client:16060"
+      iptables_allow_rules:
+        - desc: "Allow SSH (operator + server)"
+          proto: tcp
+          port: "{{ ssh_port }}"
+          src: "{{ operator_ip }}/32,{{ server_ip }}/32"
   vars:
     www_host: "www.{{ root_host }}"
 
@@ -66,6 +83,59 @@ all:
     gallerydl_host: "dl.{{ root_host }}"
 
     copyparty_host: "media.{{ root_host }}"
+
+    tunnel_host: "tunnel.{{ root_host }}"
+
+    oracle_gatus_host: "uptime-oracle.{{ root_host }}"
+
+    tunnel_routes:
+      - name: convertx
+        host: "{{ convertx_host }}"
+        target: "convertx:3000"
+        port: 13000
+      - name: web-check
+        host: "{{ web_check_host }}"
+        target: "web-check:3000"
+        port: 13001
+      - name: changedetection
+        host: "{{ changedetection_host }}"
+        target: "changedetection:5000"
+        port: 13002
+      - name: gatus-oracle
+        host: "{{ oracle_gatus_host }}"
+        target: "gatus:8080"
+        port: 13003
+      - name: grafana
+        host: "{{ grafana_host }}"
+        target: "grafana:3000"
+        port: 13004
+      - name: n8n
+        host: "{{ n8n_host }}"
+        target: "n8n:5678"
+        port: 13005
+      - name: gallerydl
+        host: "{{ gallerydl_host }}"
+        target: "gallery-dl:9080"
+        port: 13006
+      - name: copyparty
+        host: "{{ copyparty_host }}"
+        target: "copyparty:3923"
+        port: 13007
+
+    tunnel_exports:
+      - target: "immich-machine-learning:3003"
+        port: 3003
+        alias: immich-machine-learning
+
+    tunnel_imports:
+      - target: "node_exporter:9100"
+        port: 19100
+      - target: "cadvisor:8080"
+        port: 18080
+      - target: "traefik:8899"
+        port: 18899
+      - target: "crowdsec:6060"
+        port: 16060
 
     traefik_app_network_gateway: 10.8.6.1
 

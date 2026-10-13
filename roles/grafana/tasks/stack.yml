@@ -1,0 +1,162 @@
+---
+- name: Create prometheus directory
+  ansible.builtin.file:
+    path: "/etc/prometheus/"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy the prometheus.yml
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "/etc/prometheus/prometheus.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart prometheus
+
+- name: Create volumes for monitoring containers
+  community.docker.docker_volume:
+    name: "{{ item }}"
+    state: present
+    driver: local
+  loop:
+    - prometheus-data
+    - grafana-data
+
+- name: Ensure grafana-data directory exists and has correct permissions
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/grafana-data"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Create grafana provisioning directories
+  ansible.builtin.file:
+    path: "/etc/grafana-provisioning/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - datasources
+    - dashboards
+    - alerting
+
+- name: Copy grafana datasource provisioning
+  ansible.builtin.template:
+    src: provisioning/datasources/datasource.yml
+    dest: /etc/grafana-provisioning/datasources/datasource.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy grafana dashboard provisioning config
+  ansible.builtin.template:
+    src: provisioning/dashboards/dashboards.yml
+    dest: /etc/grafana-provisioning/dashboards/dashboards.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy grafana alert rules + notification policy
+  ansible.builtin.template:
+    src: "provisioning/alerting/{{ item.src }}"
+    dest: "/etc/grafana-provisioning/alerting/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - {src: rules.yaml.j2, dest: rules.yaml}
+    - {src: policies.yaml, dest: policies.yaml}
+  notify: Restart grafana
+
+- name: Copy grafana Telegram contact point
+  ansible.builtin.template:
+    src: provisioning/alerting/contactpoints.yaml
+    dest: /etc/grafana-provisioning/alerting/contactpoints.yaml
+    owner: "{{ username }}"  # grafana runs as this user; holds the bot token
+    group: "{{ username }}"
+    mode: "0640"
+  no_log: true
+  notify: Restart grafana
+
+- name: Create grafana dashboards directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/grafana-data/dashboards"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Copy grafana dashboard JSON files
+  ansible.builtin.copy:
+    src: "dashboards/{{ item }}"
+    dest: "{{ docker_dir }}/grafana-data/dashboards/"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  loop:
+    - cadvisor.json
+    - node-exporter.json
+    - crowdsec.json
+    - traefik.json
+
+- name: Create prometheus container
+  community.docker.docker_container:
+    name: prometheus
+    image: prom/prometheus:{{ prometheus_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    cap_drop:
+      - ALL
+    volumes:
+      - /etc/prometheus/:/etc/prometheus/
+      - prometheus-data:/prometheus
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    memory: "512M"
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.retention.time=7d --storage.tsdb.retention.size=500MB"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - name: ops_network
+
+- name: Create grafana container
+  no_log: true  # env carries the admin password
+  community.docker.docker_container:
+    name: grafana
+    image: grafana/grafana:{{ grafana_version }}
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "{{ ansible_facts.getent_passwd[username][1] }}:{{ ansible_facts.getent_passwd[username][2] }}"
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    volumes:
+      - "{{ docker_dir }}/grafana-data:/var/lib/grafana"
+      - /etc/grafana-provisioning:/etc/grafana/provisioning:ro
+    env:
+      GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_password }}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - name: app_network
+      - name: ops_network

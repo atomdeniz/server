@@ -1,9 +1,14 @@
 [Unit]
 Description=Restore iptables firewall rules
-Before=network-pre.target
+DefaultDependencies=no
+Wants=network-pre.target
+Before=network-pre.target shutdown.target
+After=systemd-modules-load.service local-fs.target
+Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart={{ iptables_restore.stdout }} -n /etc/iptables.conf
 
 [Install]

@@ -54,7 +54,7 @@
       INIT_ENABLED: "true"
       INIT_USERNAME: "{{ amnezia_wg_admin_username }}"
       INIT_PASSWORD: "{{ amnezia_password }}"   # plaintext; v15 hashes it
-      INIT_HOST: "{{ ansible_host }}"
+      INIT_HOST: "{{ server_ip }}"
       INIT_PORT: "{{ vpn_port }}"
       INIT_DNS: "{{ adguard_local_ip }}"
       INIT_ALLOWED_IPS: "{{ vpn_client_allowed_ips }}"

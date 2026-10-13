@@ -1,0 +1,30 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Bootstrap the ansible user on a fresh host
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+    ansible_user: "{{ bootstrap_user | default('ubuntu') }}"
+
+  tasks:
+    - name: Create the ansible user
+      ansible.builtin.user:
+        name: "{{ username }}"
+        shell: /bin/bash
+        password_lock: true
+
+    - name: Authorize the ansible SSH key
+      ansible.posix.authorized_key:
+        user: "{{ username }}"
+        key: "{{ lookup('ansible.builtin.file', (ansible_ssh_private_key_file ~ '.pub') | expanduser) }}"
+        exclusive: true
+
+    - name: Grant passwordless sudo
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/90-{{ username }}"
+        content: "{{ username }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: "0440"
+        validate: visudo -cf %s

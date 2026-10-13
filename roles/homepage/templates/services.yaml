@@ -5,15 +5,18 @@
 
 - Monitoring:
     - Grafana:
-        server: my-docker
         icon: grafana.svg
         href: "https://{{ grafana_host }}"
         description: Metrics & dashboards
         widget:
           type: grafana
-          url: "http://grafana:3000"
+          url: "http://tunnel-server:13004"
           username: admin
           password: "{% raw %}{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}{% endraw %}"
+    - Gatus (Oracle):
+        icon: gatus.svg
+        href: "https://{{ oracle_gatus_host }}"
+        description: External uptime monitoring (Oracle)
     - Gatus:
         server: my-docker
         icon: gatus.svg
@@ -121,7 +124,6 @@
         href: "https://{{ vaultwarden_host }}"
         description: Password manager
     - N8N:
-        server: my-docker
         icon: n8n.svg
         href: "https://{{ n8n_host }}"
         description: Workflow automation
@@ -131,13 +133,12 @@
         href: "https://{{ ekstre_host }}"
         description: Masaüstü uygulaması indirme sayfası
     - ChangeDetection:
-        server: my-docker
         icon: changedetection.png
         href: "https://{{ changedetection_host }}"
         description: Website change monitoring
         widget:
           type: changedetectionio
-          url: http://changedetection:5000
+          url: http://tunnel-server:13002
           key: "{% raw %}{{HOMEPAGE_VAR_CHANGEDETECTION_API_KEY}}{% endraw %}"
     - Wallos:
         server: my-docker
@@ -155,12 +156,10 @@
         href: "https://{{ pr_queue_host }}"
         description: PR reviewer rotation
     - Downloader:
-        server: my-docker
         icon: mdi-cloud-download
         href: "https://{{ gallerydl_host }}"
         description: Link-based media downloader (gallery-dl)
     - Media:
-        server: my-docker
         icon: mdi-filmstrip-box-multiple
         href: "https://{{ copyparty_host }}"
         description: Downloaded media gallery (copyparty)
@@ -172,7 +171,6 @@
         href: "https://{{ it_tools_host }}"
         description: Developer utilities
     - ConvertX:
-        server: my-docker
         icon: convertx.png
         href: "https://{{ convertx_host }}"
         description: File converter
@@ -187,7 +185,6 @@
         href: "https://{{ pingvin_host }}"
         description: File sharing
     - Web Check:
-        server: my-docker
         icon: web-check.svg
         href: "https://{{ web_check_host }}"
         description: Website analysis

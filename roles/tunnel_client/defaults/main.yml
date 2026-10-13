@@ -1,0 +1,4 @@
+---
+chisel_version: "1.12.1"
+tunnel_dir: "{{ docker_dir }}/tunnel"
+tunnel_user: oracle

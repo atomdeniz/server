@@ -21,6 +21,15 @@
     - 10periodic
     - 50unattended-upgrades
 
+- name: Create Docker config directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Configure Docker daemon log rotation
   become: true
   ansible.builtin.template:

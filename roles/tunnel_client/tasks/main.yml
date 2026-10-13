@@ -1,0 +1,35 @@
+---
+- name: Read the tunnel secret from the server
+  ansible.builtin.slurp:
+    src: "{{ tunnel_dir }}/.secret"
+  delegate_to: server
+  register: _tunnel_secret
+  no_log: true
+
+- name: Create the tunnel client container
+  community.docker.docker_container:
+    name: tunnel-client
+    image: "jpillora/chisel:{{ chisel_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    user: "65534:65534"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    memory: "128M"
+    command: >-
+      client --keepalive 25s --max-retry-interval 30s
+      https://{{ tunnel_host }}
+      {% for r in tunnel_routes + tunnel_exports %}R:0.0.0.0:{{ r.port }}:{{ r.target }} {% endfor %}
+      {% for r in tunnel_imports %}0.0.0.0:{{ r.port }}:{{ r.target }} {% endfor %}
+    env:
+      AUTH: "{{ tunnel_user }}:{{ _tunnel_secret.content | b64decode | trim }}"
+    networks:
+      - name: app_network
+      - name: ops_network
+  no_log: true  # AUTH carries the tunnel secret

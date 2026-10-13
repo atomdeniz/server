@@ -1,4 +1,14 @@
 ---
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Disable netfilter-persistent (conflicts with iptables.service)
+  ansible.builtin.systemd_service:
+    name: netfilter-persistent
+    state: stopped
+    enabled: false
+  when: "'netfilter-persistent.service' in ansible_facts.services"
+
 - name: Template the iptables rules
   ansible.builtin.template:
     src: iptables.conf
@@ -6,6 +16,7 @@
     owner: root
     group: root
     mode: "0600"
+  notify: Restart iptables
 
 - name: Check the location of iptables-restore
   ansible.builtin.command:
@@ -21,6 +32,7 @@
     owner: root
     group: root
     mode: "0644"
+  notify: Restart iptables
 
 - name: Enable and start the iptables service
   become: true
@@ -28,4 +40,4 @@
     name: iptables
     state: started
     enabled: true
-  notify: Restart iptables
+    daemon_reload: true

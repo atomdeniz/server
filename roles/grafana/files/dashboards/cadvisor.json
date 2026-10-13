@@ -36,7 +36,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cefup86hhvegwc"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -121,11 +121,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "cefup86hhvegwc"
+            "uid": "prometheus"
           },
-          "expr": "sum(rate(container_cpu_usage_seconds_total{instance=~\"$host\",name=~\"$container\",name=~\".+\"}[5m])) by (name) *100",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{host=~\"$host\",name=~\"$container\",name=~\".+\"}[5m])) by (host, name) *100",
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{host}}/{{name}}",
           "refId": "A"
         }
       ],
@@ -148,7 +148,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cefup86hhvegwc"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -233,11 +233,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "cefup86hhvegwc"
+            "uid": "prometheus"
           },
-          "expr": "sum(container_memory_rss{instance=~\"$host\",name=~\"$container\",name=~\".+\"}) by (name)",
+          "expr": "sum(container_memory_rss{host=~\"$host\",name=~\"$container\",name=~\".+\"}) by (host, name)",
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{host}}/{{name}}",
           "refId": "A"
         }
       ],
@@ -247,7 +247,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cefup86hhvegwc"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -332,11 +332,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "cefup86hhvegwc"
+            "uid": "prometheus"
           },
-          "expr": "sum(container_memory_cache{instance=~\"$host\",name=~\"$container\",name=~\".+\"}) by (name)",
+          "expr": "sum(container_memory_cache{host=~\"$host\",name=~\"$container\",name=~\".+\"}) by (host, name)",
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{host}}/{{name}}",
           "refId": "A"
         }
       ],
@@ -359,7 +359,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cefup86hhvegwc"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -444,11 +444,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "cefup86hhvegwc"
+            "uid": "prometheus"
           },
-          "expr": "sum(rate(container_network_receive_bytes_total{instance=~\"$host\",name=~\"$container\",name=~\".+\"}[5m])) by (name)",
+          "expr": "sum(rate(container_network_receive_bytes_total{host=~\"$host\",name=~\"$container\",name=~\".+\"}[5m])) by (host, name)",
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{host}}/{{name}}",
           "refId": "A"
         }
       ],
@@ -458,7 +458,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cefup86hhvegwc"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -543,11 +543,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "cefup86hhvegwc"
+            "uid": "prometheus"
           },
-          "expr": "sum(rate(container_network_transmit_bytes_total{instance=~\"$host\",name=~\"$container\",name=~\".+\"}[5m])) by (name)",
+          "expr": "sum(rate(container_network_transmit_bytes_total{host=~\"$host\",name=~\"$container\",name=~\".+\"}[5m])) by (host, name)",
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{host}}/{{name}}",
           "refId": "A"
         }
       ],
@@ -570,7 +570,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cefup86hhvegwc"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -661,13 +661,13 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "cefup86hhvegwc"
+            "uid": "prometheus"
           },
-          "expr": "(time() - container_start_time_seconds{instance=~\"$host\",name=~\"$container\",name=~\".+\"})/86400",
+          "expr": "(time() - container_start_time_seconds{host=~\"$host\",name=~\"$container\",name=~\".+\"})/86400",
           "format": "table",
           "instant": true,
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{host}}/{{name}}",
           "refId": "A"
         }
       ],
@@ -721,13 +721,13 @@
           "text": "All",
           "value": "$__all"
         },
-        "definition": "label_values({__name__=~\"container.*\"},instance)",
+        "definition": "label_values({__name__=~\"container.*\"},host)",
         "includeAll": true,
         "label": "Host",
         "name": "host",
         "options": [],
         "query": {
-          "query": "label_values({__name__=~\"container.*\"},instance)",
+          "query": "label_values({__name__=~\"container.*\"},host)",
           "refId": "Prometheus-host-Variable-Query"
         },
         "refresh": 1,
@@ -742,13 +742,13 @@
           "text": "All",
           "value": "$__all"
         },
-        "definition": "label_values({__name__=~\"container.*\", instance=~\"$host\"},name)",
+        "definition": "label_values({__name__=~\"container.*\", host=~\"$host\"},name)",
         "includeAll": true,
         "label": "Container",
         "name": "container",
         "options": [],
         "query": {
-          "query": "label_values({__name__=~\"container.*\", instance=~\"$host\"},name)",
+          "query": "label_values({__name__=~\"container.*\", host=~\"$host\"},name)",
           "refId": "Prometheus-container-Variable-Query"
         },
         "refresh": 1,

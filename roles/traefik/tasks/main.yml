@@ -228,7 +228,7 @@
       GRANT_HTTP_ENDPOINT: "/knock-knock"
       IPSTRATEGY_DEPTH: "1"
       EXPIRATION_TIME: "6000"
-      WHITELISTED_IPS: "{{ ansible_host }}"
+      WHITELISTED_IPS: "{{ server_ip }}"
       APPRISE_NOTIFICATION_URL: tgram://bot{{ telegram_traefik_bot_token }}/{{ telegram_user_id }}
     labels:
       traefik.enable: "true"

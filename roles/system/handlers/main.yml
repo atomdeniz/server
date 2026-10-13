@@ -10,3 +10,4 @@
   ansible.builtin.service:
     name: docker
     state: restarted
+  when: "'docker.service' in ansible_facts.services"

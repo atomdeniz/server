@@ -30,11 +30,10 @@
     volumes:
       - "{{ docker_dir }}/gatus/config.yml:/config/config.yaml:ro"
       - "{{ docker_dir }}/gatus/data:/data"
-    networks:
-      - name: app_network
-      - name: ops_network
-      - name: edge_network
-    labels:
+    networks: "{{ [{'name': 'app_network'}, {'name': 'ops_network'}] + ([] if gatus_external else [{'name': 'edge_network'}]) }}"
+    labels: "{{ {} if gatus_external else gatus_traefik_labels }}"
+  vars:
+    gatus_traefik_labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"
       traefik.http.routers.gatus.entrypoints: "https"

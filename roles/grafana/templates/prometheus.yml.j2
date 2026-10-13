@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: "prometheus"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["localhost:9090"]
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["node_exporter:9100"]
+        labels:
+          host: "{{ inventory_hostname }}"
+{% for peer in prometheus_peers %}
+      - targets: ["{{ peer.node_exporter }}"]
+        labels:
+          host: "{{ peer.host }}"
+{% endfor %}
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          host: "{{ inventory_hostname }}"
+{% for peer in prometheus_peers %}
+      - targets: ["{{ peer.cadvisor }}"]
+        labels:
+          host: "{{ peer.host }}"
+{% endfor %}
+{% for job in ['traefik', 'crowdsec'] if prometheus_peers | selectattr(job, 'defined') %}
+  - job_name: "{{ job }}"
+    static_configs:
+{% for peer in prometheus_peers if peer[job] is defined %}
+      - targets: ["{{ peer[job] }}"]
+        labels:
+          host: "{{ peer.host }}"
+{% endfor %}
+{% endfor %}

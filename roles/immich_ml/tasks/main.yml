@@ -1,0 +1,21 @@
+---
+- name: Load the Immich version pin
+  ansible.builtin.include_vars:
+    file: "{{ role_path }}/../immich/defaults/main.yml"
+
+- name: Create the immich machine-learning container
+  community.docker.docker_container:
+    name: immich-machine-learning
+    image: "ghcr.io/immich-app/immich-machine-learning:{{ immich_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    memory: "4G"
+    volumes:
+      - immich-model-cache:/cache
+    networks:
+      - name: app_network

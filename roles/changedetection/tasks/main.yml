@@ -48,12 +48,3 @@
       HIDE_REFERER: "true"
       FETCH_WORKERS: "5"
       TZ: "Europe/Istanbul"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.changedetection.entrypoints: "https"
-      traefik.http.routers.changedetection.rule: "Host(`{{ changedetection_host }}`)"
-      traefik.http.routers.changedetection.tls: "true"
-      traefik.http.routers.changedetection.service: "changedetection"
-      traefik.http.routers.changedetection.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.changedetection.loadbalancer.server.port: "5000"

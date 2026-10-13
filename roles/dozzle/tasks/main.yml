@@ -17,6 +17,8 @@
     env:
       DOCKER_HOST: tcp://docker_proxy:2375
       DOZZLE_NO_ANALYTICS: "true"
+      DOZZLE_DISABLE_SETUP_WIZARD: "true"
+      DOZZLE_IMAGE_CHECK_MODE: "off"
     labels:
       traefik.enable: "true"
       traefik.docker.network: "app_network"

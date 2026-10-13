@@ -1,0 +1,32 @@
+http:
+  middlewares:
+    tunnel-ipallowlist:
+      ipAllowList:
+        sourceRange:
+          - "{{ oracle_ip }}/32"
+  routers:
+    tunnel:
+      entryPoints: ["https"]
+      rule: "Host(`{{ tunnel_host }}`)"
+      middlewares: ["tunnel-ipallowlist"]
+      service: tunnel
+      tls: {}
+{% for r in tunnel_routes %}
+    {{ r.name }}:
+      entryPoints: ["https"]
+      rule: "Host(`{{ r.host }}`)"
+      middlewares: ["secure-vpn-with-auth@file"]
+      service: "{{ r.name }}"
+      tls: {}
+{% endfor %}
+  services:
+    tunnel:
+      loadBalancer:
+        servers:
+          - url: "http://tunnel-server:8080"
+{% for r in tunnel_routes %}
+    {{ r.name }}:
+      loadBalancer:
+        servers:
+          - url: "http://tunnel-server:{{ r.port }}"
+{% endfor %}

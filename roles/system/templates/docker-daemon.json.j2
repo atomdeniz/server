@@ -4,6 +4,8 @@
     "max-size": "10m",
     "max-file": "3"
   },
-  "data-root": "/mnt/HC_Volume_104986964/docker-lib",
+{% if docker_data_root is defined %}
+  "data-root": "{{ docker_data_root }}",
+{% endif %}
   "dns": ["1.1.1.1", "1.0.0.1"]
 }

@@ -3,8 +3,8 @@
   ansible.builtin.file:
     path: "{{ docker_dir }}/n8n"
     state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    owner: "1000"
+    group: "1000"
     mode: "0775"
 
 - name: Make sure the n8n container is created and running
@@ -20,7 +20,6 @@
       - no-new-privileges:true
       - apparmor:docker-default
     networks:
-      - name: edge_network
       - name: app_network
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
@@ -33,12 +32,3 @@
     env:
       GENERIC_TIMEZONE: "Europe/Istanbul"
       TZ: "Europe/Istanbul"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.n8n.entrypoints: "https"
-      traefik.http.routers.n8n.rule: "Host(`{{ n8n_host }}`)"
-      traefik.http.routers.n8n.tls: "true"
-      traefik.http.routers.n8n.service: "n8n"
-      traefik.http.routers.n8n.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.n8n.loadbalancer.server.port: "5678"

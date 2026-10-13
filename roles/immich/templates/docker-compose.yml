@@ -60,29 +60,6 @@ services:
       traefik.http.routers.immich-login.service: "immich"
       traefik.http.routers.immich-login.middlewares: "open-external@file,immich-login-rate-limit@file"
 
-  immich-machine-learning:
-    container_name: immich_machine_learning
-    # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
-    # Example tag: ${IMMICH_VERSION:-release}-cuda
-    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
-    pull_policy: always
-    # extends: # uncomment this section for hardware acceleration - see https://docs.immich.app/features/ml-hardware-acceleration
-    #   file: hwaccel.ml.yml
-    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
-    volumes:
-      - model-cache:/cache
-    env_file:
-      - .env
-    security_opt:
-      - no-new-privileges:true
-      - apparmor:docker-default
-    restart: always
-    healthcheck:
-      disable: false
-    networks:
-      - app_network
-      - redis_data_network
-
   database:
     container_name: immich_postgres
     image: {{ immich_postgres_image }}
@@ -118,9 +95,6 @@ services:
       - app_network
     labels:
       wud.watch: "false"
-
-volumes:
-  model-cache:
 
 networks:
   app_network:
