@@ -126,6 +126,8 @@ all:
       - target: "immich-machine-learning:3003"
         port: 3003
         alias: immich-machine-learning
+      - target: "prometheus:9090"
+        port: 13008
 
     tunnel_imports:
       - target: "node_exporter:9100"

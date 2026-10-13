@@ -26,12 +26,11 @@
           type: gatus
           url: http://gatus:8080
     - Prometheus:
-        server: my-docker
         icon: prometheus.svg
         description: Time-series database
         widget:
           type: prometheus
-          url: http://prometheus:9090
+          url: http://tunnel-server:13008
     - Dozzle:
         server: my-docker
         icon: dozzle.png

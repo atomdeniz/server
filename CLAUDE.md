@@ -217,7 +217,7 @@ Oracle has no inbound ports, so it dials out: `tunnel-client` (Oracle) → `http
 All tunnel config lives in `inventory.yml`:
 
 - `tunnel_routes` — Oracle services published on the server: `tunnel-server:<port>` → `<container>:<port>` on Oracle. `tunnel_server` renders a Traefik file-provider router per entry (`traefik/data/configs/tunnel.yml`) with `secure-vpn-with-auth@file`.
-- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged).
+- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged). Prometheus is exported as `tunnel-server:13008` for the Homepage widget.
 - `tunnel_imports` — server endpoints for Oracle's Prometheus (`tunnel-client:19100/18080/18899/16060`).
 
 The tunnel-server authfile is a single-file bind mount, so the role restarts the container when it changes.
