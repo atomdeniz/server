@@ -11,13 +11,26 @@
     - adguardhome/work
     - adguardhome/conf
 
+- name: Read the live adguardhome config
+  ansible.builtin.slurp:
+    src: "{{ docker_dir }}/adguardhome/conf/AdGuardHome.yaml"
+  register: _adguard_live_config
+  failed_when: false
+  no_log: true
+
+- name: Keep the admin password set in the UI
+  ansible.builtin.set_fact:
+    adguard_live_password_hash: "{{ (_adguard_live_config.content | b64decode | from_yaml).users[0].password }}"
+  when: _adguard_live_config.content is defined
+  no_log: true
+
 - name: Copy adguardhome config
   ansible.builtin.template:
-    src: AdGuardHome.yaml
+    src: AdGuardHome.yaml.j2
     dest: "{{ docker_dir }}/adguardhome/conf/AdGuardHome.yaml"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0640"
+    owner: root
+    group: root
+    mode: "0600"  # holds the admin password hash
 
   notify: Restart adguardhome
 

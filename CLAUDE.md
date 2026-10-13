@@ -266,7 +266,7 @@ Every new role with a subdomain **must** also be added to the following:
 0. **Oracle-hosted services:** add an entry to `tunnel_routes` (new unique port) instead of Traefik labels, add the role to the Oracle play, and use `http://tunnel-server:<port>` for Gatus/Homepage.
 
 1. **DNS Registration:**
-   - **VPN-only services** (`secure-vpn@file` or `secure-vpn-with-auth@file` middleware) → Add a rewrite entry in `roles/adguardhome/templates/AdGuardHome.yaml` under `rewrites:`.
+   - **VPN-only services** (`secure-vpn@file` or `secure-vpn-with-auth@file` middleware) → Add a rewrite entry in `roles/adguardhome/templates/AdGuardHome.yaml.j2` under `filtering.rewrites:` (unquoted, matching the existing entries; the template mirrors AdGuard's own serialization so the role stays idempotent).
    - **Public services** (`open-external@file` middleware) → Add a DNS record in `roles/dns/defaults/main.yml` under `dns_records:`.
 
 2. **Gatus Monitoring** → Add an endpoint in `roles/gatus/templates/config.yml.j2` under `endpoints:`. Use internal Docker URL (e.g., `http://<container>:<port>`) when possible.

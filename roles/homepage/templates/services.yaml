@@ -13,6 +13,38 @@
           url: "http://tunnel-server:13004"
           username: admin
           password: "{% raw %}{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}{% endraw %}"
+    - Oracle:
+        icon: mdi-server
+        description: Oracle Cloud A1 host
+        widget:
+          type: prometheusmetric
+          url: http://tunnel-server:13008
+          refreshInterval: 30000
+          metrics:
+            - label: CPU
+              query: 100 * (1 - avg(rate(node_cpu_seconds_total{host="oracle",mode="idle"}[2m])))
+              format:
+                type: percent
+                options:
+                  maximumFractionDigits: 1
+            - label: RAM
+              query: 100 * (1 - node_memory_MemAvailable_bytes{host="oracle"} / node_memory_MemTotal_bytes{host="oracle"})
+              format:
+                type: percent
+                options:
+                  maximumFractionDigits: 1
+            - label: Disk
+              query: 100 - 100 * node_filesystem_avail_bytes{host="oracle",mountpoint="/"} / node_filesystem_size_bytes{host="oracle",mountpoint="/"}
+              format:
+                type: percent
+                options:
+                  maximumFractionDigits: 1
+            - label: Load
+              query: node_load5{host="oracle"}
+              format:
+                type: number
+                options:
+                  maximumFractionDigits: 2
     - Gatus (Oracle):
         icon: gatus.svg
         href: "https://{{ oracle_gatus_host }}"
