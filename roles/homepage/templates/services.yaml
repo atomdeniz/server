@@ -68,6 +68,11 @@
         icon: dozzle.png
         href: "https://{{ dozzle_host }}"
         description: Container logs
+    - Backrest:
+        server: my-docker
+        icon: backrest.svg
+        href: "https://{{ backrest_host }}"
+        description: Backup browser & restore
     - Cup:
         server: my-docker
         icon: cup.png

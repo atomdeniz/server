@@ -194,6 +194,9 @@ filtering:
     - domain: {{ cup_host }}
       answer: {{ traefik_app_network_local_ip }}
       enabled: true
+    - domain: {{ backrest_host }}
+      answer: {{ traefik_app_network_local_ip }}
+      enabled: true
     - domain: {{ filebrowser_host }}
       answer: {{ traefik_app_network_local_ip }}
       enabled: true

@@ -2,3 +2,17 @@
 cup_version: "v3.5.1"
 # 15 min after cup's 6-hourly refresh
 cup_notify_on_calendar: "*-*-* 00/6:15:00"
+cup_agent: false
+cup_servers:
+  Oracle: "http://tunnel-server:13009"
+cup_exclude:
+  - "pr_queue-pr_queue"
+cup_traefik_labels:
+  traefik.enable: "true"
+  traefik.docker.network: "app_network"
+  traefik.http.routers.cup.entrypoints: "https"
+  traefik.http.routers.cup.rule: "Host(`{{ cup_host }}`)"
+  traefik.http.routers.cup.tls: "true"
+  traefik.http.routers.cup.service: "cup"
+  traefik.http.routers.cup.middlewares: "secure-vpn-with-auth@file"
+  traefik.http.services.cup.loadbalancer.server.port: "8000"

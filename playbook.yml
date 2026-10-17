@@ -162,6 +162,10 @@
       tags:
         - backup
 
+    - role: backrest
+      tags:
+        - backrest
+
 - name: Configure the Oracle server
   hosts: oracle
   gather_facts: true
@@ -187,6 +191,10 @@
         - docker
 
     - role: docker_network
+      tags:
+        - docker
+
+    - role: docker_proxy
       tags:
         - docker
 
@@ -225,3 +233,7 @@
     - role: downloads
       tags:
         - downloads
+
+    - role: cup
+      tags:
+        - cup

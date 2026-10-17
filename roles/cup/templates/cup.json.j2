@@ -1,13 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/sergi0g/cup/main/cup.schema.json",
   "version": 3,
+{% if cup_agent %}
+  "agent": true,
+{% else %}
   "theme": "default",
+  "servers": {{ cup_servers | to_json }},
+{% endif %}
   "socket": "tcp://docker_proxy:2375",
   "refresh_interval": "0 0 */6 * * *",
   "images": {
-    "exclude": [
-      "pr_queue-pr_queue",
-      "downloads-gallery-dl"
-    ]
+    "exclude": {{ cup_exclude | to_json }}
   }
 }

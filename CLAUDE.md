@@ -133,7 +133,7 @@ Main server roles run in this sequence and must be thought of as layers:
 2. **Security/proxy layer**: `crowdsec` → `traefik` → `redis` → `authelia`
 3. **Applications**: all remaining roles (each has its own tag matching its folder name). `tunnel_server` (tag `tunnel`) runs right after `traefik`.
 
-Oracle roles: `system` → `security` → `geerlingguy.docker` → `docker_network` → `tunnel_client` → `convertx` → `web_check` → `changedetection` → `grafana` → `n8n` → `immich_ml` → `downloads` (with `gatus` right after `docker_network`). Host-specific behaviour comes from host vars in `inventory.yml`: `oracle` has `iptables_allow_rules`, `gatus_external: true`, `prometheus_peers`, `system_swap_size`; `server` has `monitoring_primary: false` (exporters only, no Grafana/Prometheus). Docker uses the default `/var/lib/docker` on both (`docker_data_root` is optional and unset).
+Oracle roles: `system` → `security` → `geerlingguy.docker` → `docker_network` → `docker_proxy` → `tunnel_client` → `convertx` → `web_check` → `changedetection` → `grafana` → `n8n` → `immich_ml` → `downloads` → `cup` (with `gatus` right after `docker_proxy`). Host-specific behaviour comes from host vars in `inventory.yml`: `oracle` has `iptables_allow_rules`, `gatus_external: true`, `cup_agent: true`, `prometheus_peers`, `system_swap_size`; `server` has `monitoring_primary: false` (exporters only, no Grafana/Prometheus). Docker uses the default `/var/lib/docker` on both (`docker_data_root` is optional and unset).
 
 External roles (installed to `.ansible/roles/`):
 
@@ -165,7 +165,7 @@ All enabled application roles in execution order:
 | `gatus` | gatus | `uptime.{{ root_host }}` | Uptime monitoring (lightweight) |
 | `proxy` | proxy | `proxy.{{ root_host }}` | Xray (VLESS+Vision+Reality, TCP 8443) + Hysteria2 (UDP 443) censorship-resistant proxies |
 | `ekstre` | ekstre | `ekstre.{{ root_host }}` | Static download/landing page for the Ekstre **desktop** app (nginx, serves `roles/ekstre/files/index.html`; repo `atomdeniz/ekstre-desktop`) |
-| `cup` | cup | `cup.{{ root_host }}` | Docker image update checker (web UI dashboard) |
+| `cup` | cup | `cup.{{ root_host }}` | Docker image update checker (web UI dashboard); also shows Oracle's images via its Cup agent (`cup_servers`) |
 | `tunnel_server` | tunnel | `tunnel.{{ root_host }}` | chisel server for the Oracle tunnel (Traefik-routed, Oracle-IP-only) |
 | `pocketbase` | pocketbase | `pb.{{ root_host }}` | Waitlist/lead-capture backend (PocketBase) |
 | `storagebox` | storagebox | — | Hetzner Storage Box CIFS mount |
@@ -180,6 +180,7 @@ All enabled application roles in execution order:
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
 | `backup` | backup | — | Restic backup to Storage Box (daily) |
+| `backrest` | backrest | `backup.{{ root_host }}` | Restic web UI for browsing/restoring the backup repo (no plans; prune/check stay in `backup`); restores land in `{{ docker_dir }}/backrest/restore` |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
 Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only service):
@@ -195,6 +196,7 @@ Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only s
 | `downloads` | downloads | `dl.` + `media.{{ root_host }}` | Link-based media downloader (gallery-dl-server, custom image w/ 7zip auto-extract) + copyparty gallery viewer; media on 15G loop image at `/opt/downloads` — outside backup scope, invisible to FileBrowser/Immich |
 | `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation (runs as the image's uid 1000) |
 | `gatus` | gatus | `uptime-oracle.{{ root_host }}` | External uptime monitoring (`gatus_external: true` renders `gatus_external_endpoints` instead of the server list) |
+| `cup` | cup | — | Cup in agent mode (`cup_agent: true`: API only, no UI/Telegram); aggregated by the server's Cup |
 
 ### Docker Networking
 
@@ -217,7 +219,7 @@ Oracle has no inbound ports, so it dials out: `tunnel-client` (Oracle) → `http
 All tunnel config lives in `inventory.yml`:
 
 - `tunnel_routes` — Oracle services published on the server: `tunnel-server:<port>` → `<container>:<port>` on Oracle. `tunnel_server` renders a Traefik file-provider router per entry (`traefik/data/configs/tunnel.yml`) with `secure-vpn-with-auth@file`.
-- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged). Prometheus is exported as `tunnel-server:13008` for the Homepage widget.
+- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged). Prometheus is exported as `tunnel-server:13008` for the Homepage widget, Oracle's Cup agent as `tunnel-server:13009`.
 - `tunnel_imports` — server endpoints for Oracle's Prometheus (`tunnel-client:19100/18080/18899/16060`).
 
 The tunnel-server authfile is a single-file bind mount, so the role restarts the container when it changes.
@@ -274,6 +276,8 @@ Every new role with a subdomain **must** also be added to the following:
 3. **Homepage Dashboard** → Add a service entry in `roles/homepage/templates/services.yaml` under the appropriate category.
 
 4. **CLAUDE.md Application Table** → Add the role to the Application Roles table above.
+
+5. **Renovate** → Add a custom regex manager for the role's version pin in `renovate.json`.
 
 ## Post-Install Steps
 

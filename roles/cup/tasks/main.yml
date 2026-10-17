@@ -35,46 +35,41 @@
       - name: app_network
     volumes:
       - "{{ docker_dir }}/cup/cup.json:/config/cup.json:ro"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.cup.entrypoints: "https"
-      traefik.http.routers.cup.rule: "Host(`{{ cup_host }}`)"
-      traefik.http.routers.cup.tls: "true"
-      traefik.http.routers.cup.service: "cup"
-      traefik.http.routers.cup.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.cup.loadbalancer.server.port: "8000"
+    labels: "{{ {} if cup_agent else cup_traefik_labels }}"
 
-- name: Install cup-notify script
-  ansible.builtin.template:
-    src: cup-notify.sh.j2
-    dest: /usr/local/bin/cup-notify
-    owner: root
-    group: root
-    mode: "0700"
+- name: Set up the cup-notify timer
+  when: not cup_agent
+  block:
+    - name: Install cup-notify script
+      ansible.builtin.template:
+        src: cup-notify.sh.j2
+        dest: /usr/local/bin/cup-notify
+        owner: root
+        group: root
+        mode: "0700"
 
-- name: Install cup-notify systemd service
-  become: true
-  ansible.builtin.template:
-    src: cup-notify.service.j2
-    dest: /etc/systemd/system/cup-notify.service
-    mode: "0644"
+    - name: Install cup-notify systemd service
+      become: true
+      ansible.builtin.template:
+        src: cup-notify.service.j2
+        dest: /etc/systemd/system/cup-notify.service
+        mode: "0644"
 
-- name: Install cup-notify systemd timer
-  become: true
-  ansible.builtin.template:
-    src: cup-notify.timer.j2
-    dest: /etc/systemd/system/cup-notify.timer
-    mode: "0644"
+    - name: Install cup-notify systemd timer
+      become: true
+      ansible.builtin.template:
+        src: cup-notify.timer.j2
+        dest: /etc/systemd/system/cup-notify.timer
+        mode: "0644"
 
-- name: Reload systemd
-  become: true
-  ansible.builtin.systemd:
-    daemon_reload: true
+    - name: Reload systemd
+      become: true
+      ansible.builtin.systemd:
+        daemon_reload: true
 
-- name: Enable and start cup-notify timer
-  become: true
-  ansible.builtin.systemd:
-    name: cup-notify.timer
-    enabled: true
-    state: started
+    - name: Enable and start cup-notify timer
+      become: true
+      ansible.builtin.systemd:
+        name: cup-notify.timer
+        enabled: true
+        state: started

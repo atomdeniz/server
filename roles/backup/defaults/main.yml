@@ -8,6 +8,8 @@ restic_on_calendar: "*-*-* 03:00:00"
 # Exclude paths already on storagebox
 restic_exclude_paths:
   - "{{ docker_dir }}/immich/external"
+  - "{{ docker_dir }}/backrest/cache"
+  - "{{ docker_dir }}/backrest/restore"
 
 # Retention policy
 restic_keep_daily: 7

@@ -1,0 +1,484 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "custom.regex",
+    "ansible-galaxy",
+    "github-actions"
+  ],
+  "timezone": "Europe/Istanbul",
+  "schedule": [
+    "* 6-10 * * 1"
+  ],
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 0,
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchDepNames": [
+        "jpillora/chisel"
+      ],
+      "groupName": "chisel"
+    },
+    {
+      "matchDepNames": [
+        "ghcr.io/immich-app/immich-server"
+      ],
+      "groupName": "immich"
+    },
+    {
+      "matchDepNames": [
+        "python"
+      ],
+      "allowedVersions": "/^3\\.\\d+-slim$/"
+    },
+    {
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/backrest/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "backrest_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/garethgeorge/backrest",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/adguardhome/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "adguardhome_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "adguard/adguardhome",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-b\\.(?<build>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/authelia/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "authelia_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "authelia/authelia",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/changedetection/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "changedetection_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/dgtlmoon/changedetection.io",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/convertx/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "convertx_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/c4illin/convertx",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/crowdsec/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "crowdsec_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "crowdsecurity/crowdsec",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/cup/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "cup_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/sergi0g/cup",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/docker_proxy/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "docker_proxy_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "tecnativa/docker-socket-proxy",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/downloads/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "copyparty_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "copyparty/ac",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/downloads/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "gallery_dl_server_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "qx6ghqkz/gallery-dl-server",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/downloads/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "gallery_dl_pkg_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "gallery-dl",
+      "datasourceTemplate": "pypi"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/dozzle/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "dozzle_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "amir20/dozzle",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/filebrowser/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "filebrowser_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "filebrowser/filebrowser",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/gatus/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "gatus_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "twinproduction/gatus",
+      "datasourceTemplate": "docker",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/grafana/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "grafana_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "grafana/grafana",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/grafana/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "prometheus_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "prom/prometheus",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/grafana/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "node_exporter_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "quay.io/prometheus/node-exporter",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/grafana/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "cadvisor_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/google/cadvisor",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/homepage/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "homepage_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/gethomepage/homepage",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/immich/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "immich_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/immich-app/immich-server",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/it_tools/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "it_tools_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "corentinth/it-tools",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/n8n/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "n8n_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "n8n-io/n8n",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^n8n@(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/pingvin/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "pingvin_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "stonith404/pingvin-share",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/pocketbase/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "pocketbase_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/muchobien/pocketbase",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/pr_queue/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "pr_queue_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "python",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/proxy/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "xray_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "XTLS/Xray-core",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/proxy/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "hysteria_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "tobyxdd/hysteria",
+      "datasourceTemplate": "docker",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/redis/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "redis_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "redis",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/spliit/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "spliit_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/spliit-app/spliit",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/traefik/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "traefik_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "traefik",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/tunnel_server/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "chisel_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "jpillora/chisel",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/tunnel_client/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "chisel_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "jpillora/chisel",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/unbound/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "unbound_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "mvance/unbound-rpi",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/vaultwarden/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "vaultwarden_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "vaultwarden/server",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/wallos/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "wallos_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "bellamy/wallos",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/web_check/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "web_check_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "lissy93/web-check",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/whoami/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "whoami_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "traefik/whoami",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/amnezia_wg/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "amnezia_wg_image: \"(?<depName>[^\"]+)\"\\namnezia_wg_image_tag: \"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/ekstre/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "ekstre_image: \"(?<depName>[^\":]+):(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "modno": 1,
+  "version": 6,
+  "instance": "server",
+  "auth": {
+    "disabled": true
+  },
+  "repos": [
+    {
+      "id": "storagebox",
+      "uri": "/repos/backup",
+      "guid": "{{ (_backrest_repo_config.stdout | from_json).id }}",
+      "env": [
+        "RESTIC_PASSWORD_FILE=/run/secrets/restic-password"
+      ],
+      "prunePolicy": {
+        "schedule": {
+          "disabled": true
+        }
+      },
+      "checkPolicy": {
+        "schedule": {
+          "disabled": true
+        }
+      },
+      "autoUnlock": false
+    }
+  ]
+}

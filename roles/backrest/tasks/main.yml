@@ -1,0 +1,69 @@
+---
+- name: Create the backrest folders
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/backrest/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  loop:
+    - config
+    - data
+    - cache
+    - restore
+
+- name: Read the restic repo id
+  ansible.builtin.command: >
+    restic -r {{ storagebox_mount_path }}/backup -p /etc/restic-password cat config --json
+  register: _backrest_repo_config
+  changed_when: false
+
+- name: Seed the backrest config
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ docker_dir }}/backrest/config/config.json"
+    owner: root
+    group: root
+    mode: "0600"
+    force: false
+
+- name: Make sure the backrest container is created and running
+  community.docker.docker_container:
+    name: backrest
+    image: "ghcr.io/garethgeorge/backrest:{{ backrest_version }}"
+    pull: "always"
+    recreate: "{{ force_recreate | default(false) }}"
+    state: started
+    restart_policy: unless-stopped
+    memory: "1G"
+    cap_drop:
+      - ALL
+    capabilities:
+      - CHOWN
+      - FOWNER
+    security_opts:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    networks:
+      - name: app_network
+    env:
+      BACKREST_DATA: /data
+      BACKREST_CONFIG: /config/config.json
+      XDG_CACHE_HOME: /cache
+      TZ: Europe/Istanbul
+    volumes:
+      - "{{ docker_dir }}/backrest/config:/config"
+      - "{{ docker_dir }}/backrest/data:/data"
+      - "{{ docker_dir }}/backrest/cache:/cache"
+      - "{{ docker_dir }}/backrest/restore:/restore"
+      - "{{ storagebox_mount_path }}/backup:/repos/backup"
+      - "/etc/restic-password:/run/secrets/restic-password:ro"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "app_network"
+      traefik.http.routers.backrest.entrypoints: "https"
+      traefik.http.routers.backrest.rule: "Host(`{{ backrest_host }}`)"
+      traefik.http.routers.backrest.tls: "true"
+      traefik.http.routers.backrest.service: "backrest"
+      traefik.http.routers.backrest.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.services.backrest.loadbalancer.server.port: "9898"

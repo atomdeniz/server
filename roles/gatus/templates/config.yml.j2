@@ -157,6 +157,16 @@ endpoints:
     alerts:
       - type: telegram
 
+  - name: Backrest
+    group: Monitoring
+    url: "http://backrest:9898"
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[STATUS] < 500"
+    alerts:
+      - type: telegram
+
   - name: Cup
     group: Monitoring
     url: "http://cup:8000"

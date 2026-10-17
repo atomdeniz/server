@@ -10,6 +10,9 @@ all:
       ansible_user: "{{ username }}"
       system_swap_size: 4G
       gatus_external: true
+      cup_agent: true
+      cup_exclude:
+        - "downloads-gallery-dl"
       prometheus_peers:
         - host: server
           node_exporter: "tunnel-client:19100"
@@ -65,6 +68,8 @@ all:
     changedetection_host: "changes.{{ root_host }}"
 
     dozzle_host: "dozzle.{{ root_host }}"
+
+    backrest_host: "backup.{{ root_host }}"
 
     cup_host: "cup.{{ root_host }}"
 
@@ -128,6 +133,8 @@ all:
         alias: immich-machine-learning
       - target: "prometheus:9090"
         port: 13008
+      - target: "cup:8000"
+        port: 13009
 
     tunnel_imports:
       - target: "node_exporter:9100"
