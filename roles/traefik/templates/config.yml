@@ -41,8 +41,7 @@ http:
     vpn-ipallowlist:
       ipAllowList:
         sourceRange:
-          - "{{ vpn_subnet_cidr }}"
-          - "10.8.0.0/16"
+          - "{{ amnezia_wg_app_network_ip }}/32"
     secure-headers:
       headers:
         stsSeconds: 31536000

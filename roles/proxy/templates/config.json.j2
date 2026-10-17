@@ -63,12 +63,13 @@
     "rules": [
       {
         "type": "field",
-        "inboundTag": ["DNS"],
+        "inboundTag": ["dns-adguard"],
         "outboundTag": "direct"
       },
       {
         "type": "field",
-        "ip": ["10.8.4.0/24"],
+        "ip": ["{{ adguard_local_ip }}", "{{ unbound_local_ip }}"],
+        "port": "53",
         "outboundTag": "direct"
       },
       {

@@ -218,6 +218,9 @@ filtering:
     - domain: {{ oracle_gatus_host }}
       answer: {{ traefik_app_network_local_ip }}
       enabled: true
+    - domain: {{ pocketbase_admin_host }}
+      answer: {{ traefik_app_network_local_ip }}
+      enabled: true
   safe_fs_patterns:
     - /opt/adguardhome/work/data/userfilters/*
   max_http_size: 256MB

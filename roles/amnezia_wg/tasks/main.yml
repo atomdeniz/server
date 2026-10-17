@@ -34,6 +34,7 @@
         driver_opts:
           com.docker.network.endpoint.ifname: "myeth"
       - name: app_network
+        ipv4_address: "{{ amnezia_wg_app_network_ip }}"
       - name: ops_network
     sysctls:
       "net.ipv4.conf.all.src_valid_mark": "1"

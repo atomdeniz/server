@@ -49,6 +49,17 @@
       traefik.http.routers.pocketbase.service: "pocketbase"
       traefik.http.routers.pocketbase.middlewares: "open-external@file"
       traefik.http.services.pocketbase.loadbalancer.server.port: "8090"
+      traefik.http.routers.pocketbase-ui.entrypoints: "https"
+      traefik.http.routers.pocketbase-ui.rule: "Host(`{{ pocketbase_host }}`) && PathPrefix(`/_/`)"
+      traefik.http.routers.pocketbase-ui.tls: "true"
+      traefik.http.routers.pocketbase-ui.tls.options: "cloudflare-mtls@file"
+      traefik.http.routers.pocketbase-ui.service: "pocketbase"
+      traefik.http.routers.pocketbase-ui.middlewares: "secure-vpn@file"
+      traefik.http.routers.pocketbase-admin.entrypoints: "https"
+      traefik.http.routers.pocketbase-admin.rule: "Host(`{{ pocketbase_admin_host }}`)"
+      traefik.http.routers.pocketbase-admin.tls: "true"
+      traefik.http.routers.pocketbase-admin.service: "pocketbase"
+      traefik.http.routers.pocketbase-admin.middlewares: "secure-vpn-with-auth@file"
 
 - name: Wait for PocketBase to be ready
   ansible.builtin.uri:

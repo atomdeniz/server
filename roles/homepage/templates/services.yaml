@@ -213,7 +213,7 @@
     - PocketBase:
         server: my-docker
         icon: pocketbase.svg
-        href: "https://{{ pocketbase_host }}/_/"
+        href: "https://{{ pocketbase_admin_host }}/_/"
         description: Waitlist backend
     - Pingvin Share:
         server: my-docker

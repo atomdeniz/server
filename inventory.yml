@@ -61,6 +61,8 @@ all:
 
     pocketbase_host: "pb.{{ root_host }}"
 
+    pocketbase_admin_host: "pb-admin.{{ root_host }}"
+
     immich_host: "photos.{{ root_host }}"
 
     it_tools_host: "dev.{{ root_host }}"
@@ -149,6 +151,8 @@ all:
     traefik_app_network_gateway: 10.8.6.1
 
     traefik_app_network_local_ip: 10.8.6.2
+
+    amnezia_wg_app_network_ip: 10.8.6.3
 
     adguard_local_ip: 10.8.4.2
 

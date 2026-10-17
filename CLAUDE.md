@@ -167,7 +167,7 @@ All enabled application roles in execution order:
 | `ekstre` | ekstre | `ekstre.{{ root_host }}` | Static download/landing page for the Ekstre **desktop** app (nginx, serves `roles/ekstre/files/index.html`; repo `atomdeniz/ekstre-desktop`) |
 | `cup` | cup | `cup.{{ root_host }}` | Docker image update checker (web UI dashboard); also shows Oracle's images via its Cup agent (`cup_servers`) |
 | `tunnel_server` | tunnel | `tunnel.{{ root_host }}` | chisel server for the Oracle tunnel (Traefik-routed, Oracle-IP-only) |
-| `pocketbase` | pocketbase | `pb.{{ root_host }}` | Waitlist/lead-capture backend (PocketBase) |
+| `pocketbase` | pocketbase | `pb.` + `pb-admin.{{ root_host }}` | Waitlist/lead-capture backend (PocketBase); `/_/` admin UI blocked on public `pb.`, served VPN+Authelia-only on `pb-admin.` |
 | `storagebox` | storagebox | — | Hetzner Storage Box CIFS mount |
 | `immich` | immich | `photos.{{ root_host }}` | Photo management (machine learning runs on Oracle, reached as `immich-machine-learning:3003` via a tunnel-server alias) |
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
