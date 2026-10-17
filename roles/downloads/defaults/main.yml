@@ -1,7 +1,7 @@
 ---
 gallery_dl_server_version: "0.8.1"
 gallery_dl_pkg_version: "1.32.15"
-copyparty_version: "1.20.25"
+copyparty_version: "1.20.26"
 
 # Media lives outside docker_dir so it is never in restic's backup scope
 downloads_dir: /opt/downloads

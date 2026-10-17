@@ -1,6 +1,6 @@
 ---
 # Xray (VLESS + XTLS-Vision + Reality)
-xray_version: "26.9.30"
+xray_version: "26.10.10"
 xray_reality_port: 8443
 
 # Reality masks traffic as a handshake with a real public site.
