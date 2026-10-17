@@ -171,6 +171,8 @@
       - name: edge_network
       - name: ops_network
       - name: dns_network
+      - name: backup_network
+      - name: socket_network
       - name: app_network
         ipv4_address: "{{ traefik_app_network_local_ip }}"
     ports:

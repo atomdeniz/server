@@ -1,9 +1,39 @@
 ---
-- name: Install restic
+- name: Remove the distro restic package
   ansible.builtin.package:
     name: restic
-    state: present
+    state: absent
   when: restic_backup_enabled | bool
+
+- name: Check the installed restic version
+  ansible.builtin.command: /usr/local/bin/restic version
+  register: restic_installed_version
+  failed_when: false
+  changed_when: false
+  when: restic_backup_enabled | bool
+
+- name: Install restic {{ restic_version }}
+  when:
+    - restic_backup_enabled | bool
+    - ("restic " ~ restic_version ~ " ") not in (restic_installed_version.stdout | default(""))
+  block:
+    - name: Download restic {{ restic_version }}
+      ansible.builtin.get_url:
+        url: "{{ restic_release_url }}/restic_{{ restic_version }}_linux_{{ restic_arch }}.bz2"
+        checksum: "sha256:{{ restic_release_url }}/SHA256SUMS"
+        dest: "/tmp/restic_{{ restic_version }}.bz2"
+        mode: "0600"
+
+    - name: Unpack restic {{ restic_version }}
+      ansible.builtin.shell: >
+        set -o pipefail &&
+        bunzip2 -c /tmp/restic_{{ restic_version }}.bz2 > /usr/local/bin/restic.new &&
+        chmod 0755 /usr/local/bin/restic.new &&
+        mv /usr/local/bin/restic.new /usr/local/bin/restic &&
+        rm -f /tmp/restic_{{ restic_version }}.bz2
+      args:
+        executable: /bin/bash
+      changed_when: true
 
 - name: Create DB dump directory
   ansible.builtin.file:

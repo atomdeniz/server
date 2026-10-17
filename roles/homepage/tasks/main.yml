@@ -91,6 +91,7 @@
       - name: ops_network
       - name: app_network
       - name: edge_network
+      - name: socket_network
     etc_hosts: "{{ {traefik_host: traefik_app_network_local_ip} }}"
     volumes:
       - "{{ docker_dir }}/homepage:/app/config"

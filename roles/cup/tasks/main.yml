@@ -33,6 +33,7 @@
     networks:
       - name: ops_network
       - name: app_network
+      - name: socket_network
     volumes:
       - "{{ docker_dir }}/cup/cup.json:/config/cup.json:ro"
     labels: "{{ {} if cup_agent else cup_traefik_labels }}"

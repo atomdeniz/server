@@ -30,7 +30,7 @@
     volumes:
       - "{{ docker_dir }}/gatus/config.yml:/config/config.yaml:ro"
       - "{{ docker_dir }}/gatus/data:/data"
-    networks: "{{ [{'name': 'app_network'}, {'name': 'ops_network'}] + ([] if gatus_external else [{'name': 'edge_network'}]) }}"
+    networks: "{{ [{'name': 'app_network'}, {'name': 'ops_network'}] + ([] if gatus_external else [{'name': 'edge_network'}, {'name': 'backup_network'}]) }}"
     labels: "{{ {} if gatus_external else gatus_traefik_labels }}"
   vars:
     gatus_traefik_labels:

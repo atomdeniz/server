@@ -14,6 +14,7 @@
       - apparmor:docker-default
     networks:
       - name: app_network
+      - name: socket_network
     env:
       DOCKER_HOST: tcp://docker_proxy:2375
       DOZZLE_NO_ANALYTICS: "true"

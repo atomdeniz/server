@@ -22,5 +22,6 @@
       INFO: "1"
       IMAGES_DELETE: "0"
     networks:
-      - name: ops_network
-      - name: app_network
+      - name: socket_network
+    comparisons:
+      networks: strict

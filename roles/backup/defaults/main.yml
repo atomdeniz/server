@@ -1,5 +1,8 @@
 ---
 restic_backup_enabled: true
+restic_version: "0.19.1"
+restic_release_url: "https://github.com/restic/restic/releases/download/v{{ restic_version }}"
+restic_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 restic_repo_path: "{{ storagebox_mount_path }}/backup"
 restic_backup_path: "{{ docker_dir }}"
 restic_db_dump_dir: "{{ docker_dir }}/backup/db-dumps"

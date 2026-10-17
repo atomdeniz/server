@@ -200,7 +200,7 @@ Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only s
 
 ### Docker Networking
 
-Five isolated bridge networks are created by the `docker_network` role:
+Seven isolated bridge networks are created by the `docker_network` role:
 
 | Network | Subnet | Internal | Purpose |
 |---|---|---|---|
@@ -209,6 +209,8 @@ Five isolated bridge networks are created by the `docker_network` role:
 | `ops_network` | 10.8.3.0/24 | yes | Monitoring (Grafana, Prometheus, cAdvisor) |
 | `dns_network` | 10.8.4.0/24 | no | AdGuard (10.8.4.2) + Unbound (10.8.4.3) |
 | `app_network` | 10.8.6.0/24 | no | Application services |
+| `backup_network` | 10.8.7.0/24 | yes | Backrest only (+ Traefik, Gatus), so app containers cannot reach its unauthenticated API |
+| `socket_network` | 10.8.8.0/24 | yes | `docker_proxy` only (+ Traefik, Homepage, Dozzle, Cup): container inspect exposes every container's env secrets |
 
 Traefik sits on `edge_network` and `app_network`. Most app containers join `app_network`. Security/proxy containers join `edge_network`.
 
@@ -228,7 +230,7 @@ Inside the server, reach an Oracle service via `http://tunnel-server:<port>` (Ga
 
 ### Traefik Pattern
 
-Every containerized service exposes itself to Traefik via Docker labels in its Compose template. Traefik configuration lives in `roles/traefik/templates/`. Dynamic config files are mounted into the container. The `docker_proxy` role provides a restricted Docker socket proxy that Traefik uses instead of the raw socket.
+Every containerized service exposes itself to Traefik via Docker labels in its Compose template. Traefik configuration lives in `roles/traefik/templates/`. Dynamic config files are mounted into the container. The `docker_proxy` role provides a restricted Docker socket proxy that Traefik uses instead of the raw socket. It lives alone on `socket_network`; only join a container there if it truly needs the Docker API.
 
 ### Role Structure Convention
 

@@ -49,6 +49,18 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
+        "/^roles/backup/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "restic_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "restic/restic",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
         "/^roles/backrest/defaults/main\\.yml$/"
       ],
       "matchStrings": [
