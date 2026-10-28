@@ -12,6 +12,7 @@ all:
       system_swap_size: 4G
       gatus_external: true
       cup_agent: true
+      dozzle_agent: true
       cup_exclude:
         - "downloads-gallery-dl"
         - "ghcr.io/immich-app/immich-machine-learning"
@@ -139,6 +140,8 @@ all:
         port: 13008
       - target: "cup:8000"
         port: 13009
+      - target: "dozzle:7007"
+        port: 13010
 
     tunnel_imports:
       - target: "node_exporter:9100"

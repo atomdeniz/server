@@ -135,7 +135,7 @@ Main server roles run in this sequence and must be thought of as layers:
 2. **Security/proxy layer**: `crowdsec` → `traefik` → `redis` → `authelia`
 3. **Applications**: all remaining roles (each has its own tag matching its folder name). `tunnel_server` (tag `tunnel`) runs right after `traefik`.
 
-Oracle roles: `system` → `security` → `geerlingguy.docker` → `docker_network` → `docker_proxy` → `tunnel_client` → `convertx` → `web_check` → `changedetection` → `grafana` → `n8n` → `immich_ml` → `downloads` → `cup` (with `gatus` right after `docker_proxy`). Host-specific behaviour comes from host vars in `inventory.yml`: `oracle` has `iptables_allow_rules`, `gatus_external: true`, `cup_agent: true`, `prometheus_peers`, `system_swap_size`; `server` has `monitoring_primary: false` (exporters only, no Grafana/Prometheus). Docker uses the default `/var/lib/docker` on both (`docker_data_root` is optional and unset).
+Oracle roles: `system` → `security` → `geerlingguy.docker` → `docker_network` → `docker_proxy` → `tunnel_client` → `convertx` → `web_check` → `changedetection` → `grafana` → `n8n` → `immich_ml` → `downloads` → `dozzle` → `cup` (with `gatus` right after `docker_proxy`). Host-specific behaviour comes from host vars in `inventory.yml`: `oracle` has `iptables_allow_rules`, `gatus_external: true`, `cup_agent: true`, `dozzle_agent: true`, `prometheus_peers`, `system_swap_size`; `server` has `monitoring_primary: false` (exporters only, no Grafana/Prometheus). Docker uses the default `/var/lib/docker` on both (`docker_data_root` is optional and unset).
 
 External roles (installed to `.ansible/roles/`):
 
@@ -173,7 +173,7 @@ All enabled application roles in execution order:
 | `storagebox` | storagebox | — | Hetzner Storage Box CIFS mount |
 | `immich` | immich | `photos.{{ root_host }}` | Photo management (machine learning runs on Oracle, reached as `immich-machine-learning:3003` via a tunnel-server alias) |
 | `it_tools` | it_tools | `dev.{{ root_host }}` | Developer utilities |
-| `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer |
+| `dozzle` | dozzle | `dozzle.{{ root_host }}` | Docker log viewer; also shows Oracle's containers via its Dozzle agent (`tunnel-server:13010`, custom mTLS pair generated on the server) |
 | `postgres` | postgres | — | PostgreSQL 18 (shared DB for spliit + umami; Immich has its own pinned DB) |
 | `spliit` | spliit | `spliit.{{ root_host }}` | Expense splitting |
 | `umami` | umami | `analytics.{{ root_host }}` | Web analytics |
@@ -198,6 +198,7 @@ Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only s
 | `downloads` | downloads | `dl.` + `media.{{ root_host }}` | Link-based media downloader (gallery-dl-server, custom image w/ 7zip auto-extract) + copyparty gallery viewer; media on 15G loop image at `/opt/downloads` — outside backup scope, invisible to FileBrowser/Immich |
 | `n8n` | n8n | `n8n.{{ root_host }}` | Workflow automation (runs as the image's uid 1000) |
 | `gatus` | gatus | `uptime-oracle.{{ root_host }}` | External uptime monitoring (`gatus_external: true` renders `gatus_external_endpoints` instead of the server list) |
+| `dozzle` | dozzle | — | Dozzle in agent mode (`dozzle_agent: true`) behind the read-only `docker_proxy`; mTLS pair copied from the server |
 | `cup` | cup | — | Cup in agent mode (`cup_agent: true`: API only, no UI/Telegram); aggregated by the server's Cup |
 
 ### Docker Networking
@@ -223,7 +224,7 @@ Oracle has no inbound ports, so it dials out: `tunnel-client` (Oracle) → `http
 All tunnel config lives in `inventory.yml`:
 
 - `tunnel_routes` — Oracle services published on the server: `tunnel-server:<port>` → `<container>:<port>` on Oracle. `tunnel_server` renders a Traefik file-provider router per entry (`traefik/data/configs/tunnel.yml`) with `secure-vpn-with-auth@file`.
-- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged). Prometheus is exported as `tunnel-server:13008` for the Homepage widget, Oracle's Cup agent as `tunnel-server:13009`.
+- `tunnel_exports` — Oracle services the server reaches without Traefik; an optional `alias` adds a network alias to `tunnel-server` (Immich ML: `immich-machine-learning:3003`, so Immich's default ML URL works unchanged). Prometheus is exported as `tunnel-server:13008` for the Homepage widget, Oracle's Cup agent as `tunnel-server:13009`, its Dozzle agent as `tunnel-server:13010`.
 - `tunnel_imports` — server endpoints for Oracle's Prometheus (`tunnel-client:19100/18080/18899/16060`).
 
 The tunnel-server authfile is a single-file bind mount, so the role restarts the container when it changes.

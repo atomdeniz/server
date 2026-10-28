@@ -1,12 +1,55 @@
 ---
+- name: Create the dozzle cert directory
+  ansible.builtin.file:
+    path: "{{ dozzle_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Generate the dozzle agent mTLS pair
+  when: not dozzle_agent
+  ansible.builtin.command: >
+    docker run --rm -v {{ dozzle_cert_dir }}:/out amir20/dozzle:{{ dozzle_version }}
+    generate-certs --cert-out /out/dozzle_cert.pem --key-out /out/dozzle_key.pem
+  args:
+    creates: "{{ dozzle_cert_dir }}/dozzle_key.pem"
+  register: _dozzle_certs_generated
+
+- name: Copy the hub's mTLS pair to the agent
+  when: dozzle_agent
+  block:
+    - name: Read the mTLS pair from the server
+      ansible.builtin.slurp:
+        src: "{{ dozzle_cert_dir }}/{{ item }}"
+      delegate_to: server
+      loop:
+        - dozzle_cert.pem
+        - dozzle_key.pem
+      register: _dozzle_pair
+      no_log: true
+
+    - name: Install the mTLS pair
+      ansible.builtin.copy:
+        content: "{{ item.content | b64decode }}"
+        dest: "{{ dozzle_cert_dir }}/{{ item.item }}"
+        owner: root
+        group: root
+        mode: "0600"
+      loop: "{{ _dozzle_pair.results }}"
+      register: _dozzle_certs_copied
+      no_log: true
+
 - name: Make sure the dozzle container is created and running
   community.general.docker_container:
     name: "dozzle"
     image: "amir20/dozzle:{{ dozzle_version }}"
     pull: "always"
     recreate: "{{ force_recreate | default(false) }}"
+    restart: "{{ (_dozzle_certs_generated is changed) or (_dozzle_certs_copied is changed) }}"
     state: started
     restart_policy: unless-stopped
+    command: "{{ 'agent' if dozzle_agent else omit }}"
     cap_drop:
       - ALL
     security_opts:
@@ -15,17 +58,18 @@
     networks:
       - name: app_network
       - name: socket_network
-    env:
+    env: "{{ _dozzle_common_env | combine(_dozzle_agent_env if dozzle_agent else _dozzle_hub_env) }}"
+    volumes:
+      - "{{ dozzle_cert_dir }}/dozzle_cert.pem:/dozzle_cert.pem:ro"
+      - "{{ dozzle_cert_dir }}/dozzle_key.pem:/dozzle_key.pem:ro"
+    labels: "{{ {} if dozzle_agent else dozzle_traefik_labels }}"
+  vars:
+    _dozzle_common_env:
       DOCKER_HOST: tcp://docker_proxy:2375
       DOZZLE_NO_ANALYTICS: "true"
+    _dozzle_agent_env:
+      DOZZLE_HOSTNAME: "{{ inventory_hostname }}"
+    _dozzle_hub_env:
       DOZZLE_DISABLE_SETUP_WIZARD: "true"
       DOZZLE_IMAGE_CHECK_MODE: "off"
-    labels:
-      traefik.enable: "true"
-      traefik.docker.network: "app_network"
-      traefik.http.routers.dozzle.entrypoints: "https"
-      traefik.http.routers.dozzle.rule: "Host(`{{ dozzle_host }}`)"
-      traefik.http.routers.dozzle.tls: "true"
-      traefik.http.routers.dozzle.service: "dozzle"
-      traefik.http.routers.dozzle.middlewares: "secure-vpn-with-auth@file"
-      traefik.http.services.dozzle.loadbalancer.server.port: "8080"
+      DOZZLE_REMOTE_AGENT: "{{ dozzle_remote_agents | join(',') }}"

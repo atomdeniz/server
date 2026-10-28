@@ -234,6 +234,10 @@
       tags:
         - downloads
 
+    - role: dozzle
+      tags:
+        - dozzle
+
     - role: cup
       tags:
         - cup

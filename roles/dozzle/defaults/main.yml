@@ -1,2 +1,15 @@
 ---
 dozzle_version: "v11.3.2"
+dozzle_agent: false
+dozzle_cert_dir: "{{ docker_dir }}/dozzle/certs"
+dozzle_remote_agents:
+  - "tunnel-server:13010|oracle"
+dozzle_traefik_labels:
+  traefik.enable: "true"
+  traefik.docker.network: "app_network"
+  traefik.http.routers.dozzle.entrypoints: "https"
+  traefik.http.routers.dozzle.rule: "Host(`{{ dozzle_host }}`)"
+  traefik.http.routers.dozzle.tls: "true"
+  traefik.http.routers.dozzle.service: "dozzle"
+  traefik.http.routers.dozzle.middlewares: "secure-vpn-with-auth@file"
+  traefik.http.services.dozzle.loadbalancer.server.port: "8080"
