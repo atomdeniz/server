@@ -49,8 +49,10 @@
     {
       "protocol": "freedom",
       "tag": "direct",
-      "settings": {
-        "domainStrategy": "UseIP"
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIP"
+        }
       }
     },
     {
