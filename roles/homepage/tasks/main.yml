@@ -90,6 +90,7 @@
     networks:
       - name: ops_network
       - name: app_network
+        ipv4_address: "{{ homepage_app_network_ip }}"
       - name: edge_network
       - name: socket_network
     etc_hosts: "{{ {traefik_host: traefik_app_network_local_ip} }}"

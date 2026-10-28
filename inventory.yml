@@ -156,6 +156,8 @@ all:
 
     amnezia_wg_app_network_ip: 10.8.6.3
 
+    homepage_app_network_ip: 10.8.6.4
+
     adguard_local_ip: 10.8.4.2
 
     unbound_local_ip: 10.8.4.3

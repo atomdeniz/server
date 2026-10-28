@@ -42,6 +42,11 @@ http:
       ipAllowList:
         sourceRange:
           - "{{ amnezia_wg_app_network_ip }}/32"
+    traefik-api-ipallowlist:
+      ipAllowList:
+        sourceRange:
+          - "{{ amnezia_wg_app_network_ip }}/32"
+          - "{{ homepage_app_network_ip }}/32"
     secure-headers:
       headers:
         stsSeconds: 31536000
