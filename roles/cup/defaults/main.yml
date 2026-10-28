@@ -7,6 +7,7 @@ cup_servers:
   Oracle: "http://tunnel-server:13009"
 cup_exclude:
   - "pr_queue-pr_queue"
+  - "ghcr.io/immich-app/immich-server"
 cup_traefik_labels:
   traefik.enable: "true"
   traefik.docker.network: "app_network"

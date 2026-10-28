@@ -14,6 +14,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
+  register: _cup_config
 
 - name: Make sure the cup container is created and running
   community.general.docker_container:
@@ -21,6 +22,7 @@
     image: "ghcr.io/sergi0g/cup:{{ cup_version }}"
     pull: "always"
     recreate: "{{ force_recreate | default(false) }}"
+    restart: "{{ _cup_config.changed }}"
     state: started
     restart_policy: unless-stopped
     command: "-c /config/cup.json serve"

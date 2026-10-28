@@ -51,6 +51,8 @@ Defense-in-depth is split across two layers that must be kept in sync:
   - Intentionally permissive for SSH (`ssh_allow_cidr: 0.0.0.0/0` in `inventory.yml`) because the Hetzner firewall already gates it.
   - Treat this as a fail-open second layer, not a primary defense.
 
+Ansible reaches the server over the VPN (`ansible_host` = `10.8.6.1`, the `app_network` gateway), which bypasses the Hetzner firewall, so the operator IP need not be allowlisted there. The VPN client routes the server's public IP outside the tunnel, so `server_ip` only works from an allowlisted IP: pass `-e server_ssh_host=<server_ip>` when the VPN is down. Deploying `amnezia_wg` (or anything restarting Docker) over the VPN cuts its own connection; rerun the play if it drops.
+
 When changing SSH exposure, update **both** layers. If the Hetzner firewall is ever removed, tighten `ssh_allow_cidr` in `inventory.yml` to a real CIDR before redeploying.
 
 **Oracle host** — the inverse of Hetzner:
