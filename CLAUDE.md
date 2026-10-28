@@ -44,14 +44,14 @@ Why: Ansible enforces consistent become/sudo handling, vault decryption, invento
 Defense-in-depth is split across two layers that must be kept in sync:
 
 - **Hetzner cloud firewall (external layer, managed in Hetzner console, NOT in this repo):**
-  - SSH (`22/tcp`) is IP-allowlisted here — only specific operator IPs can reach the server.
-  - This is the authoritative SSH restriction. If the firewall is removed, disabled, or the allowlist is cleared, the server is exposed.
+  - SSH (`22/tcp`) has no rule here, so it is closed to the internet; SSH only works over the VPN (see below). Open ports: 80/443 TCP, 443 UDP, 8443 TCP, 51820 UDP.
+  - This is the authoritative SSH restriction. If the firewall is removed or disabled, the server's SSH is exposed.
 
 - **Host iptables (internal layer, managed by `roles/system/templates/iptables.conf`):**
   - Intentionally permissive for SSH (`ssh_allow_cidr: 0.0.0.0/0` in `inventory.yml`) because the Hetzner firewall already gates it.
   - Treat this as a fail-open second layer, not a primary defense.
 
-Ansible reaches the server over the VPN (`ansible_host` = `10.8.6.1`, the `app_network` gateway), which bypasses the Hetzner firewall, so the operator IP need not be allowlisted there. The VPN client routes the server's public IP outside the tunnel, so `server_ip` only works from an allowlisted IP: pass `-e server_ssh_host=<server_ip>` when the VPN is down. Deploying `amnezia_wg` (or anything restarting Docker) over the VPN cuts its own connection; rerun the play if it drops.
+Ansible reaches the server over the VPN (`ansible_host` = `10.8.6.1`, the `app_network` gateway), which bypasses the Hetzner firewall, so the operator IP need not be allowlisted there. The VPN client routes the server's public IP outside the tunnel, so `server_ip` is unreachable: if the VPN is down, use the Hetzner web console, or temporarily allow your IP for 22/tcp in the Hetzner firewall and pass `-e server_ssh_host=<server_ip>`. Deploying `amnezia_wg` (or anything restarting Docker) over the VPN cuts its own connection; rerun the play if it drops.
 
 When changing SSH exposure, update **both** layers. If the Hetzner firewall is ever removed, tighten `ssh_allow_cidr` in `inventory.yml` to a real CIDR before redeploying.
 
