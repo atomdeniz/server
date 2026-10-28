@@ -11,6 +11,7 @@ HOSTNAME=$(hostname)
 export RESTIC_REPOSITORY="$REPO"
 export RESTIC_PASSWORD_FILE="$PASSWORD_FILE"
 export RESTIC_COMPRESSION="auto"
+export RESTIC_CACHE_DIR="/var/cache/restic"
 
 send_telegram() {
   local title="$1"
@@ -23,7 +24,9 @@ send_telegram() {
 LOG=$(mktemp)
 STATUS="SUCCESS"
 
-{
+set +e
+(
+  set -e
   echo "[$(date)] Starting backup..."
 
   # Pre-backup: dump PostgreSQL
@@ -54,7 +57,9 @@ STATUS="SUCCESS"
   restic snapshots --latest 1
 
   echo "[$(date)] Backup complete."
-} > "$LOG" 2>&1 || STATUS="FAILED"
+) > "$LOG" 2>&1
+[ $? -eq 0 ] || STATUS="FAILED"
+set -e
 
 if [ "$STATUS" = "SUCCESS" ]; then
   # Expose last-success timestamp to node_exporter (backup-age alerting)
