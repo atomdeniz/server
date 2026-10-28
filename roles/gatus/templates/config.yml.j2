@@ -87,16 +87,6 @@ endpoints:
     alerts:
       - type: telegram
 
-  - name: Grafana
-    group: Monitoring
-    url: "http://tunnel-server:13004/api/health"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] == 200"
-    alerts:
-      - type: telegram
-
   - name: Gatus (Oracle)
     group: Monitoring
     url: "http://tunnel-server:13003/health"
@@ -114,16 +104,6 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
       - "[STATUS] == 200"
-    alerts:
-      - type: telegram
-
-  - name: N8N
-    group: Applications
-    url: "http://tunnel-server:13005/healthz"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
     alerts:
       - type: telegram
 
@@ -187,26 +167,6 @@ endpoints:
     alerts:
       - type: telegram
 
-  - name: Gallery-dl Server
-    group: Applications
-    url: "http://tunnel-server:13006"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
-    alerts:
-      - type: telegram
-
-  - name: Copyparty
-    group: Applications
-    url: "http://tunnel-server:13007"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
-    alerts:
-      - type: telegram
-
   - name: Pingvin Share
     group: Applications
     url: "https://{{ pingvin_host }}"
@@ -247,26 +207,6 @@ endpoints:
     alerts:
       - type: telegram
 
-  - name: Change Detection
-    group: Monitoring
-    url: "http://tunnel-server:13002"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
-    alerts:
-      - type: telegram
-
-  - name: ConvertX
-    group: Applications
-    url: "http://tunnel-server:13000"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
-    alerts:
-      - type: telegram
-
   - name: PocketBase
     group: Applications
     url: "http://pocketbase:8090/api/health"
@@ -280,16 +220,6 @@ endpoints:
   - name: Spliit
     group: Applications
     url: "https://{{ spliit_host }}"
-    interval: 5m
-    conditions:
-      - "[CONNECTED] == true"
-      - "[STATUS] < 500"
-    alerts:
-      - type: telegram
-
-  - name: Web Check
-    group: Applications
-    url: "https://{{ web_check_host }}"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
