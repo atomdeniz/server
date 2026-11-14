@@ -27,6 +27,8 @@ services:
       - no-new-privileges:true
       - apparmor:docker-default
     restart: always
+    mem_limit: 3g
+    memswap_limit: 6g
     depends_on:
       database:
         condition: service_healthy
@@ -91,6 +93,8 @@ services:
         "-c", "wal_compression=on",
       ]
     restart: always
+    mem_limit: 1536m
+    memswap_limit: 3072m
     networks:
       - app_network
     labels:

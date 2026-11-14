@@ -19,6 +19,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    memory: "1G"
+    memory_swap: "2G"
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default

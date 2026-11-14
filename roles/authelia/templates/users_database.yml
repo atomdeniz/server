@@ -6,7 +6,7 @@
 users:
   {{ username }}:
     displayname: "{{ username }}"
-    password: "{{ authelia_password | string | password_hash('sha512') }}"
+    password: "{{ authelia_password | string | password_hash('sha512', ((inventory_hostname ~ username) | hash('sha256'))[:16]) }}"
     email: "{{ email_recipient }}"
     groups:
       - admins

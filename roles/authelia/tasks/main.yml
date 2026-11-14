@@ -4,8 +4,8 @@
   ansible.builtin.file:
     path: "{{ docker_dir }}/authelia"
     state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    owner: root
+    group: root
     mode: "0755"
 
 - name: Copy the main config
@@ -13,8 +13,8 @@
   ansible.builtin.template:
     src: configuration.yml
     dest: "{{ docker_dir }}/authelia/configuration.yml"
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    owner: root
+    group: root
     mode: "0640"
   notify: Restart authelia
 
@@ -23,8 +23,8 @@
   ansible.builtin.template:
     src: users_database.yml
     dest: "{{ docker_dir }}/authelia/users_database.yml"
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    owner: root
+    group: root
     mode: "0640"
   notify: Restart authelia
 
@@ -36,6 +36,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: "started"
     restart_policy: unless-stopped
+    memory: "512M"
+    memory_swap: "1024M"
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default

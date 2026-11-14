@@ -140,6 +140,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    memory: "1G"
+    memory_swap: "2G"
     user: "{{ ansible_facts.getent_passwd[username][1] }}:{{ ansible_facts.getent_passwd[username][2] }}"
     cap_drop:
       - ALL

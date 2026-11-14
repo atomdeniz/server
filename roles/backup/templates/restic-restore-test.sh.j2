@@ -61,6 +61,7 @@ check_pg() {
   local dump="$1" image="$2" args="$3"
   # shellcheck disable=SC2086
   docker run -d --name "$CONTAINER" --network none \
+    --memory 1g \
     --security-opt no-new-privileges:true \
     -e POSTGRES_USER=restore_test -e POSTGRES_HOST_AUTH_METHOD=trust \
     -v "$dump:/dump.sql:ro" \

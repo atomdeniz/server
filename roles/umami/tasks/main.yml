@@ -8,6 +8,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    memory: "768M"
+    memory_swap: "1536M"
     security_opts:
       - no-new-privileges:true
       - apparmor:docker-default

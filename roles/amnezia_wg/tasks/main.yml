@@ -23,6 +23,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    memory: "768M"
+    memory_swap: "1536M"
     # v15's `wg show` healthcheck can't see the userspace awg0, so it false-flaps
     healthcheck:
       test: ["NONE"]

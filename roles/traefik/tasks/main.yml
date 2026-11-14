@@ -116,6 +116,7 @@
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
+    force: false
   notify: Restart traefik
 
 - name: Copy the tls-options.yml (Cloudflare mTLS)
@@ -155,6 +156,8 @@
     recreate: "{{ force_recreate | default(false) }}"
     state: started
     restart_policy: unless-stopped
+    memory: "512M"
+    memory_swap: "1024M"
     cap_drop:
       - ALL
     capabilities:
