@@ -181,7 +181,7 @@ All enabled application roles in execution order:
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
-| `backup` | backup | — | Restic backup to Storage Box (daily) |
+| `backup` | backup | — | Restic backup (daily, 04:30) to Storage Box + an offsite copy in Cloudflare R2 (bucket `restic`, skips Traefik logs); Postgres + Immich DBs via `pg_dumpall` |
 | `backrest` | backrest | `backup.{{ root_host }}` | Restic web UI for browsing/restoring the backup repo (no plans; prune/check stay in `backup`); restores land in `{{ docker_dir }}/backrest/restore` |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 

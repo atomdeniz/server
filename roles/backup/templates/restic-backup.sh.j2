@@ -5,6 +5,7 @@ REPO="{{ restic_repo_path }}"
 PASSWORD_FILE="/etc/restic-password"
 DUMP_DIR="{{ restic_db_dump_dir }}"
 TEXTFILE="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}/restic.prom"
+TEXTFILE_R2="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}/restic-r2.prom"
 TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
 HOSTNAME=$(hostname)
 
@@ -21,6 +22,13 @@ send_telegram() {
     --data-urlencode "text=$title"$'\n\n'"$body"
 }
 
+# Expose last-success timestamp to node_exporter (backup-age alerting)
+write_metric() {
+  if [ -d "$(dirname "$1")" ]; then
+    printf '%s %s\n' "$2" "$(date +%s)" > "$1.tmp" && mv "$1.tmp" "$1"
+  fi
+}
+
 LOG=$(mktemp)
 STATUS="SUCCESS"
 
@@ -33,6 +41,11 @@ set +e
   if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^{{ postgres_container_name }}$'; then
     echo "Dumping PostgreSQL..."
     docker exec {{ postgres_container_name }} pg_dumpall -U {{ postgres_bootstrap_user }} > "$DUMP_DIR/postgres.sql"
+  fi
+
+  if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^{{ restic_immich_db_container }}$'; then
+    echo "Dumping Immich PostgreSQL..."
+    docker exec {{ restic_immich_db_container }} sh -c 'pg_dumpall --clean --if-exists -U "$POSTGRES_USER"' > "$DUMP_DIR/immich.sql"
   fi
 
   # Run backup
@@ -60,12 +73,51 @@ set +e
 ) > "$LOG" 2>&1
 [ $? -eq 0 ] || STATUS="FAILED"
 set -e
+MAIN_STATUS="$STATUS"
+{% if restic_r2_enabled | bool %}
+
+R2_STATUS="SUCCESS"
+set +e
+(
+  set -e
+  set -a
+  . {{ restic_r2_env_file }}
+  set +a
+  export RESTIC_REPOSITORY="{{ restic_r2_repo }}"
+  echo "[$(date)] Starting R2 backup..."
+
+  restic backup {{ restic_backup_path }} \
+{% for path in restic_r2_exclude_paths %}
+    --exclude "{{ path }}" \
+{% endfor %}
+    --tag automated
+
+  restic forget \
+    --keep-daily {{ restic_keep_daily }} \
+    --keep-weekly {{ restic_keep_weekly }} \
+    --keep-monthly {{ restic_keep_monthly }} \
+    --prune
+
+  restic check
+  restic stats --mode raw-data
+
+  echo "[$(date)] R2 backup complete."
+) >> "$LOG" 2>&1
+[ $? -eq 0 ] || R2_STATUS="FAILED"
+set -e
+[ "$R2_STATUS" = "SUCCESS" ] || STATUS="FAILED"
+{% endif %}
+
+if [ "$MAIN_STATUS" = "SUCCESS" ]; then
+  write_metric "$TEXTFILE" restic_last_success_timestamp_seconds
+fi
+{% if restic_r2_enabled | bool %}
+if [ "$R2_STATUS" = "SUCCESS" ]; then
+  write_metric "$TEXTFILE_R2" restic_r2_last_success_timestamp_seconds
+fi
+{% endif %}
 
 if [ "$STATUS" = "SUCCESS" ]; then
-  # Expose last-success timestamp to node_exporter (backup-age alerting)
-  if [ -d "$(dirname "$TEXTFILE")" ]; then
-    printf 'restic_last_success_timestamp_seconds %s\n' "$(date +%s)" > "$TEXTFILE.tmp" && mv "$TEXTFILE.tmp" "$TEXTFILE"
-  fi
   send_telegram "✅ Backup OK - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -5 "$LOG")"
 else
   # Telegram 4096-char limit

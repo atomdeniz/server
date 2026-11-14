@@ -69,6 +69,47 @@
     - restic_repo_check.rc != 0
   changed_when: true
 
+- name: Write restic R2 credentials
+  ansible.builtin.copy:
+    content: |
+      AWS_ACCESS_KEY_ID={{ restic_r2_access_key_id }}
+      AWS_SECRET_ACCESS_KEY={{ restic_r2_secret_access_key }}
+    dest: "{{ restic_r2_env_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  when:
+    - restic_backup_enabled | bool
+    - restic_r2_enabled | bool
+
+- name: Check if restic R2 repo is initialized
+  ansible.builtin.command: >
+    restic -r {{ restic_r2_repo }} -p /etc/restic-password cat config
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ restic_r2_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ restic_r2_secret_access_key }}"
+  register: restic_r2_repo_check
+  failed_when: false
+  changed_when: false
+  no_log: true
+  when:
+    - restic_backup_enabled | bool
+    - restic_r2_enabled | bool
+
+- name: Initialize restic R2 repo
+  ansible.builtin.command: >
+    restic -r {{ restic_r2_repo }} -p /etc/restic-password init
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ restic_r2_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ restic_r2_secret_access_key }}"
+  no_log: true
+  when:
+    - restic_backup_enabled | bool
+    - restic_r2_enabled | bool
+    - restic_r2_repo_check.rc != 0
+  changed_when: true
+
 - name: Install backup script
   ansible.builtin.template:
     src: restic-backup.sh.j2
