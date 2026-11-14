@@ -111,7 +111,7 @@ experimental:
 certificatesResolvers:
   cloudflare:
     acme:
-      email: "{{ cloudflare_email }}"
+      email: "{{ acme_email }}"
       storage: "acme.json"
       dnsChallenge:
         provider: "cloudflare"

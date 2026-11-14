@@ -5,8 +5,7 @@
   ansible.builtin.uri:
     url: "https://api.cloudflare.com/client/v4/zones?name={{ root_host }}&status=active"
     headers:
-      X-Auth-Email: "{{ cloudflare_email }}"
-      X-Auth-Key: "{{ cloudflare_api_key }}"
+      Authorization: "Bearer {{ cloudflare_api_token }}"
   register: _cf_zone
   no_log: true
 
@@ -16,8 +15,7 @@
   ansible.builtin.uri:
     url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/origin_tls_client_auth/settings"
     headers:
-      X-Auth-Email: "{{ cloudflare_email }}"
-      X-Auth-Key: "{{ cloudflare_api_key }}"
+      Authorization: "Bearer {{ cloudflare_api_token }}"
     status_code: [200, 202]
   register: _cf_aop_zone
   no_log: true
@@ -27,8 +25,7 @@
     url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/origin_tls_client_auth/settings"
     method: PUT
     headers:
-      X-Auth-Email: "{{ cloudflare_email }}"
-      X-Auth-Key: "{{ cloudflare_api_key }}"
+      Authorization: "Bearer {{ cloudflare_api_token }}"
     body_format: json
     body:
       enabled: false
@@ -40,8 +37,7 @@
   ansible.builtin.uri:
     url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/settings/tls_client_auth"
     headers:
-      X-Auth-Email: "{{ cloudflare_email }}"
-      X-Auth-Key: "{{ cloudflare_api_key }}"
+      Authorization: "Bearer {{ cloudflare_api_token }}"
     status_code: [200, 202]
   register: _cf_aop_global
   no_log: true
@@ -51,8 +47,7 @@
     url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone.json.result[0].id }}/settings/tls_client_auth"
     method: PATCH
     headers:
-      X-Auth-Email: "{{ cloudflare_email }}"
-      X-Auth-Key: "{{ cloudflare_api_key }}"
+      Authorization: "Bearer {{ cloudflare_api_token }}"
     body_format: json
     body:
       value: "on"
@@ -185,8 +180,7 @@
       - "{{ docker_dir }}/traefik/data/certificates/authenticated_origin_pull_ca.pem:/authenticated_origin_pull_ca.pem:ro"
       - "{{ docker_dir }}/traefik/data/logs:/logs"
     env:
-      CF_API_EMAIL: "{{ cloudflare_email }}"
-      CF_API_KEY: "{{ cloudflare_api_key }}"
+      CF_DNS_API_TOKEN: "{{ cloudflare_api_token }}"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck"]
       interval: 30s

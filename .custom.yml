@@ -12,6 +12,7 @@ ansible_ssh_private_key_file: "~/.ssh/ansible"
 
 # --- Email ---
 email_recipient: "reciever@gmail.com" # email to receive notifications
+acme_email: "you@example.com" # Let's Encrypt account email
 email_smtp_host: "smtp.gmail.com"
 email_smtp_port: "587"
 email_login: "sender@gmail.com" # email to send notifications

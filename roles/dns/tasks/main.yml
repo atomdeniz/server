@@ -6,6 +6,5 @@
     type: "{{ item.type }}"
     value: "{{ item.content }}"
     proxied: "{{ item.proxied }}"
-    account_api_key: "{{ cloudflare_api_key }}"
-    account_email: "{{ cloudflare_email }}"
+    api_token: "{{ cloudflare_api_token }}"
   loop: "{{ dns_records }}"
