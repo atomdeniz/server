@@ -1,0 +1,8 @@
+[Unit]
+Description=Restic restore test (scratch dir + throwaway containers)
+Wants=network-online.target
+After=network-online.target restic-backup.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/restic-restore-test

@@ -32,3 +32,15 @@ restic_r2_env_file: "/etc/restic-r2.env"
 restic_r2_exclude_paths: "{{ restic_exclude_paths + restic_extra_exclude_paths + restic_r2_extra_exclude_paths }}"
 restic_r2_extra_exclude_paths:
   - "{{ docker_dir }}/traefik/data/logs"
+
+restic_restore_test_enabled: true
+restic_restore_test_on_calendar: "*-*-01 06:00:00"
+restic_restore_test_max_age_hours: 48
+restic_restore_test_read_data_subset: "5%"
+restic_restore_test_pg_dumps:
+  - file: postgres.sql
+    image: "postgres:{{ postgres_version | default('18-alpine') }}"
+    args: ""
+  - file: immich.sql
+    image: "{{ immich_postgres_image | default('') }}"
+    args: "-c shared_preload_libraries=vchord.so"

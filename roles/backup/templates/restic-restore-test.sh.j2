@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DUMP_DIR="{{ restic_db_dump_dir }}"
+TEXTFILE_DIR="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}"
+TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
+HOSTNAME=$(hostname)
+
+export RESTIC_PASSWORD_FILE="/etc/restic-password"
+export RESTIC_CACHE_DIR="/var/cache/restic"
+
+# Never restore into DUMP_DIR or run against live containers
+WORK=$(mktemp -d /var/tmp/restic-restore-test.XXXXXX)
+CONTAINER="restore-test-$$"
+
+cleanup() {
+  docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
+
+send_telegram() {
+  curl -s -o /dev/null "$TELEGRAM_API" \
+    --data-urlencode "chat_id={{ telegram_user_id }}" \
+    --data-urlencode "text=$1"$'\n\n'"$2"
+}
+
+check_snapshot_age() {
+  restic snapshots latest --json > "$WORK/snapshots.json"
+  python3 - "$WORK/snapshots.json" "{{ restic_restore_test_max_age_hours }}" <<'PY'
+import datetime, json, re, sys
+snaps = json.load(open(sys.argv[1]))
+if not snaps:
+    sys.exit("no snapshots")
+latest = snaps[-1]
+ts = re.sub(r"(\.\d{6})\d*", r"\1", latest["time"])
+age = (datetime.datetime.now(datetime.timezone.utc) - datetime.datetime.fromisoformat(ts)).total_seconds() / 3600
+print("latest snapshot %s, %.1fh old" % (latest["short_id"], age))
+if age > float(sys.argv[2]):
+    sys.exit("latest snapshot older than %sh" % sys.argv[2])
+PY
+}
+
+check_sqlite() {
+  python3 - "$1" "$2" <<'PY'
+import sqlite3, sys
+db = sqlite3.connect("file:%s?mode=ro" % sys.argv[1], uri=True)
+ok = db.execute("pragma integrity_check").fetchone()[0]
+tables = db.execute("select count(*) from sqlite_master where type = 'table'").fetchone()[0]
+print("%s: integrity %s, %d tables" % (sys.argv[2], ok, tables))
+if ok != "ok" or tables == 0:
+    sys.exit(1)
+PY
+}
+
+pg() {
+  docker exec "$CONTAINER" psql -U restore_test -v ON_ERROR_STOP=1 -Atq "$@"
+}
+
+check_pg() {
+  local dump="$1" image="$2" args="$3"
+  # shellcheck disable=SC2086
+  docker run -d --name "$CONTAINER" --network none \
+    --security-opt no-new-privileges:true \
+    -e POSTGRES_USER=restore_test -e POSTGRES_HOST_AUTH_METHOD=trust \
+    -v "$dump:/dump.sql:ro" \
+    "$image" ${args:+postgres $args} >/dev/null
+
+  # TCP only answers after initdb's socket-only bootstrap server has stopped
+  for _ in $(seq 120); do
+    docker exec "$CONTAINER" pg_isready -h 127.0.0.1 -U restore_test -q && break
+    sleep 1
+  done
+  docker exec "$CONTAINER" pg_isready -h 127.0.0.1 -U restore_test -q
+
+  docker exec "$CONTAINER" psql -U restore_test -d postgres -q -f /dump.sql > "$WORK/psql.log" 2>&1 || true
+  local errors expected actual=0 db
+  errors=$(grep "ERROR:" "$WORK/psql.log" | grep -vc "already exists" || true)
+  expected=$(grep -c "^CREATE TABLE" "$dump" || true)
+  for db in $(pg -d postgres -c "select datname from pg_database where not datistemplate"); do
+    actual=$((actual + $(pg -d "$db" -c "select count(*) from pg_tables where schemaname not in ('pg_catalog', 'information_schema')")))
+  done
+  docker rm -f "$CONTAINER" >/dev/null
+
+  echo "$(basename "$dump"): $actual/$expected tables restored, $errors errors"
+  if [ "$errors" -gt 0 ]; then
+    grep "ERROR:" "$WORK/psql.log" | grep -v "already exists" | head -5
+  fi
+  [ "$expected" -gt 0 ] && [ "$actual" -eq "$expected" ] && [ "$errors" -eq 0 ]
+}
+
+test_repo() {
+  echo "== $1"
+  check_snapshot_age
+  restic check --read-data-subset={{ restic_restore_test_read_data_subset }}
+
+  rm -rf "$WORK/restore"
+  restic restore latest --target "$WORK/restore" --include "$DUMP_DIR" >/dev/null
+  local d="$WORK/restore$DUMP_DIR"
+{% for db in restic_sqlite_dumps %}
+  check_sqlite "$d/{{ db.name }}.sqlite" "{{ db.name }}"
+{% endfor %}
+{% for dump in restic_restore_test_pg_dumps if dump.image %}
+  if [ -f "$d/{{ dump.file }}" ]; then
+    check_pg "$d/{{ dump.file }}" "{{ dump.image }}" "{{ dump.args }}"
+  fi
+{% endfor %}
+}
+
+LOG=$(mktemp)
+STATUS="SUCCESS"
+
+set +e
+{% if restic_storagebox_enabled | bool %}
+(
+  set -e
+  export RESTIC_REPOSITORY="{{ restic_repo_path }}"
+  test_repo "Storage Box"
+) >> "$LOG" 2>&1 || STATUS="FAILED"
+{% endif %}
+{% if restic_r2_enabled | bool %}
+(
+  set -e
+  set -a
+  . {{ restic_r2_env_file }}
+  set +a
+  export RESTIC_REPOSITORY="{{ restic_r2_repo }}"
+  test_repo "R2"
+) >> "$LOG" 2>&1 || STATUS="FAILED"
+{% endif %}
+set -e
+
+SUMMARY=$(grep -E "^==|snapshot|tables|errors|ERROR|Fatal|no errors were found" "$LOG" | tail -c 3500)
+if [ "$STATUS" = "SUCCESS" ]; then
+  if [ -d "$TEXTFILE_DIR" ]; then
+    printf 'restic_restore_test_last_success_timestamp_seconds %s\n' "$(date +%s)" > "$TEXTFILE_DIR/restic-restore-test.prom.tmp"
+    mv "$TEXTFILE_DIR/restic-restore-test.prom.tmp" "$TEXTFILE_DIR/restic-restore-test.prom"
+  fi
+  send_telegram "🧪 Restore test OK - $HOSTNAME - $(date +%Y-%m-%d)" "$SUMMARY"
+else
+  send_telegram "❌ Restore test FAILED - $HOSTNAME - $(date +%Y-%m-%d)" "$SUMMARY"$'\n\n'"$(tail -10 "$LOG" | tail -c 1500)"
+fi
+rm -f "$LOG"
+
+[ "$STATUS" = "SUCCESS" ] || exit 1

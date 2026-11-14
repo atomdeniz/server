@@ -347,3 +347,41 @@ groups:
                   query: {params: [C]}
                   reducer: {type: last}
                   type: query
+
+      - uid: restore-test-too-old
+        title: Restore test too old
+        condition: C
+        for: 30m
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: critical
+        annotations:
+          summary: No successful monthly restic restore test in the last 35 days.
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: prometheus
+            model:
+              datasource: {type: prometheus, uid: prometheus}
+              editorMode: code
+              expr: '(time() - restic_restore_test_last_success_timestamp_seconds) / 3600'
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              type: threshold
+              expression: A
+              refId: C
+              conditions:
+                - evaluator: {type: gt, params: [840]}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {type: last}
+                  type: query

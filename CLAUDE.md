@@ -181,7 +181,7 @@ All enabled application roles in execution order:
 | `wallos` | wallos | `wallos.{{ root_host }}` | Subscription tracker |
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
-| `backup` | backup | — | Restic backup (daily, 04:30) to Storage Box + an offsite copy in Cloudflare R2 (bucket `restic`, skips Traefik logs); Postgres + Immich DBs via `pg_dumpall`, SQLite DBs (`restic_sqlite_dumps` host var, e.g. Vaultwarden) via the SQLite backup API |
+| `backup` | backup | — | Restic backup (daily, 04:30) to Storage Box + an offsite copy in Cloudflare R2 (bucket `restic`, skips Traefik logs); Postgres + Immich DBs via `pg_dumpall`, SQLite DBs (`restic_sqlite_dumps` host var, e.g. Vaultwarden) via the SQLite backup API; monthly `restic-restore-test` (1st, 06:00) restores the dumps of each repo into a scratch dir + throwaway `--network none` containers and reports to Telegram |
 | `backrest` | backrest | `backup.{{ root_host }}` | Restic web UI for browsing/restoring the backup repo (no plans; prune/check stay in `backup`); restores land in `{{ docker_dir }}/backrest/restore` |
 | `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
@@ -200,7 +200,7 @@ Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only s
 | `gatus` | gatus | `uptime-oracle.{{ root_host }}` | External uptime monitoring (`gatus_external: true` renders `gatus_external_endpoints` instead of the server list) |
 | `dozzle` | dozzle | — | Dozzle in agent mode (`dozzle_agent: true`) behind the read-only `docker_proxy`; mTLS pair copied from the server |
 | `cup` | cup | — | Cup in agent mode (`cup_agent: true`: API only, no UI/Telegram); aggregated by the server's Cup |
-| `backup` | backup | — | Restic to R2 only (`restic/oracle` prefix, no Storage Box); n8n + Grafana SQLite dumps, Grafana plugins excluded |
+| `backup` | backup | — | Restic to R2 only (`restic/oracle` prefix, no Storage Box); n8n + Grafana SQLite dumps, Grafana plugins excluded; same monthly restore test |
 
 ### Docker Networking
 

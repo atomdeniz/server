@@ -1,0 +1,9 @@
+[Unit]
+Description=Run restic restore test on schedule
+
+[Timer]
+OnCalendar={{ restic_restore_test_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

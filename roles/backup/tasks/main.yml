@@ -156,3 +156,37 @@
     enabled: true
     state: started
   when: restic_backup_enabled | bool
+
+- name: Install restore test script
+  ansible.builtin.template:
+    src: restic-restore-test.sh.j2
+    dest: /usr/local/bin/restic-restore-test
+    owner: root
+    group: root
+    mode: "0700"
+  when:
+    - restic_backup_enabled | bool
+    - restic_restore_test_enabled | bool
+
+- name: Install restic-restore-test systemd units
+  ansible.builtin.template:
+    src: "restic-restore-test.{{ item }}.j2"
+    dest: "/etc/systemd/system/restic-restore-test.{{ item }}"
+    mode: "0644"
+  loop:
+    - service
+    - timer
+  register: restic_restore_test_units
+  when:
+    - restic_backup_enabled | bool
+    - restic_restore_test_enabled | bool
+
+- name: Enable and start restic-restore-test timer
+  ansible.builtin.systemd:
+    name: restic-restore-test.timer
+    enabled: true
+    state: started
+    daemon_reload: "{{ restic_restore_test_units is changed }}"
+  when:
+    - restic_backup_enabled | bool
+    - restic_restore_test_enabled | bool
