@@ -98,11 +98,12 @@ Deploy specific role(s) by tag:
 ansible-playbook playbook.yml -i inventory.yml -e @custom.yml -e @secret.yml --vault-password-file ~/.vault_pass --tags "traefik,authelia"
 ```
 
-Lint the project:
+Lint the project (CI runs the same in `.github/workflows/lint.yml` on every push/PR, tool pins in `.github/requirements-ci.txt`):
 
 ```bash
-ansible-lint playbook.yml
+ansible-lint playbook.yml bootstrap.yml
 yamllint .
+ansible-playbook playbook.yml -i inventory.yml --syntax-check
 ```
 
 Dry-run (check mode):
@@ -141,7 +142,6 @@ External roles (installed to `.ansible/roles/`):
 
 - `geerlingguy.docker`
 - `geerlingguy.pip`
-- `chriswayg.msmtp-mailer`
 
 External collections (installed to `.ansible/collections/`):
 
@@ -183,7 +183,6 @@ All enabled application roles in execution order:
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
 | `backup` | backup | — | Restic backup (daily, 04:30) to Storage Box + an offsite copy in Cloudflare R2 (bucket `restic`, skips Traefik logs); Postgres + Immich DBs via `pg_dumpall`, SQLite DBs (`restic_sqlite_dumps` host var, e.g. Vaultwarden) via the SQLite backup API; monthly `restic-restore-test` (1st, 06:00) restores the dumps of each repo into a scratch dir + throwaway `--network none` containers and reports to Telegram |
 | `backrest` | backrest | `backup.{{ root_host }}` | Restic web UI for browsing/restoring the backup repo (no plans; prune/check stay in `backup`); restores land in `{{ docker_dir }}/backrest/restore` |
-| `chriswayg.msmtp-mailer` | msmtp | — | System email relay |
 
 Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only service):
 
@@ -295,5 +294,4 @@ docker exec crowdsec cscli console enroll -e context <key>
 
 ## Other Playbooks
 
-- **`migrate-docker-dir.yml`** — Utility playbook for migrating the Docker data directory to a new location.
 - **`bootstrap.yml`** — Creates the `ansible` user (key + passwordless sudo) on a fresh host via its cloud default user: `ansible-playbook bootstrap.yml -i inventory.yml -e @custom.yml --limit oracle [-e bootstrap_user=ubuntu]`.

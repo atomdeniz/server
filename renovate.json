@@ -6,7 +6,8 @@
   "enabledManagers": [
     "custom.regex",
     "ansible-galaxy",
-    "github-actions"
+    "github-actions",
+    "pip_requirements"
   ],
   "timezone": "Europe/Istanbul",
   "schedule": [
