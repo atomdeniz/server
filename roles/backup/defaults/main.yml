@@ -8,6 +8,7 @@ restic_repo_path: "{{ storagebox_mount_path }}/backup"
 restic_backup_path: "{{ docker_dir }}"
 restic_db_dump_dir: "{{ docker_dir }}/backup/db-dumps"
 restic_immich_db_container: "immich_postgres"
+restic_config_copy_dir: "{{ docker_dir }}/backup/ansible-config"
 restic_on_calendar: "*-*-* 04:30:00"
 
 # Exclude paths already on storagebox or dumped

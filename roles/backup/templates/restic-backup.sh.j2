@@ -32,7 +32,7 @@ container_running() {
 dump_databases() {
   if container_running {{ postgres_container_name | default('postgres') }}; then
     echo "Dumping PostgreSQL..."
-    docker exec {{ postgres_container_name | default('postgres') }} pg_dumpall -U {{ postgres_bootstrap_user | default('postgres') }} > "$DUMP_DIR/postgres.sql"
+    docker exec {{ postgres_container_name | default('postgres') }} pg_dumpall --clean --if-exists -U {{ postgres_bootstrap_user | default('postgres') }} > "$DUMP_DIR/postgres.sql"
   fi
 
   if container_running {{ restic_immich_db_container }}; then

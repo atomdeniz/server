@@ -49,6 +49,36 @@
     mode: "0700"
   when: restic_backup_enabled | bool
 
+- name: Create the Ansible config copy directory
+  ansible.builtin.file:
+    path: "{{ restic_config_copy_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: restic_backup_enabled | bool
+
+- name: Refuse to back up an unencrypted secret.yml
+  ansible.builtin.assert:
+    that: lookup('ansible.builtin.pipe', 'head -c 14 ' ~ (playbook_dir ~ '/secret.yml') | quote) == '$ANSIBLE_VAULT'
+    fail_msg: "secret.yml is not vault-encrypted; run: ansible-vault encrypt secret.yml"
+    quiet: true
+  when: restic_backup_enabled | bool
+
+# Vault-encrypted as-is, so a lost laptop only needs the vault + restic passwords
+- name: Copy the Ansible config into the backup
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/{{ item }}"
+    dest: "{{ restic_config_copy_dir }}/{{ item }}"
+    decrypt: false
+    owner: root
+    group: root
+    mode: "0600"
+  loop:
+    - custom.yml
+    - secret.yml
+  when: restic_backup_enabled | bool
+
 - name: Write restic password file
   ansible.builtin.copy:
     content: "{{ restic_password }}"

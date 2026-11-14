@@ -49,3 +49,7 @@ After first CrowdSec deploy, enroll the agent:
 ```bash
 docker exec crowdsec cscli console enroll -e context <key>
 ```
+
+## Disaster Recovery
+
+See [docs/disaster-recovery.md](docs/disaster-recovery.md) for rebuilding a host from the restic backups (Storage Box and Cloudflare R2).
