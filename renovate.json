@@ -107,6 +107,28 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
+        "/^roles/changedetection/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "sockpuppetbrowser_version: \"(?<currentValue>[^\"@]+)@(?<currentDigest>sha256:[a-f0-9]+)\""
+      ],
+      "depNameTemplate": "dgtlmoon/sockpuppetbrowser",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^roles/umami/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "umami_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/umami-software/umami",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
         "/^roles/convertx/defaults/main\\.yml$/"
       ],
       "matchStrings": [
