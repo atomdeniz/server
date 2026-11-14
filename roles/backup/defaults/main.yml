@@ -3,6 +3,7 @@ restic_backup_enabled: true
 restic_version: "0.19.1"
 restic_release_url: "https://github.com/restic/restic/releases/download/v{{ restic_version }}"
 restic_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+restic_storagebox_enabled: true
 restic_repo_path: "{{ storagebox_mount_path }}/backup"
 restic_backup_path: "{{ docker_dir }}"
 restic_db_dump_dir: "{{ docker_dir }}/backup/db-dumps"
@@ -15,6 +16,8 @@ restic_exclude_paths:
   - "{{ docker_dir }}/immich/postgres"
   - "{{ docker_dir }}/backrest/cache"
   - "{{ docker_dir }}/backrest/restore"
+restic_extra_exclude_paths: []
+restic_sqlite_dumps: []
 
 # Retention policy
 restic_keep_daily: 7
@@ -23,8 +26,9 @@ restic_keep_monthly: 3
 
 restic_r2_enabled: "{{ (restic_r2_account_id | default('')) | length > 0 }}"
 restic_r2_bucket: "restic"
-restic_r2_repo: "s3:https://{{ restic_r2_account_id | default('') }}.r2.cloudflarestorage.com/{{ restic_r2_bucket }}"
+restic_r2_prefix: ""
+restic_r2_repo: "s3:https://{{ restic_r2_account_id | default('') }}.r2.cloudflarestorage.com/{{ restic_r2_bucket }}{{ ('/' ~ restic_r2_prefix) if restic_r2_prefix else '' }}"
 restic_r2_env_file: "/etc/restic-r2.env"
-restic_r2_exclude_paths: "{{ restic_exclude_paths + restic_r2_extra_exclude_paths }}"
+restic_r2_exclude_paths: "{{ restic_exclude_paths + restic_extra_exclude_paths + restic_r2_extra_exclude_paths }}"
 restic_r2_extra_exclude_paths:
   - "{{ docker_dir }}/traefik/data/logs"

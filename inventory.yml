@@ -6,10 +6,22 @@ all:
       ansible_host: "{{ server_ssh_host | default(traefik_app_network_gateway) }}"
       ansible_user: "{{ username }}"
       monitoring_primary: false
+      restic_sqlite_dumps:
+        - name: vaultwarden
+          path: "{{ docker_dir }}/vw-data/db.sqlite3"
     oracle:
       ansible_host: "{{ oracle_ip }}"
       ansible_user: "{{ username }}"
       system_swap_size: 4G
+      restic_storagebox_enabled: false
+      restic_r2_prefix: oracle
+      restic_extra_exclude_paths:
+        - "{{ docker_dir }}/grafana-data/plugins"
+      restic_sqlite_dumps:
+        - name: n8n
+          path: "{{ docker_dir }}/n8n/database.sqlite"
+        - name: grafana
+          path: "{{ docker_dir }}/grafana-data/grafana.db"
       gatus_external: true
       cup_agent: true
       dozzle_agent: true

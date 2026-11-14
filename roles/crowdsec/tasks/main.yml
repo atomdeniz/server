@@ -95,7 +95,7 @@
     volumes:
       - "{{ docker_dir }}/crowdsec/data:/var/lib/crowdsec/data"
       - "{{ docker_dir }}/crowdsec/etc:/etc/crowdsec"
-      - "{{ docker_dir }}/traefik/logs:/var/log/traefik:ro"
+      - "{{ docker_dir }}/traefik/data/logs:/var/log/traefik:ro"
       - "{{ docker_dir }}/authelia:/var/log/authelia:ro"
       - "/var/log/auth.log:/var/log/auth.log:ro"
       - "/var/log/syslog:/var/log/syslog:ro"

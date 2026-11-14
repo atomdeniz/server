@@ -1,11 +1,9 @@
 compress
-{{ docker_dir }}/traefik/logs/*.log {
+{{ docker_dir }}/traefik/data/logs/*.log {
   size 20M
   daily
   rotate 14
   missingok
   notifempty
-  postrotate
-    docker kill --signal="USR1" traefik
-  endscript
+  copytruncate
 }

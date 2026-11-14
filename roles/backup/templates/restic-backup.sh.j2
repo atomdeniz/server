@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="{{ restic_repo_path }}"
-PASSWORD_FILE="/etc/restic-password"
 DUMP_DIR="{{ restic_db_dump_dir }}"
-TEXTFILE="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}/restic.prom"
-TEXTFILE_R2="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}/restic-r2.prom"
+TEXTFILE_DIR="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}"
 TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
 HOSTNAME=$(hostname)
 
-export RESTIC_REPOSITORY="$REPO"
-export RESTIC_PASSWORD_FILE="$PASSWORD_FILE"
+export RESTIC_PASSWORD_FILE="/etc/restic-password"
 export RESTIC_COMPRESSION="auto"
 export RESTIC_CACHE_DIR="/var/cache/restic"
 
@@ -24,98 +20,93 @@ send_telegram() {
 
 # Expose last-success timestamp to node_exporter (backup-age alerting)
 write_metric() {
-  if [ -d "$(dirname "$1")" ]; then
-    printf '%s %s\n' "$2" "$(date +%s)" > "$1.tmp" && mv "$1.tmp" "$1"
+  if [ -d "$TEXTFILE_DIR" ]; then
+    printf '%s %s\n' "$2" "$(date +%s)" > "$TEXTFILE_DIR/$1.tmp" && mv "$TEXTFILE_DIR/$1.tmp" "$TEXTFILE_DIR/$1"
   fi
+}
+
+container_running() {
+  docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q "^$1\$"
+}
+
+dump_databases() {
+  if container_running {{ postgres_container_name | default('postgres') }}; then
+    echo "Dumping PostgreSQL..."
+    docker exec {{ postgres_container_name | default('postgres') }} pg_dumpall -U {{ postgres_bootstrap_user | default('postgres') }} > "$DUMP_DIR/postgres.sql"
+  fi
+
+  if container_running {{ restic_immich_db_container }}; then
+    echo "Dumping Immich PostgreSQL..."
+    docker exec {{ restic_immich_db_container }} sh -c 'pg_dumpall --clean --if-exists -U "$POSTGRES_USER"' > "$DUMP_DIR/immich.sql"
+  fi
+{% for db in restic_sqlite_dumps %}
+
+  echo "Dumping SQLite {{ db.name }}..."
+  python3 -c 'import sqlite3, sys; s = sqlite3.connect(sys.argv[1]); d = sqlite3.connect(sys.argv[2]); s.backup(d); d.close(); s.close()' \
+    "{{ db.path }}" "$DUMP_DIR/{{ db.name }}.sqlite.tmp"
+  mv "$DUMP_DIR/{{ db.name }}.sqlite.tmp" "$DUMP_DIR/{{ db.name }}.sqlite"
+{% endfor %}
+}
+
+backup_repo() {
+  local label="$1"
+  shift
+  echo "[$(date)] Starting $label backup..."
+  restic backup {{ restic_backup_path }} "$@" --tag automated
+  restic forget \
+    --keep-daily {{ restic_keep_daily }} \
+    --keep-weekly {{ restic_keep_weekly }} \
+    --keep-monthly {{ restic_keep_monthly }} \
+    --prune
+  restic check
+  restic snapshots --latest 1
+  echo "[$(date)] $label backup complete."
 }
 
 LOG=$(mktemp)
 STATUS="SUCCESS"
 
 set +e
+( set -e; dump_databases ) > "$LOG" 2>&1
+[ $? -eq 0 ] || STATUS="FAILED"
+{% if restic_storagebox_enabled | bool %}
+
 (
   set -e
-  echo "[$(date)] Starting backup..."
-
-  # Pre-backup: dump PostgreSQL
-  if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^{{ postgres_container_name }}$'; then
-    echo "Dumping PostgreSQL..."
-    docker exec {{ postgres_container_name }} pg_dumpall -U {{ postgres_bootstrap_user }} > "$DUMP_DIR/postgres.sql"
-  fi
-
-  if docker ps --format '{% raw %}{{.Names}}{% endraw %}' | grep -q '^{{ restic_immich_db_container }}$'; then
-    echo "Dumping Immich PostgreSQL..."
-    docker exec {{ restic_immich_db_container }} sh -c 'pg_dumpall --clean --if-exists -U "$POSTGRES_USER"' > "$DUMP_DIR/immich.sql"
-  fi
-
-  # Run backup
-  restic backup {{ restic_backup_path }} \
-{% for path in restic_exclude_paths %}
+  export RESTIC_REPOSITORY="{{ restic_repo_path }}"
+  backup_repo "Storage Box" \
+{% for path in restic_exclude_paths + restic_extra_exclude_paths %}
     --exclude "{{ path }}" \
 {% endfor %}
-    --tag automated
 
-  # Apply retention policy
-  restic forget \
-    --keep-daily {{ restic_keep_daily }} \
-    --keep-weekly {{ restic_keep_weekly }} \
-    --keep-monthly {{ restic_keep_monthly }} \
-    --prune
-
-  # Verify repository integrity
-  echo "Verifying backup integrity..."
-  restic check
-
-  # Snapshot summary
-  restic snapshots --latest 1
-
-  echo "[$(date)] Backup complete."
-) > "$LOG" 2>&1
-[ $? -eq 0 ] || STATUS="FAILED"
-set -e
-MAIN_STATUS="$STATUS"
+) >> "$LOG" 2>&1
+if [ $? -eq 0 ]; then
+  write_metric restic.prom restic_last_success_timestamp_seconds
+else
+  STATUS="FAILED"
+fi
+{% endif %}
 {% if restic_r2_enabled | bool %}
 
-R2_STATUS="SUCCESS"
-set +e
 (
   set -e
   set -a
   . {{ restic_r2_env_file }}
   set +a
   export RESTIC_REPOSITORY="{{ restic_r2_repo }}"
-  echo "[$(date)] Starting R2 backup..."
-
-  restic backup {{ restic_backup_path }} \
+  backup_repo "R2" \
 {% for path in restic_r2_exclude_paths %}
     --exclude "{{ path }}" \
 {% endfor %}
-    --tag automated
 
-  restic forget \
-    --keep-daily {{ restic_keep_daily }} \
-    --keep-weekly {{ restic_keep_weekly }} \
-    --keep-monthly {{ restic_keep_monthly }} \
-    --prune
-
-  restic check
-  restic stats --mode raw-data
-
-  echo "[$(date)] R2 backup complete."
 ) >> "$LOG" 2>&1
-[ $? -eq 0 ] || R2_STATUS="FAILED"
+if [ $? -eq 0 ]; then
+  write_metric restic-r2.prom restic_r2_last_success_timestamp_seconds
+else
+  STATUS="FAILED"
+fi
+{% endif %}
 set -e
-[ "$R2_STATUS" = "SUCCESS" ] || STATUS="FAILED"
-{% endif %}
-
-if [ "$MAIN_STATUS" = "SUCCESS" ]; then
-  write_metric "$TEXTFILE" restic_last_success_timestamp_seconds
-fi
-{% if restic_r2_enabled | bool %}
-if [ "$R2_STATUS" = "SUCCESS" ]; then
-  write_metric "$TEXTFILE_R2" restic_r2_last_success_timestamp_seconds
-fi
-{% endif %}
 
 if [ "$STATUS" = "SUCCESS" ]; then
   send_telegram "✅ Backup OK - $HOSTNAME - $(date +%Y-%m-%d)" "$(tail -5 "$LOG")"
