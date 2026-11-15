@@ -56,6 +56,15 @@ http:
         frameDeny: true
         browserXssFilter: true
         referrerPolicy: "strict-origin-when-cross-origin"
+    noindex:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: "noindex, nofollow"
+    www-to-root:
+      redirectRegex:
+        regex: "^https://www\\.(.+)"
+        replacement: "https://${1}"
+        permanent: true
     api-external:
       chain:
         middlewares:
@@ -71,10 +80,17 @@ http:
         middlewares:
           - https-only
           - secure-headers
+          - noindex
     open-external:
       chain:
         middlewares:
           - base
+          - crowdsec
+    public-site:
+      chain:
+        middlewares:
+          - https-only
+          - secure-headers
           - crowdsec
     secure-vpn:
       chain:

@@ -9,11 +9,15 @@
 
 - name: Deploy the landing page
   ansible.builtin.copy:
-    src: "index.html"
-    dest: "{{ docker_dir }}/ekstre/html/index.html"
+    src: "{{ item }}"
+    dest: "{{ docker_dir }}/ekstre/html/{{ item }}"
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: "0644"
+  loop:
+    - index.html
+    - robots.txt
+    - sitemap.xml
 
 - name: Make sure the ekstre container is created and running
   community.general.docker_container:
@@ -43,5 +47,5 @@
       traefik.http.routers.ekstre.tls: "true"
       traefik.http.routers.ekstre.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.ekstre.service: "ekstre"
-      traefik.http.routers.ekstre.middlewares: "open-external@file"
+      traefik.http.routers.ekstre.middlewares: "public-site@file"
       traefik.http.services.ekstre.loadbalancer.server.port: "80"

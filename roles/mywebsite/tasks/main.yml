@@ -20,5 +20,5 @@
       traefik.http.routers.mywebsite.tls: "true"
       traefik.http.routers.mywebsite.tls.options: "cloudflare-mtls@file"
       traefik.http.routers.mywebsite.service: "mywebsite"
-      traefik.http.routers.mywebsite.middlewares: "open-external@file"
+      traefik.http.routers.mywebsite.middlewares: "public-site@file,www-to-root@file"
       traefik.http.services.mywebsite.loadbalancer.server.port: "80"
