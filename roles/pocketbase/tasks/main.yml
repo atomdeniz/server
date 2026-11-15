@@ -59,7 +59,7 @@
       traefik.http.routers.pocketbase-admin.rule: "Host(`{{ pocketbase_admin_host }}`)"
       traefik.http.routers.pocketbase-admin.tls: "true"
       traefik.http.routers.pocketbase-admin.service: "pocketbase"
-      traefik.http.routers.pocketbase-admin.middlewares: "secure-vpn-with-auth@file"
+      traefik.http.routers.pocketbase-admin.middlewares: "secure-vpn-with-session-auth@file"
 
 - name: Wait for PocketBase to be ready
   ansible.builtin.uri:

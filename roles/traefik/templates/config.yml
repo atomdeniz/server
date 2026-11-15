@@ -10,6 +10,16 @@ http:
           - "Remote-Groups"
           - "Remote-Name"
           - "Remote-Email"
+    forward-auth-session:
+      forwardAuth:
+        address: "http://authelia:9091/api/authz/forward-auth-session?authelia_url=https://{{ authelia_host }}/"
+        trustForwardHeader: true
+        maxResponseBodySize: 4194304
+        authResponseHeaders:
+          - "Remote-User"
+          - "Remote-Groups"
+          - "Remote-Name"
+          - "Remote-Email"
     crowdsec:
       plugin:
         bouncer:
@@ -107,3 +117,8 @@ http:
         middlewares:
           - secure-vpn
           - forward-auth
+    secure-vpn-with-session-auth:
+      chain:
+        middlewares:
+          - secure-vpn
+          - forward-auth-session
