@@ -1,0 +1,68 @@
+---
+- name: Check the installed rclone version
+  ansible.builtin.command: /usr/local/bin/rclone version
+  register: rclone_installed_version
+  failed_when: false
+  changed_when: false
+  when: archive_enabled | bool
+
+- name: Install rclone {{ rclone_version }}
+  when:
+    - archive_enabled | bool
+    - ("rclone v" ~ rclone_version ~ "\n") not in (rclone_installed_version.stdout | default("") ~ "\n")
+  block:
+    - name: Install unzip
+      ansible.builtin.package:
+        name: unzip
+        state: present
+
+    - name: Download rclone {{ rclone_version }}
+      ansible.builtin.get_url:
+        url: "{{ rclone_release_url }}/rclone-v{{ rclone_version }}-linux-{{ rclone_arch }}.zip"
+        checksum: "sha256:{{ rclone_release_url }}/SHA256SUMS"
+        dest: "/tmp/rclone-{{ rclone_version }}.zip"
+        mode: "0600"
+
+    - name: Unpack rclone {{ rclone_version }}
+      ansible.builtin.shell: >
+        set -o pipefail &&
+        unzip -p /tmp/rclone-{{ rclone_version }}.zip '*/rclone' > /usr/local/bin/rclone.new &&
+        chmod 0755 /usr/local/bin/rclone.new &&
+        mv /usr/local/bin/rclone.new /usr/local/bin/rclone &&
+        rm -f /tmp/rclone-{{ rclone_version }}.zip
+      args:
+        executable: /bin/bash
+      changed_when: true
+
+- name: Write the archive credentials
+  ansible.builtin.template:
+    src: rclone-archive.env.j2
+    dest: "{{ archive_env_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  when: archive_enabled | bool
+
+- name: Install the archive filter, script and systemd units
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - {src: rclone-archive.filter.j2, dest: /etc/rclone-archive.filter, mode: "0644"}
+    - {src: rclone-archive.sh.j2, dest: /usr/local/bin/rclone-archive, mode: "0700"}
+    - {src: rclone-archive.service.j2, dest: /etc/systemd/system/rclone-archive.service, mode: "0644"}
+    - {src: rclone-archive.timer.j2, dest: /etc/systemd/system/rclone-archive.timer, mode: "0644"}
+  register: archive_units
+  when: archive_enabled | bool
+
+- name: Enable and start the archive timer
+  ansible.builtin.systemd:
+    name: rclone-archive.timer
+    enabled: true
+    state: started
+    daemon_reload: "{{ archive_units is changed }}"
+  when: archive_enabled | bool

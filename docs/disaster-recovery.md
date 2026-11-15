@@ -12,6 +12,7 @@ Keep these somewhere that survives losing both (password manager, paper):
 | Vault password (`~/.vault_pass`) | Decrypts `secret.yml` |
 | `restic_password` | Decrypts every backup |
 | R2 Account ID, Access Key ID, Secret Access Key | Reach the offsite repo |
+| AWS root login, `archive_crypt_password`, `archive_crypt_salt` | Restore photos from the Deep Archive |
 | `~/.ssh/ansible` + passphrase | Optional: a new key can be bootstrapped |
 
 `custom.yml` and the vault-encrypted `secret.yml` are copied into every backup
@@ -24,7 +25,8 @@ recovered from R2.
 |---|---|---|
 | Server `/opt/docker` (configs, app data, DB dumps) | Storage Box `backup` repo + R2 `restic` | yes (R2) |
 | Oracle `/opt/docker` (n8n, Grafana, changedetection) | R2 `restic/oracle` | yes (R2 only) |
-| Immich photos/videos (~75 GB) | Storage Box `immich` share | **no** |
+| Immich originals (`upload`, `incoming`, `library`, `profile`) + FileBrowser | Storage Box | yes (AWS Deep Archive, rclone crypt) |
+| Immich thumbs, encoded video | Storage Box | no (Immich regenerates them) |
 | Traefik access logs, Grafana plugins | not backed up | — |
 
 DB dumps in `/opt/docker/backup/db-dumps/`: `postgres.sql` (spliit, umami),
@@ -149,8 +151,26 @@ After an IP change, update these by hand:
 - **CrowdSec console**: re-enroll (`cscli console enroll`) if the machine was
   not restored.
 
-## Known gap
+## 4. Restore photos from the Deep Archive
 
-Immich originals live only on the Storage Box. If the Hetzner account is lost,
-they are lost. The R2 free tier (10 GB) is too small for them; a paid bucket
-(R2 or Backblaze B2, roughly $1/month for 75 GB) would close the gap.
+Only when the Storage Box is gone. Objects are frozen: ask AWS to thaw them
+first (Bulk, up to 48 h, ~$0.0025/GB), then download (~$0.09/GB after the first
+free 100 GB/month). The `rclone-archive` key cannot restore, so use a session
+from `aws login` (root).
+
+```bash
+brew install rclone awscli && aws login --region us-east-1
+eval "$(aws configure export-credentials --format env)"
+export RCLONE_CONFIG_S3_TYPE=s3 RCLONE_CONFIG_S3_PROVIDER=AWS RCLONE_CONFIG_S3_ENV_AUTH=true \
+  RCLONE_CONFIG_S3_REGION=us-east-1 RCLONE_CONFIG_ARCHIVE_TYPE=crypt \
+  RCLONE_CONFIG_ARCHIVE_REMOTE=s3:<bucket> \
+  RCLONE_CONFIG_ARCHIVE_PASSWORD="$(rclone obscure '<archive_crypt_password>')" \
+  RCLONE_CONFIG_ARCHIVE_PASSWORD2="$(rclone obscure '<archive_crypt_salt>')"
+
+rclone backend restore s3:<bucket> -o priority=Bulk -o lifetime=14   # then wait
+rclone copy archive: /mnt/storagebox --size-only --progress           # after the thaw
+```
+
+Paths come back as they were under the Storage Box (`immich/upload/...`,
+`filebrowser/...`). Load `immich.sql` from restic afterwards so albums, faces
+and metadata match.

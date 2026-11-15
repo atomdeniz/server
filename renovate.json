@@ -62,6 +62,18 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
+        "/^roles/archive/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "rclone_version: \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "rclone/rclone",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
         "/^roles/backrest/defaults/main\\.yml$/"
       ],
       "matchStrings": [

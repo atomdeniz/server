@@ -182,6 +182,7 @@ All enabled application roles in execution order:
 | `filebrowser` | filebrowser | `files.{{ root_host }}` | Web file manager |
 | `pr_queue` | pr_queue | `pr.{{ root_host }}` | PR reviewer round-robin queue |
 | `backup` | backup | — | Restic backup (daily, 04:30) to Storage Box + an offsite copy in Cloudflare R2 (bucket `restic`, skips Traefik logs); Postgres + Immich DBs via `pg_dumpall`, SQLite DBs (`restic_sqlite_dumps` host var, e.g. Vaultwarden) via the SQLite backup API; `custom.yml` + vault-encrypted `secret.yml` copied into `backup/ansible-config/` (role refuses an unencrypted `secret.yml`); monthly `restic-restore-test` (1st, 06:00) restores the dumps of each repo into a scratch dir + throwaway `--network none` containers and reports to Telegram |
+| `archive` | archive | — | Offsite last-resort copy of Immich originals (`upload`, `incoming`, `library`, `profile`) + FileBrowser to AWS S3 Deep Archive (us-east-1, bucket in `archive_bucket`): rclone 1.76 crypt, `copy --size-only` (never deletes), daily 05:00; IAM user `rclone-archive` can list/put/get but not delete, bucket versioning on; failure → Telegram, staleness → Grafana `archive-too-old` |
 | `backrest` | backrest | `backup.{{ root_host }}` | Restic web UI for browsing/restoring the backup repo (no plans; prune/check stay in `backup`); restores land in `{{ docker_dir }}/backrest/restore` |
 
 Oracle host (served through the tunnel, VPN + Authelia like any other VPN-only service):

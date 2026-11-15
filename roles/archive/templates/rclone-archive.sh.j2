@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TEXTFILE_DIR="{{ node_exporter_textfile_dir | default('/var/lib/node_exporter') }}"
+TELEGRAM_API="https://api.telegram.org/bot{{ telegram_alert_bot_token }}/sendMessage"
+RCLONE=/usr/local/bin/rclone
+
+set -a
+. {{ archive_env_file }}
+set +a
+# rclone wants obscured crypt passwords; stdin keeps them out of argv
+RCLONE_CONFIG_ARCHIVE_PASSWORD=$(printf '%s' "$ARCHIVE_CRYPT_PASSWORD" | $RCLONE obscure -)
+RCLONE_CONFIG_ARCHIVE_PASSWORD2=$(printf '%s' "$ARCHIVE_CRYPT_SALT" | $RCLONE obscure -)
+export RCLONE_CONFIG_ARCHIVE_PASSWORD RCLONE_CONFIG_ARCHIVE_PASSWORD2
+unset ARCHIVE_CRYPT_PASSWORD ARCHIVE_CRYPT_SALT
+
+send_telegram() {
+  curl -s -o /dev/null "$TELEGRAM_API" \
+    --data-urlencode "chat_id={{ telegram_user_id }}" \
+    --data-urlencode "text=$1"$'\n\n'"$2"
+}
+
+# Refuse to run against an unmounted Storage Box
+mountpoint -q "{{ archive_source }}"
+
+LOG=$(mktemp)
+# --size-only: no per-object HEAD, and no mtime-fix copies that cold objects would reject
+if $RCLONE copy "{{ archive_source }}" archive: \
+    --config /dev/null \
+    --filter-from /etc/rclone-archive.filter \
+    --size-only --fast-list \
+    --transfers 4 --checkers 8 --retries 3 \
+    --stats-one-line --stats 0 --log-level NOTICE --stats-log-level NOTICE \
+    > "$LOG" 2>&1; then
+  if [ -d "$TEXTFILE_DIR" ]; then
+    printf 'archive_last_success_timestamp_seconds %s\n' "$(date +%s)" > "$TEXTFILE_DIR/archive.prom.tmp"
+    mv "$TEXTFILE_DIR/archive.prom.tmp" "$TEXTFILE_DIR/archive.prom"
+  fi
+  rm -f "$LOG"
+else
+  send_telegram "❌ Archive FAILED - $(hostname) - $(date +%Y-%m-%d)" "$(tail -20 "$LOG" | tail -c 3500)"
+  rm -f "$LOG"
+  exit 1
+fi

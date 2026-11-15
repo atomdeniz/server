@@ -1,0 +1,9 @@
+[Unit]
+Description=Run the offsite archive copy on schedule
+
+[Timer]
+OnCalendar={{ archive_on_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,17 @@
+---
+archive_enabled: "{{ (archive_aws_access_key_id | default('')) | length > 0 }}"
+rclone_version: "1.76.0"
+rclone_release_url: "https://github.com/rclone/rclone/releases/download/v{{ rclone_version }}"
+rclone_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+archive_bucket: "photo-archive-bb887dae"
+archive_region: "us-east-1"
+archive_storage_class: "DEEP_ARCHIVE"
+archive_env_file: "/etc/rclone-archive.env"
+archive_on_calendar: "*-*-* 05:00:00"
+archive_source: "{{ storagebox_mount_path }}"
+archive_include:
+  - /immich/upload/**
+  - /immich/library/**
+  - /immich/profile/**
+  - /immich/incoming/**
+  - /filebrowser/**

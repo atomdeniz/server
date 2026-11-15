@@ -162,6 +162,10 @@
       tags:
         - backup
 
+    - role: archive
+      tags:
+        - archive
+
     - role: backrest
       tags:
         - backrest

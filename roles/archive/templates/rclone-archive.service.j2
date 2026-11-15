@@ -1,0 +1,10 @@
+[Unit]
+Description=Copy photos and files to the cold offsite archive
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/rclone-archive
+Nice=10
+IOSchedulingClass=idle
